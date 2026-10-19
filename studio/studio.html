@@ -77,6 +77,10 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
 .intel { display: grid; gap: 8px; font-size: 13px; } .intel b { font-weight: 700; }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; } .chip { font-size: 12px; border: 1.5px solid var(--line); border-radius: 999px; padding: 3px 9px; }
 .xpost { border-left: 3px solid var(--accent); padding: 4px 10px; font-size: 13px; } .xpost a { color: var(--muted); font-size: 12px; }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.preset { display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid var(--line); border-radius: 999px; padding: 4px 10px 4px 4px; background: var(--card); cursor: pointer; font: 600 12px var(--body); color: var(--ink); }
+.preset i { display: inline-block; width: 14px; height: 14px; border-radius: 50%; margin-right: -4px; border: 1.5px solid var(--card); }
+.preset:hover { border-color: var(--accent); }
 .kit { display: grid; gap: 12px; } .kit img { width: 100%; max-width: 420px; border: 1.5px solid var(--line); border-radius: 12px; display: block; }
 .kit video { width: 100%; max-width: 360px; border-radius: 12px; border: 1.5px solid var(--line); display: block; background: #000; }
 .kit .files { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
@@ -133,6 +137,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
           <label for="wantTicker">Ticker <small>optional</small><input id="wantTicker" maxlength="10" placeholder="ROUTE"></label>
           <div style="grid-column:1/-1;display:grid;gap:6px"><b style="font-size:13px">Colors <small style="font-weight:400;color:var(--muted)">pick up to five, or leave them and Claude picks a scheme</small></b>
             <div class="row" id="wantColors"></div>
+            <div class="presets" id="wantPresets"></div>
             <label for="wantFinish">Finish<select id="wantFinish" class="sel"></select></label></div>
           <label for="wantX">X link <small>optional</small><input id="wantX" type="url" placeholder="https://x.com/…"></label>
           <label for="wantTg">Telegram <small>optional</small><input id="wantTg" type="url" placeholder="https://t.me/…"></label>
@@ -169,6 +174,15 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
         </div>
       </section>
 
+      <section class="card" id="colorCard" hidden>
+        <h2>Colors &amp; finish</h2>
+        <p class="muted">Pick up to five colors (click a swatch; right-click turns it off), a preset, or Random, and a finish. The preview on the right updates on its own.</p>
+        <div class="row" id="eColors"></div>
+        <div class="presets" id="ePresets"></div>
+        <label for="eFinish">Finish<select id="eFinish" class="sel"></select></label>
+        <p class="muted" id="colorState"></p>
+      </section>
+
       <section class="card" id="kitCard" hidden>
         <div class="row" style="justify-content:space-between"><h2>Content kit</h2><button class="btn" id="kitBtn" type="button">Make the content kit</button></div>
         <p class="muted">The X profile picture, the X banner, one intro video for X, the posts to go with them and exactly how to post. Claude writes and designs it all; the server renders the MP4s. It takes several minutes.</p>
@@ -191,9 +205,6 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
         </div>
         <label for="eMech">How the game / tool works<textarea id="eMech" maxlength="500"></textarea></label>
         <label for="ePerk">Holder perk <small>badge, cosmetic, leaderboard spot — never payouts</small><input id="ePerk" maxlength="200"></label>
-        <div style="display:grid;gap:6px"><b style="font-size:13px">Colors <small style="font-weight:400;color:var(--muted)">up to five; the first is the main one</small></b>
-          <div class="row" id="eColors"></div>
-          <label for="eFinish">Finish<select id="eFinish" class="sel"></select></label></div>
         <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="eDesk" style="width:auto"> Show the pump.fun launch desk on the site <small>(off = the site is the coin's home and its product; you launch the token wherever you launch)</small></label>
         <label for="eLore">Lore <small>paragraphs separated by a blank line</small><textarea id="eLore" rows="5"></textarea></label>
         <label for="eHow">How it works <small>one step per line: Title: sentence</small><textarea id="eHow" rows="4"></textarea></label>
@@ -346,7 +357,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
   function open(r) {
     cur = r;
     const c = r.config;
-    $("resultCard").hidden = $("editCard").hidden = $("deployCard").hidden = $("kitCard").hidden = false;
+    $("resultCard").hidden = $("editCard").hidden = $("deployCard").hidden = $("kitCard").hidden = $("colorCard").hidden = false;
     $("kit").textContent = ""; $("kitState").textContent = ""; $("kitErr").textContent = "";
     call("/api/studio/content/get", { id: r.id }).then(k => { if (k.content && cur && cur.id === r.id) renderKit(k.content); }).catch(() => {});
     $("resBrand").textContent = (c.emoji || "") + " " + c.brand + "  ·  $" + c.coin.ticker;
@@ -582,7 +593,39 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     box.append(el("button", { type: "button", className: "btn alt small", textContent: "Clear", onclick: () => setColors(id, []) }));
   }
   const pickedColors = id => [...$(id).querySelectorAll("input[type=color]")].filter(i => i.dataset.on).map(i => i.value);
+  // one-click palettes, with a finish each, plus Random
+  const PRESETS = [
+    ["Galaxy", ["#7c4dff", "#00d1ff", "#ff4fd8"], "galaxy"], ["Sunset", ["#ff6a2b", "#ff3d7f", "#ffd23f"], "sunset"], ["Retro", ["#f94144", "#f8961e", "#43aa8b"], "retro"],
+    ["Matte black", ["#2b2d42", "#8d99ae", "#ef233c"], "matte"], ["Ombre ocean", ["#0077b6", "#00b4d8", "#90e0ef"], "ombre"], ["Neon", ["#39ff14", "#ff00e6", "#00f0ff"], "neon"],
+    ["Pastel", ["#ffadad", "#bdb2ff", "#a0e7e5"], "pastel"], ["Holo", ["#c77dff", "#72efdd", "#ffd6ff"], "holographic"], ["Vaporwave", ["#ff71ce", "#01cdfe", "#b967ff"], "vaporwave"],
+    ["Candy", ["#ff4fa3", "#36d399", "#ffd23f"], "candy"], ["Earthy", ["#bc6c25", "#606c38", "#dda15e"], "earthy"], ["Y2K", ["#a0c4ff", "#ffc6ff", "#caffbf"], "y2k"],
+    ["Gold & black", ["#ffc300", "#1d1d1d", "#ff8800"], "matte"], ["Mono blue", ["#3a86ff", "#3a86ff", "#3a86ff"], "monochrome"],
+  ];
+  const hsl2hex = (h, s, l) => { const f = n => { const k = (n + h / 30) % 12, a = s * Math.min(l, 1 - l); return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)))).toString(16).padStart(2, "0"); }; return "#" + f(0) + f(8) + f(4); };
+  function randomPalette() {
+    const h = Math.random() * 360, schemes = [[0, 150, 210], [0, 120, 240], [0, 30, 60], [0, 180, 200], [0, 90, 270]], sc = schemes[Math.floor(Math.random() * schemes.length)];
+    const finishes = ["", "matte", "galaxy", "ombre", "retro", "neon", "pastel", "holographic", "sunset", "candy", "y2k", "vaporwave"];
+    return [sc.map((d, i) => hsl2hex((h + d) % 360, 0.65 + Math.random() * 0.3, 0.45 + i * 0.07 + Math.random() * 0.1)), finishes[Math.floor(Math.random() * finishes.length)]];
+  }
+  function presets(boxId, colorsId, finishId, after) {
+    const box = $(boxId); box.textContent = "";
+    const chipFor = (name, cols, fin) => { const b = el("button", { type: "button", className: "preset", title: name + (fin ? " · " + fin : "") });
+      cols.forEach(c => { const i = document.createElement("i"); i.style.background = c; b.append(i); }); b.append(" " + name);
+      b.onclick = () => { setColors(colorsId, cols); $(finishId).value = fin; after && after(); }; return b; };
+    PRESETS.forEach(([n, c, f]) => box.append(chipFor(n, c, f)));
+    box.append(el("button", { type: "button", className: "preset", textContent: "🎲 Random", onclick: () => { const [c, f] = randomPalette(); setColors(colorsId, c); $(finishId).value = f; after && after(); } }));
+  }
   setColors("wantColors", []);
+  presets("wantPresets", "wantColors", "wantFinish");
+  // the editor's colors save themselves (debounced) so the preview shows the new look right away
+  let colorTimer = null;
+  function colorsChanged() {
+    clearTimeout(colorTimer); $("colorState").textContent = "Updating the preview…";
+    colorTimer = setTimeout(() => { $("saveBtn").click(); setTimeout(() => { $("colorState").textContent = "Saved. Deploy to put it on the live site."; }, 900); }, 500);
+  }
+  presets("ePresets", "eColors", "eFinish", colorsChanged);
+  $("eColors").addEventListener("input", colorsChanged); $("eColors").addEventListener("contextmenu", () => setTimeout(colorsChanged, 0));
+  $("eFinish").addEventListener("change", colorsChanged);
   // the fields the launch form of any platform asks for, ready to copy
   function launchFields(c) {
     const box = $("launchFields"); box.textContent = "";
