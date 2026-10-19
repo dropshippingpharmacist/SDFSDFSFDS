@@ -241,6 +241,14 @@ details + details { margin-top: 10px; } summary { font-weight: 800; cursor: poin
   const maxBuy = Number(C.maxDevBuySol ?? 5);
   $("devBuy").value = String(C.defaultDevBuySol ?? 0); $("devBuy").max = String(maxBuy);
   set("devBuyHint", `0 to ${maxBuy}; 0 = launch without buying`);
+  // Launchpad Studio opens this page with the coin's details filled in (?draft=ID&name=…); the CA goes back to the draft
+  const Q = new URLSearchParams(location.search);
+  const draftId = /^\d+$/.test(Q.get("draft") || "") ? Q.get("draft") : null;
+  for (const f of ["name", "symbol", "description", "twitter", "telegram", "website"]) if (Q.get(f)) $(f).value = Q.get(f).slice(0, f === "description" ? 500 : 200);
+  async function tellStudio(ca) {
+    if (!draftId) return;
+    try { await fetch("/api/studio/launched", { method: "POST", headers: { "content-type": "application/json", "x-route": "1" }, body: JSON.stringify({ id: Number(draftId), ca }) }); } catch (e) { /* the Studio can take the CA by hand */ }
+  }
 
   // ---- the site sections (only when config.js has them: Launchpad Studio writes them)
   (function site() {
@@ -422,6 +430,7 @@ details + details { margin-top: 10px; } summary { font-weight: 800; cursor: poin
       else { say("Your coin is live.", "ok"); }
       step("live", "done");
       remember({ ca, name, symbol, at: Date.now() });
+      tellStudio(ca);
     } catch (e) {
       step(current, "fail");
       const m = String(e && e.message || e);

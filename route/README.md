@@ -6,7 +6,7 @@ One server runs all four parts:
 
 | path | what |
 |---|---|
-| `/` (and `/studio`) | **Launchpad Studio**, yours only behind `STUDIO_PASSWORD`: the Idea Maker, then an idea in and a branded launchpad site (with an optional game or utility) out, deployed to Vercel. See `studio/README.md` |
+| `/` (and `/studio`) | **Launchpad Studio**, yours only behind `STUDIO_PASSWORD`: Launch Intel, the Idea Maker, then an idea in and a branded launchpad site (with an optional game or utility) out, deployed to Vercel. Route itself is listed there under "Your sites". See `studio/README.md` |
 | `/route` | the $ROUTE coin site: hero, contract address + copy, Buy / Chart / X, lore, how it works, the game, how to buy, tokenomics, roadmap, safety, FAQ, socials |
 | `/app` | the Route app: accounts, mutual friends, "I'm heading to…", "I'm around here", crossing paths, pull-ups, ghost mode, blocking, and the link-up game |
 | `/launch/` | the launchpad: anyone launches a real pump.fun coin from their own wallet |
@@ -39,11 +39,11 @@ Points are in-app only. They are not tokens and pay nothing; holding $ROUTE earn
 4. Optional variables:
    - `RPC_URL` (a free Helius RPC URL) makes the launchpad's sends more reliable than Solana's public node;
    - `NOMINATIM_URL` points place search somewhere other than OpenStreetMap's public server;
-   - the Studio's own settings (`STUDIO_PASSWORD`, `ANTHROPIC_API_KEY`, `VERCEL_TOKEN`, `DEXTOOLS_API_KEY`…) are listed
+   - the Studio's own settings (`STUDIO_PASSWORD`, `ANTHROPIC_API_KEY`, `VERCEL_TOKEN`, `DEXTOOLS_API_KEY`, `X_BEARER_TOKEN`…) are listed
      in `studio/README.md`.
 
-After you launch the coin, put its contract address in `route/public/route-config.js` (`ca`, `devBuyPercent`, `x`,
-`telegram`) and push. The Buy, Chart and Copy buttons switch on.
+After you launch the coin, open Route under "Your sites" in the Studio and save its contract address, dev buy %, X and
+Telegram. `/route` reads them from there; the Buy, Chart and Copy buttons switch on.
 
 ## Domain ideas
 

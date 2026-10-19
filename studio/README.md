@@ -5,6 +5,21 @@ live on Vercel. Out of ideas? The Idea Maker invents them from what is launching
 
 It is the home page of the Railway server: **`/`** (also `/studio`). See `route/README.md` to deploy that.
 
+## Launch Intel
+
+Press **Read the market**. The Studio keeps every coin the feeds show, for good, on the Railway volume:
+- **DexScreener:** newest profiles and most boosted tokens, with each one's market cap, volume, liquidity, age and links;
+- **GeckoTerminal:** trending pools and brand-new pools;
+- **pump.fun:** the biggest coins, the king of the hill and the latest trades (when pump.fun answers);
+- **DEXTools:** hot pools and gainers, with `DEXTOOLS_API_KEY`;
+- **X:** the posts about pump.fun and Solana memecoin launches with the most traction, plus a search for your own focus,
+  with `X_BEARER_TOKEN`.
+
+It refreshes itself every 30 minutes. From the history it builds a playbook: themes right now and among the $1M+ coins,
+kinds (meme, game, utility, launchpad), how many winners have a website / X / Telegram, name and ticker length, the
+busiest launch hours, which coins are still around a day later, the biggest seen, what X is talking about, and the fixed
+facts of how pump.fun launches work. Every idea and every site is written from that playbook.
+
 ## Idea Maker
 
 Press **Find ideas** (optionally steer it: "cats", "AI agents", "sports"). It reads:
@@ -17,6 +32,17 @@ Press **Find ideas** (optionally steer it: "cats", "AI agents", "sports"). It re
 From that, Claude invents 6 original launchpads, games and utilities, each with a ticker, a mechanic, a holder perk
 and "why now". It doesn't copy what is trending. **Build this** fills the idea form. Without `ANTHROPIC_API_KEY`, a
 plain idea maker still gives you ideas built from the trend list.
+
+## Launching from the Studio
+
+Each site has a **launch checklist** (ticker free on DexScreener, site online, X, Telegram, the game or tool built,
+launched) and a **Launch this coin** button. It opens the launchpad with the name, ticker, intro and links filled in;
+when the coin is live, its contract address comes back to the draft by itself and the site's Buy / Chart / Copy
+buttons switch on after the next deploy. Tickers (yours and the backups) are checked on DexScreener: free, taken (with
+the coin's market cap and liquidity) or used before and dead.
+
+**Route** is in "Your sites" too. It runs on this server at `/route`, so there is no Vercel deploy for it; save its
+contract address, dev buy % and links in the Studio and `/route` updates on its own.
 
 ## Games and utilities
 
@@ -53,7 +79,8 @@ early access, labeled "planned". They are never payouts, airdrops or staking.
 |---|---|---|
 | `STUDIO_PASSWORD` | turning the Studio on | pick a long password; `/studio` asks for it |
 | `ANTHROPIC_API_KEY` | AI ideas, brands and copy, and the games/utilities | console.anthropic.com; without it a plain rule-based writer is used and there are no games |
-| `DEXTOOLS_API_KEY` | optional: DEXTools hot pools in the Idea Maker | developer.dextools.io |
+| `DEXTOOLS_API_KEY` | optional: DEXTools hot pools and gainers in Launch Intel | developer.dextools.io |
+| `X_BEARER_TOKEN` | optional: what X is saying, in Launch Intel and every idea | developer.x.com → your project → Keys and tokens → **Bearer Token** (the long `AAAA…` string; a paid Basic plan or higher is needed for search) |
 | `VERCEL_TOKEN` | the Deploy button | vercel.com/account/tokens |
 | `VERCEL_TEAM_ID` | deploying into a Vercel team | your team's settings page |
 
@@ -77,5 +104,6 @@ Buy, Chart and Copy buttons switch on.
 - the writer and the honesty filter;
 - the exact Vercel payload, checked against a mock Vercel;
 - domain checks;
-- the trend feeds, Idea Maker and mini-app sandbox rules, with mocks;
+- the trend feeds, Launch Intel, X, ticker checks, Idea Maker and mini-app sandbox rules, with mocks;
+- Route as a draft, the launchpad's contract-address hand-off;
 - the Studio's login → generate → edit → preview → deploy flow.

@@ -10,9 +10,10 @@ import crypto from "node:crypto";
 import { openDb, makeApi, err } from "./db.mjs";
 import { generate, honest } from "../studio/generate.mjs";
 import { deploy, checkDomain, configJs, slugify } from "../studio/deploy.mjs";
-import { trends, coinStats } from "../studio/trends.mjs";
+import { trends, coinStats, tickerTaken } from "../studio/trends.mjs";
 import { makeIdeas, ideaPrompt } from "../studio/ideas.mjs";
 import { makeMiniApp } from "../studio/miniapp.mjs";
+import { ensureIntel, record, xPosts, recordX, playbook, intelText } from "../studio/intel.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(HERE, "public");
@@ -25,7 +26,7 @@ const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; ch
                 ".css": "text/css", ".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml",
                 ".json": "application/json", ".ico": "image/x-icon", ".webp": "image/webp" };
 
-export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now } = {}) {
+export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, background = !process.env.NODE_TEST_CONTEXT } = {}) {
   const db = openDb(dbFile);
   const api = makeApi(db, now);
   const hits = new Map();                         // ip:bucket -> [times]
@@ -52,11 +53,48 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now } =
     return { ...r, config: JSON.parse(r.config), meta: JSON.parse(r.meta), stats: r.stats ? JSON.parse(r.stats) : null };
   };
   const summary = r => {
-    const c = JSON.parse(r.config);
+    const c = JSON.parse(r.config), m = JSON.parse(r.meta);
     return { id: r.id, brand: c.brand, ticker: c.coin?.ticker, kind: c.product?.kind || "launchpad", idea: r.idea,
              note: r.note || "", rating: r.rating || 0, url: r.url, ca: c.coin?.ca || "", stats: r.stats ? JSON.parse(r.stats) : null,
-             app: !!r.app, updated: r.updated };
+             app: !!r.app, updated: r.updated, builtin: m.builtin || null, preview: m.builtin === "route" ? "/route" : `/studio/p/${r.id}/` };
   };
+  // Route, the site this server already runs at /route, is a draft too: edit its CA and links here, they show up on /route
+  const routeDraft = () => db.prepare("SELECT * FROM studio_drafts WHERE json_extract(meta, '$.builtin') = 'route' LIMIT 1").get();
+  if (!routeDraft()) {
+    const t = Date.now();
+    const cfg = {
+      brand: "Route", tagline: "See where your friends are headed. Cross paths on purpose.", emoji: "🧭",
+      about: "Route is a free app where friends see where each other are heading, pull up, and score points for actually linking up. $ROUTE is its coin, launched on pump.fun from the dev's own wallet.",
+      colors: { accent: "#ff5a1f", accentInk: "#ffffff", light: "#fff8f1", dark: "#140f22" }, display: "Unbounded", maxDevBuySol: 5, defaultDevBuySol: 0.1,
+      coin: { ticker: "ROUTE", ca: "", x: "", telegram: "", devBuyPercent: null },
+      lore: ["Same county. Never see each other. Everyone is always 'heading somewhere' and nobody says where. Route fixes the one thing group chats never did: it shows your friends where you are headed, before you get there.",
+             "Share a route, see who is crossing your path, pull up. Every real link-up scores points, streaks and badges. The map is friends-only, rounded to a neighborhood, and everything expires."],
+      how: [{ title: "Add your friends", text: "Both sides add each other; nobody else ever sees you." },
+            { title: "Share where you're heading", text: "A place and a time window, rounded to about a kilometer." },
+            { title: "Cross paths, pull up", text: "Route tells you when a friend is heading near you. One tap to pull up." },
+            { title: "Link up, score", text: "Both tap 'We linked up': points, streaks and badges." }],
+      roadmap: [{ status: "live", title: "Route, the app", items: ["Friends-only routes and 'I'm around here' pins", "Crossing paths, pull-ups and the link-up game", "The pump.fun launchpad at /launch/"] },
+                { status: "next", title: "Building next", items: ["Group routes", "Share cards for X"] }, { status: "idea", title: "Further out", items: ["City leaderboards"] }],
+      product: { kind: "game", name: "Route", mechanic: "Share where you're heading, see which friends cross your path, pull up, and both tap 'We linked up' for points, streaks and badges.", holderPerk: "", app: false },
+      faq: [{ q: "What is Route?", a: "A free app for friends to see where each other are heading and actually meet. $ROUTE is its memecoin." },
+            { q: "Does the app need the coin?", a: "No. Route is free and holding $ROUTE earns nothing in the app." },
+            { q: "Is this financial advice?", a: "No. Memecoins can go to zero in minutes. Only spend what you can afford to lose." }],
+    };
+    db.prepare("INSERT INTO studio_drafts (idea, config, meta, url, created, updated) VALUES (?, ?, ?, ?, ?, ?)")
+      .run("Route: an app where friends see where each other are heading, pull up, and score points for linking up. $ROUTE is its coin.",
+           JSON.stringify(cfg), JSON.stringify({ builtin: "route", domains: [], tickerBackups: ["ROUTED", "PULLUP", "LINKUP"], source: "you", note: null, removed: [] }), "/route", t, t);
+  }
+  ensureIntel(db);
+  // Launch Intel: keep learning from the feeds and X in the background (every 30 minutes), so the history builds up
+  const refreshIntel = async (focus = "", force = true) => {
+    const tr = await trends({ force }); record(db, tr.items);
+    const xp = await xPosts({ focus, force }); if (xp.posts.length) recordX(db, xp.posts);
+    return { trends: tr, x: xp };
+  };
+  if (background) {
+    const tick = () => refreshIntel().catch(e => console.error("[intel]", e.message));
+    setTimeout(tick, 5000).unref(); setInterval(tick, 30 * 60 * 1000).unref();
+  }
   // what the generators learn from: liked, disliked, and launched (with DexScreener results)
   const memory = () => {
     const rows = db.prepare("SELECT * FROM studio_drafts ORDER BY updated DESC LIMIT 200").all().map(summary);
@@ -156,20 +194,39 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now } =
     const t = Date.now();
     switch (p) {
       case "/api/studio/status":
-        return send(res, 200, { ai: !!process.env.ANTHROPIC_API_KEY, vercel: !!process.env.VERCEL_TOKEN, dextools: !!process.env.DEXTOOLS_API_KEY });
+        return send(res, 200, { ai: !!process.env.ANTHROPIC_API_KEY, vercel: !!process.env.VERCEL_TOKEN, dextools: !!process.env.DEXTOOLS_API_KEY, x: !!process.env.X_BEARER_TOKEN });
+      case "/api/studio/intel": {
+        // everything the Studio knows: refresh the feeds and X (cached 10 minutes), then the playbook
+        const got = await refreshIntel(String(b.focus || ""), !!b.refresh);
+        return send(res, 200, { playbook: playbook(db), sources: got.trends.ok, failed: got.trends.failed,
+                                x: { ok: got.x.ok, reason: got.x.reason, posts: got.x.posts.slice(0, 15) } });
+      }
+      case "/api/studio/ticker": {
+        const names = [...new Set((Array.isArray(b.tickers) ? b.tickers : [b.ticker]).map(t => String(t || "").toUpperCase()).filter(Boolean))].slice(0, 6);
+        return send(res, 200, { tickers: await Promise.all(names.map(t => tickerTaken(t))) });
+      }
+      case "/api/studio/launched": {
+        // the launchpad page reports the new coin's address back to its draft
+        const d = draft(b.id);
+        const ca = String(b.ca || "").trim();
+        if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(ca)) throw err(400, "That is not a Solana address.");
+        d.config.coin.ca = ca;
+        db.prepare("UPDATE studio_drafts SET config = ?, updated = ? WHERE id = ?").run(JSON.stringify(d.config), t, d.id);
+        return send(res, 200, { ok: true, ca });
+      }
       case "/api/studio/trends": {
         const tr = await trends({ force: !!b.refresh });
         return send(res, 200, { at: tr.at, ok: tr.ok, failed: tr.failed, items: tr.items.slice(0, 60) });
       }
       case "/api/studio/ideas": {
         if (limited("studio:ideas", 40, 36e5)) throw err(429, "40 idea rounds an hour is the limit. Try again later.");
-        const tr = await trends({ force: !!b.refresh });
-        const out = await makeIdeas(tr, { mem: memory(), focus: b.focus, n: Math.min(8, Math.max(3, Number(b.n) || 6)) });
+        const got = await refreshIntel(String(b.focus || ""), !!b.refresh);
+        const out = await makeIdeas(got.trends, { mem: memory(), focus: b.focus, intel: intelText(playbook(db)), n: Math.min(8, Math.max(3, Number(b.n) || 6)) });
         return send(res, 200, { ...out, prompts: out.ideas.map(ideaPrompt) });
       }
       case "/api/studio/generate": {
         if (limited("studio:gen", 30, 36e5)) throw err(429, "30 sites an hour is the limit. Try again later.");
-        const g = await generate(b.idea, { ticker: b.ticker, x: b.x, telegram: b.telegram, accent: b.accent, mem: memory() });
+        const g = await generate(b.idea, { ticker: b.ticker, x: b.x, telegram: b.telegram, accent: b.accent, mem: memory(), intel: intelText(playbook(db)) });
         const meta = { domains: g.domains, tickerBackups: g.tickerBackups, source: g.source, note: g.note, removed: g.removed };
         const r = db.prepare("INSERT INTO studio_drafts (idea, config, meta, created, updated) VALUES (?, ?, ?, ?, ?)")
           .run(g.idea, JSON.stringify(g.config), JSON.stringify(meta), t, t);
@@ -198,6 +255,7 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now } =
       }
       case "/api/studio/deploy": {
         const d = draft(b.id);
+        if (d.meta.builtin === "route") throw err(400, "Route already runs on this server at /route; it deploys with the repo.");
         const out = await deploy(d.config, b.slug || d.config.brand, { extra: d.app ? { "play.html": d.app } : {} });
         db.prepare("UPDATE studio_drafts SET url = ?, updated = ? WHERE id = ?").run(out.url, t, d.id);
         return send(res, 200, out);
@@ -207,7 +265,7 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now } =
       case "/api/studio/get": {
         const d = draft(b.id);
         return send(res, 200, { id: d.id, idea: d.idea, config: d.config, url: d.url, rating: d.rating || 0, note: d.note || "",
-                                hasApp: !!d.app, stats: d.stats, ...d.meta });
+                                hasApp: !!d.app, stats: d.stats, ...d.meta, preview: d.meta.builtin === "route" ? "/route" : `/studio/p/${d.id}/` });
       }
       case "/api/studio/app": {
         // Claude writes the site's game or utility (play.html); it can take a minute or two
@@ -268,6 +326,13 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now } =
       // the front door is the Launchpad Maker; Route's own coin site lives at /route
       if (p === "/" || p === "/studio") return await serveFile(res, path.join(STUDIO, "studio.html"), STUDIO);
       if (p === "/route") return await serveFile(res, path.join(PUBLIC, "index.html"), PUBLIC);
+      if (p === "/route-config.js") {
+        // the Route draft in the Studio is the source of truth for the coin's address and links
+        const r = routeDraft(), c = r ? JSON.parse(r.config).coin : {};
+        const cfg = { ticker: c.ticker || "ROUTE", ca: c.ca || "", devBuyPercent: c.devBuyPercent ?? null, x: c.x || "", telegram: c.telegram || "", appUrl: "/app", launchUrl: "/launch/" };
+        res.writeHead(200, { "content-type": "text/javascript; charset=utf-8", "cache-control": "no-store" });
+        return res.end("window.ROUTE = " + JSON.stringify(cfg) + ";\n");
+      }
       const sp = /^\/studio\/p\/(\d+)\/(.*)$/.exec(p);
       if (sp) {
         if (!studioOk(req)) { res.writeHead(401, { "content-type": "text/plain" }); return res.end("Sign in to the Studio first."); }

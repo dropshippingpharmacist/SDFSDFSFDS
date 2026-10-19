@@ -148,6 +148,7 @@ export async function generate(idea, opts = {}, client = null) {
         system: SYSTEM,
         messages: [{ role: "user", content: `The idea:\n${text}` +
           (opts.ticker ? `\nThe owner wants the ticker $${opts.ticker}.` : "") +
+          (opts.intel ? `\n\nWhat the Studio knows about launches right now (use it for the angle, the copy and the FAQ; never copy a live coin):\n${opts.intel}` : "") +
           (memoryText(opts.mem) ? `\n\nWhat this builder liked, disliked and launched before (lean toward what worked):\n${memoryText(opts.mem)}` : "") }],
       });
       if (response.stop_reason === "refusal") note = "The model declined this idea; the plain writer was used.";

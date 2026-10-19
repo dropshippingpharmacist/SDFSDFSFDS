@@ -206,3 +206,124 @@ test("the deploy ships play.html when the site has a game or tool", async () => 
   const names = body.files.map(f => f.file);
   assert.ok(names.includes("play.html") && !names.includes("../evil"));
 });
+
+// ---- Launch Intel, X, ticker checks, Route as a draft, the launch hand-off (2026-10-19) ---------------------------
+import { DatabaseSync } from "node:sqlite";
+import { tickerTaken } from "../trends.mjs";
+import { record, playbook, intelText, xPosts, recordX, resetX, themeOf, kindOf, LESSONS } from "../intel.mjs";
+
+const PAIR = (addr, name, sym, mc, liq, extra = {}) => ({ chainId: "solana", dexId: "pumpswap", url: "https://dexscreener.com/solana/" + addr, pairCreatedAt: Date.UTC(2026, 9, 18, 21),
+  baseToken: { address: addr, name, symbol: sym }, marketCap: mc, volume: { h24: mc / 2 }, liquidity: { usd: liq }, priceChange: { h24: 12 },
+  info: { websites: [{ url: "https://" + sym.toLowerCase() + ".fun" }], socials: [{ type: "twitter", url: "https://x.com/" + sym }] }, ...extra });
+const richFeeds = () => feeds({
+  "tokens/v1/solana": [PAIR("Ca1Ca1Ca1Ca1Ca1Ca1Ca1Ca1Ca1Ca1Ca1Ca1", "Bank Cat", "BANKCAT", 2_400_000, 90_000)],
+  "token-profiles": [{ chainId: "solana", tokenAddress: "Ca1Ca1Ca1Ca1Ca1Ca1Ca1Ca1Ca1Ca1Ca1Ca1", description: "a cat that runs a bank", links: [{ type: "telegram", url: "https://t.me/bankcat" }] }],
+  "new_pools": { data: [{ attributes: { name: "FROGPAD / SOL", fdv_usd: "40000", reserve_in_usd: "9000", pool_created_at: "2026-10-19T01:00:00Z" } }] },
+});
+
+test("trends: pair stats, links and feeds merge into one row per coin; new pools join trending ones", async () => {
+  resetTrends();
+  const t = await trends({ fetchImpl: richFeeds(), force: true });
+  const cat = t.items.find(x => x.symbol === "BANKCAT");
+  assert.ok(cat, "the profile got its name and ticker from the pair stats");
+  assert.equal(cat.mcUsd, 2_400_000); assert.equal(cat.liqUsd, 90_000);
+  assert.deepEqual([cat.website, cat.x, cat.telegram], ["https://bankcat.fun", "https://x.com/BANKCAT", "https://t.me/bankcat"], "profile links + pair socials");
+  assert.ok(t.items.some(x => x.symbol === "FROGPAD" && x.source === "GeckoTerminal new" && x.liqUsd === 9000));
+});
+
+test("intel: launches are kept for good with peaks and first/last seen, and the playbook reads them", () => {
+  const db = new DatabaseSync(":memory:");
+  const t0 = Date.UTC(2026, 9, 17, 12);
+  const items = [
+    { address: "A1", name: "Bank Cat", symbol: "BANKCAT", description: "a cat that runs a bank", mcUsd: 500_000, website: "https://x.fun", x: "https://x.com/a", sources: ["DexScreener new", "pump.fun top"], createdAt: Date.UTC(2026, 9, 17, 21) },
+    { address: "A2", name: "Frogpad", symbol: "FROGPAD", description: "fair launch pad for frogs", mcUsd: 30_000, sources: ["GeckoTerminal new"], graduated: true },
+    { name: "Agent Arena", symbol: "ARENA", description: "ai agents battle in a browser game", mcUsd: 3_000_000, sources: ["DEXTools hot"], telegram: "https://t.me/x" },
+  ];
+  assert.equal(record(db, items, t0), 3);
+  record(db, [{ address: "A1", name: "Bank Cat", symbol: "BANKCAT", mcUsd: 1_800_000, sources: ["DexScreener boosted"] }], t0 + 30 * 36e5);
+  const pb = playbook(db, { now: t0 + 31 * 36e5 });
+  assert.equal(pb.launches, 3); assert.equal(pb.winners, 2, "peak market caps count, not the latest ones"); assert.equal(pb.graduated, 1);
+  const cat = pb.survivors[0];
+  assert.equal(cat.symbol, "BANKCAT"); assert.equal(cat.peakMc, 1_800_000); assert.equal(cat.hours, 30); assert.equal(cat.sources, 3, "every feed it was on is remembered");
+  assert.equal(pb.themes[0].name, "cats"); assert.ok(pb.kinds.some(k => k.name === "launchpad") && pb.kinds.some(k => k.name === "game"));
+  assert.deepEqual(pb.links.all, { website: 33, x: 33, telegram: 33 });
+  assert.equal(pb.bestHoursUtc[0].h, 21);
+  const text = intelText(pb);
+  assert.match(text, /3 coins tracked/); assert.match(text, /cats 33%/); assert.match(text, /Still around after 24h\+: Bank Cat/); assert.match(text, /bonding curve/);
+  assert.equal(themeOf("Moo Deng the hippo"), "other animals"); assert.equal(kindOf("a sniper terminal"), "utility"); assert.ok(LESSONS.length >= 8);
+});
+
+test("X: posts ranked by traction with X_BEARER_TOKEN, remembered, and in the playbook; nothing without the token", async () => {
+  resetX();
+  assert.deepEqual((await xPosts({ fetchImpl: async () => { throw new Error("must not call"); }, token: "" })).posts, []);
+  const calls = [];
+  const fx = async (u, init) => {
+    calls.push([String(u), init.headers.authorization]);
+    return new Response(JSON.stringify({ data: [
+      { id: "1001", text: "just launched $CATBANK on pump.fun, a cat that runs a bank", author_id: "u1", created_at: "2026-10-19T10:00:00Z", public_metrics: { like_count: 400, retweet_count: 50, reply_count: 30, impression_count: 90000 } },
+      { id: "1002", text: "memecoin szn is dead", author_id: "u2", public_metrics: { like_count: 3, retweet_count: 0, reply_count: 1 } },
+    ], includes: { users: [{ id: "u1", username: "catdev" }] } }), { status: 200 });
+  };
+  const r = await xPosts({ fetchImpl: fx, token: "tok", focus: "cats", force: true });
+  assert.ok(calls.length === 4 && calls.every(c => c[1] === "Bearer tok") && calls.some(c => /cats/.test(decodeURIComponent(c[0]))), "3 standing searches + the focus");
+  assert.equal(r.posts[0].id, "1001"); assert.equal(r.posts[0].url, "https://x.com/catdev/status/1001"); assert.equal(r.posts[0].score, 400 + 100 + 30 + 900);
+  const db = new DatabaseSync(":memory:");
+  recordX(db, r.posts);
+  const pb = playbook(db);
+  assert.equal(pb.x.total, 2); assert.equal(pb.x.posts[0].author, "catdev"); assert.equal(pb.x.themes[0].name, "cats");
+  assert.match(intelText(pb), /X right now.*CATBANK/);
+  const denied = await xPosts({ fetchImpl: async () => new Response("{}", { status: 401 }), token: "bad", force: true });
+  assert.equal(denied.ok, false); assert.match(denied.reason, /401/);
+});
+
+test("ticker check: taken when a Solana coin with that symbol has liquidity, dead when only rug dust, free otherwise", async () => {
+  const f = pairs => async () => new Response(JSON.stringify({ pairs }), { status: 200 });
+  const live = await tickerTaken("meow", f([PAIR("M1M1M1M1M1M1M1M1M1M1M1M1M1M1M1M1M1", "Meow", "MEOW", 900_000, 50_000), PAIR("M2", "Meow2", "MEOW", 10, 5), { ...PAIR("E1", "Eth", "MEOW", 1, 1), chainId: "ethereum" }]));
+  assert.equal(live.status, "taken"); assert.equal(live.coins.length, 2); assert.equal(live.coins[0].mcUsd, 900_000);
+  assert.equal((await tickerTaken("meow", f([PAIR("M2", "Meow2", "MEOW", 10, 5)]))).status, "dead");
+  assert.equal((await tickerTaken("meow", f([PAIR("X", "Other", "MEOWW", 1e6, 1e5)]))).status, "free");
+  assert.equal((await tickerTaken("meow", async () => { throw new Error("down"); })).status, "unknown");
+});
+
+test("Route is a draft under Your sites, its CA edits reach /route, the launchpad reports the CA back, intel over HTTP", async () => {
+  const { createServer } = await import("../../route/server.mjs");
+  process.env.STUDIO_PASSWORD = "correct horse";
+  const { server } = createServer({ dbFile: ":memory:", background: false });
+  await new Promise(r => server.listen(0, r));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  let cookie = "";
+  const post = async (p, b, c = cookie) => {
+    const r = await fetch(base + p, { method: "POST", headers: { "content-type": "application/json", "x-route": "1", cookie: c }, body: JSON.stringify(b || {}) });
+    const sc = r.headers.get("set-cookie"); if (sc) cookie = sc.split(";")[0];
+    return { status: r.status, ...(await r.json()) };
+  };
+  try {
+    await post("/api/studio/login", { password: "correct horse" });
+    const list = await post("/api/studio/list");
+    const route = list.drafts.find(d => d.builtin === "route");
+    assert.ok(route && route.ticker === "ROUTE" && route.preview === "/route" && route.url === "/route", "Route shows up as live on this server");
+    const g = await post("/api/studio/get", { id: route.id });
+    assert.equal(g.preview, "/route"); assert.deepEqual(g.tickerBackups, ["ROUTED", "PULLUP", "LINKUP"]);
+    assert.match(await (await fetch(base + "/route-config.js")).text(), /"ca":""/);
+    const edited = { ...g.config, coin: { ...g.config.coin, ca: "So1anaMintAddr3ss1111111111111111111pump", x: "https://x.com/route", devBuyPercent: "1.2" } };
+    assert.equal((await post("/api/studio/save", { id: route.id, config: edited })).status, 200);
+    const rc = await (await fetch(base + "/route-config.js")).text();
+    assert.match(rc, /"ca":"So1anaMintAddr3ss1111111111111111111pump"/); assert.match(rc, /"x":"https:\/\/x.com\/route"/); assert.match(rc, /"devBuyPercent":1.2/);
+    assert.equal((await fetch(base + "/route")).status, 200);
+    const dep = await post("/api/studio/deploy", { id: route.id });
+    assert.equal(dep.status, 400); assert.match(dep.error, /already runs on this server/);
+    // a new draft, then the launchpad hands its contract address back
+    const n = await post("/api/studio/generate", { idea: "a frog arcade", ticker: "frogs" });
+    assert.equal((await post("/api/studio/launched", { id: n.id, ca: "nope" })).status, 400);
+    assert.equal((await post("/api/studio/launched", { id: n.id, ca: "So1anaMintAddr3ss2222222222222222222pump" }, "")).status, 401, "the owner's cookie is required");
+    assert.equal((await post("/api/studio/launched", { id: n.id, ca: "So1anaMintAddr3ss2222222222222222222pump" })).status, 200);
+    assert.equal((await post("/api/studio/get", { id: n.id })).config.coin.ca, "So1anaMintAddr3ss2222222222222222222pump");
+    const st = await post("/api/studio/status"); assert.equal(st.x, false);
+    const intel = await post("/api/studio/intel", {});
+    assert.equal(intel.status, 200); assert.ok(Array.isArray(intel.playbook.lessons) && intel.x.reason === "no X_BEARER_TOKEN");
+    const tk = await post("/api/studio/ticker", { tickers: ["frogs"] });
+    assert.equal(tk.status, 200); assert.equal(tk.tickers[0].ticker, "FROGS");
+    const launch = await (await fetch(base + "/launch/?draft=" + n.id + "&name=Frogs")).text();
+    assert.match(launch, /api\/studio\/launched/);
+  } finally { server.close(); delete process.env.STUDIO_PASSWORD; }
+});
