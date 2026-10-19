@@ -153,6 +153,8 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
         <div><b>Domains</b> <span class="muted">· checked against the registries</span></div>
         <div class="domains" id="domains"></div>
         <button class="btn alt small" id="checkBtn" type="button">Check availability</button>
+        <div class="row"><button class="btn small" id="suggestBtn" type="button">Suggest domains I can buy</button></div>
+        <div class="domains" id="suggestions"></div>
         <div class="row"><input id="ownDomain" placeholder="Any domain: vendo.fun" style="flex:1;min-width:160px" aria-label="A domain">
           <button class="btn alt small" id="quoteBtn" type="button">Price it</button><button class="btn alt small" id="attachBtn" type="button">Attach one I own</button></div>
         <p class="muted" id="domainState">Buy through Vercel right here: it is registered, attached to this site and used everywhere (launch fields, docs, GitBook) in one go. Deploy the site once first.</p>
@@ -646,6 +648,19 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
       $("domainState").textContent = "Buying " + q.domain + ", attaching it and redeploying… about a minute."; watchJobs(cur.id);
     } catch (e) { $("domainState").textContent = e.message; if (/owner details/.test(e.message)) $("ownerBox").open = true; }
   }
+  $("suggestBtn").addEventListener("click", async () => {
+    if (!cur) return;
+    const box = $("suggestions"); box.textContent = ""; $("suggestBtn").disabled = true; $("domainState").textContent = "Searching Vercel for names you can buy…";
+    try {
+      const r = await call("/api/studio/domain/suggest", { id: cur.id });
+      if (!r.domains.length) $("domainState").textContent = "Nothing free with these names. Type your own idea below and press Price it.";
+      else $("domainState").textContent = r.domains.length + " available, cheapest first. Buy registers it, attaches it and puts it everywhere.";
+      r.domains.forEach(x => box.append(el("div", { className: "dom" }, el("code", { textContent: x.domain }),
+        el("span", { className: "st available", textContent: "$" + x.price.toFixed(2) + " first year · then $" + x.renewal.toFixed(2) + "/yr" }),
+        el("button", { className: "btn small", type: "button", textContent: "Buy", onclick: () => priceAndBuy(x.domain) }))));
+    } catch (e) { $("domainState").textContent = e.message; }
+    finally { $("suggestBtn").disabled = false; }
+  });
   $("quoteBtn").addEventListener("click", () => { const d = $("ownDomain").value.trim(); if (d) priceAndBuy(d); });
   $("attachBtn").addEventListener("click", async () => {
     const d = $("ownDomain").value.trim(); if (!cur || !d) return;
