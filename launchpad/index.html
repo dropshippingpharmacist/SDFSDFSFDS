@@ -143,10 +143,10 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -2; pointer-even
 .hero h1 { animation: rise .7s cubic-bezier(.2,.9,.2,1.2) both; } .hero p { animation: rise .7s .08s cubic-bezier(.2,.9,.2,1.2) both; }
 .hero .cabar, .hero .tickchip { animation: rise .7s .16s cubic-bezier(.2,.9,.2,1.2) both; }
 @keyframes rise { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: none; } }
-.tickchip { animation: rise .7s both, wiggle 3s 1s ease-in-out infinite; }
+.tickchip { animation: rise .7s both; }
 @keyframes wiggle { 0%, 100% { rotate: 0deg; } 25% { rotate: -2deg; } 75% { rotate: 2deg; } }
 .cabar .carow { position: relative; overflow: hidden; }
-.cabar .carow::after { content: ""; position: absolute; inset: -40% -60%; background: linear-gradient(115deg, transparent 40%, color-mix(in srgb, var(--accent) 35%, transparent) 50%, transparent 60%);
+.cabar .carow::after { display: none; content: ""; position: absolute; inset: -40% -60%; background: linear-gradient(115deg, transparent 40%, color-mix(in srgb, var(--accent) 35%, transparent) 50%, transparent 60%);
   animation: sheen 4s 2s ease-in-out infinite; pointer-events: none; }
 @keyframes sheen { 0%, 70% { transform: translateX(-60%); } 100% { transform: translateX(60%); } }
 .site > section { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s cubic-bezier(.2,.9,.2,1); }
@@ -169,6 +169,20 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -2; pointer-even
 [data-vibe="retro"] body::before, [data-vibe="retro"] #scene { filter: contrast(1.1) sepia(.15); }
 [data-vibe="clean"] #scene { opacity: .35; } [data-vibe="clean"] .btn, [data-vibe="clean"] .panel, [data-vibe="clean"] .cards > div { border-width: 2px; box-shadow: none; }
 .stats { font: 600 14px var(--mono); color: var(--muted); }
+/* the premium pass: the mark, more air, a pre-launch line */
+.brand #brandEmoji { display: inline-grid; width: 40px; height: 40px; } .brand #brandEmoji svg { width: 100%; height: 100%; display: block; }
+.brand span:first-child { animation: none; }
+.hero { padding-block: clamp(28px, 6vw, 72px) clamp(36px, 7vw, 88px); }
+.hero h1 { letter-spacing: -.01em; margin-bottom: 18px; }
+.hero p { font-size: clamp(17px, 2vw, 20px); line-height: 1.55; }
+.site { gap: clamp(56px, 9vw, 112px); padding-block: clamp(56px, 8vw, 96px) 24px; }
+.soon { margin: 6px 0 8px; font-weight: 600; color: inherit; line-height: 1.5; }
+.soon a { color: inherit; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+.hero .ctas .btn:not(.ghost) { background: #0d0b14; color: #ffffff; border-color: #0d0b14; }
+.soon .dot { display: inline-block; vertical-align: middle; margin-right: 10px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); animation: ping 1.8s ease-out infinite; flex: none; }
+@keyframes ping { to { box-shadow: 0 0 0 12px transparent; } }
+@media (prefers-reduced-motion: reduce) { .hero .ctas .btn:not(.ghost) { background: #0d0b14; color: #ffffff; border-color: #0d0b14; }
+.soon .dot { animation: none; } }
 .alloc { display: grid; gap: 10px; max-width: 680px; margin-top: 8px; } .site h3 { font: 400 24px/1.1 var(--display); margin: 22px 0 6px; }
 .abar { position: relative; background: var(--card); border: 3px solid var(--line); border-radius: 12px; padding: 10px 14px; overflow: hidden; }
 .abar span { position: absolute; left: 0; top: 0; bottom: 0; background: color-mix(in srgb, var(--accent) 28%, transparent); transition: width .8s cubic-bezier(.2,.9,.2,1); }
@@ -227,7 +241,7 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -2; pointer-even
 .marquee { display: none; }
 html[data-layout="poster"], [data-layout="poster"] body { overflow-x: clip; }
 [data-layout="poster"] .hero { text-align: center; padding: 40px 16px 48px; margin-inline: calc(50% - 50vw); padding-inline: calc(50vw - 50%); background: var(--accent); color: var(--accent-ink); }
-[data-layout="poster"] .hero h1 { max-width: 16ch; margin-inline: auto; font-size: clamp(44px, 9vw, 96px); text-shadow: 6px 6px 0 color-mix(in srgb, var(--line) 60%, transparent); }
+[data-layout="poster"] .hero h1 { max-width: 16ch; margin-inline: auto; font-size: clamp(44px, 9vw, 96px); text-shadow: none; }
 [data-layout="poster"] .hero p { color: inherit; margin-inline: auto; font-size: 20px; }
 [data-layout="poster"] .hero .mascot { margin-inline: auto; width: clamp(140px, 26vw, 260px); }
 [data-layout="poster"] .cabar { margin-inline: auto; } [data-layout="poster"] .hero .ctas { justify-content: center; }
@@ -389,9 +403,19 @@ html[data-layout="poster"], [data-layout="poster"] body { overflow-x: clip; }
   document.documentElement.dataset.layout = ["classic", "poster", "split", "terminal", "magazine"].includes(C.layout) ? C.layout : "classic";
   if (C.mascot) { $("mascot").src = "mascot.svg"; $("mascot").hidden = false; }
   if (document.documentElement.dataset.layout === "poster") { const m = $("marquee"), t = ((C.brand || "") + "  ·  $" + ((C.coin || {}).ticker || "") + "  ·  " + (C.tagline || "") + "  ·  ").repeat(6); m.append(Object.assign(document.createElement("span"), { textContent: t + t })); }
-  if (C.emoji && !document.querySelector("link[rel=icon]")) { const l = document.createElement("link"); l.rel = "icon";
+  if (false && C.emoji && !document.querySelector("link[rel=icon]")) { const l = document.createElement("link"); l.rel = "icon";
     l.href = "data:image/svg+xml," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>" + [...C.emoji][0] + "</text></svg>"); document.head.append(l); }
-  set("brandName", C.brand || "Launchpad"); set("brandEmoji", C.emoji || "");
+  set("brandName", C.brand || "Launchpad");
+  // the brand mark: one bold drawn symbol per brand (the same marks the X avatar uses), never an emoji
+  const MARKS = ["M40 130 L85 85 L110 110 L160 60|M130 60 L160 60 L160 90", "M45 125 L100 65 L155 125", "M45 140 C70 60 130 60 155 140", "M115 40 L70 110 L105 110 L85 160 L135 90 L100 90 Z",
+    "M45 105 L85 145 L160 60", "M150 70 A55 55 0 1 1 150 130", "M70 50 L150 100 L70 150 Z", "M55 140 L55 110 M100 140 L100 85 M145 140 L145 60", "M35 100 C60 60 85 60 100 100 S140 140 165 100",
+    "M60 140 L140 60 M100 100 m-12 0 a12 12 0 1 0 24 0 a12 12 0 1 0 -24 0"];
+  let mh = 0; for (const ch of String(C.brand || "") + String((C.coin || {}).ticker || "")) mh = (mh * 31 + ch.charCodeAt(0)) >>> 0;
+  const markPaths = MARKS[mh % MARKS.length].split("|");
+  const markSvg = (fg, bg) => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">' + (bg ? '<rect width="200" height="200" rx="46" fill="' + bg + '"/>' : "") +
+    markPaths.map(d => { const f = /Z$/.test(d); return '<path d="' + d + '" fill="' + (f ? fg : "none") + '" stroke="' + fg + '" stroke-width="' + (f ? 8 : 26) + '" stroke-linecap="round" stroke-linejoin="round"/>'; }).join("") + "</svg>";
+  $("brandEmoji").innerHTML = markSvg("var(--accent-ink)", "var(--accent)");
+  { const l = document.createElement("link"); l.rel = "icon"; l.href = "data:image/svg+xml," + encodeURIComponent(markSvg("#ffffff", (C.colors || {}).accent || "#ff6a2b")); document.head.append(l); }
   set("tagline", C.tagline || "Launch a coin."); set("about", C.about || "");
   const maxBuy = Number(C.maxDevBuySol ?? 5);
   $("devBuy").value = String(C.defaultDevBuySol ?? 0); $("devBuy").max = String(maxBuy);
@@ -440,7 +464,13 @@ html[data-layout="poster"], [data-layout="poster"] body { overflow-x: clip; }
         } catch (e) { /* the chart button still works */ }
       };
       refresh(); setInterval(refresh, 60000);
-    } else { $("siteCopy").disabled = true; off($("siteBuy")); off($("siteChart")); $("siteBuy").textContent = "Buy at launch"; }
+    } else {
+      // before launch: no greyed-out buttons and no empty address box, one clear line about where the address appears
+      $("siteBuy").hidden = true; $("siteChart").hidden = true; document.querySelector("#caBar > small").hidden = true; document.querySelector("#caBar .carow").hidden = true;
+      const soon = mk("p", { className: "soon" }, mk("span", { className: "dot" }), coin.x ? "The contract address drops on " : "The contract address drops here at launch.");
+      if (coin.x) soon.append(mk("a", { href: coin.x, target: "_blank", rel: "noopener", textContent: "X" }), " and right here at launch.");
+      $("caBar").prepend(soon);
+    }
     if (coin.x) $("siteX").href = coin.x; else $("siteX").hidden = true;
     if (coin.telegram) $("siteTg").href = coin.telegram; else $("siteTg").hidden = true;
     $("siteCopy").addEventListener("click", () => {
@@ -497,7 +527,7 @@ html[data-layout="poster"], [data-layout="poster"] body { overflow-x: clip; }
       var holder = null;
       function tellApp() { if (frame && frame.contentWindow) frame.contentWindow.postMessage({ type: "holder", ...(holder || { holder: false, balance: 0, ticker: tk }) }, "*"); }
       section("product", pr.name || (pr.kind === "game" ? "The game" : pr.kind === "combo" ? "Play · Tools · Launch" : "The tool"), ...kids);
-      if (pr.app) { $("sitePlay").hidden = false; $("sitePlay").textContent = pr.kind === "game" ? "Play" : pr.kind === "combo" ? "Play" : "Try it"; }
+      if (pr.app) { $("sitePlay").hidden = false; $("sitePlay").textContent = pr.kind === "utility" ? "Try it" : "Play now"; $("sitePlay").className = "btn"; $("caBar").querySelector(".ctas").prepend($("sitePlay")); }
     }
     if ((C.lore || []).length) section("lore", "The lore", ...C.lore.map(t => mk("p", { textContent: t })));
     if ((C.how || []).length) section("how", "How " + (C.brand || "it") + " works",
@@ -600,7 +630,7 @@ html[data-layout="poster"], [data-layout="poster"] body { overflow-x: clip; }
     const ctx = cv.getContext("2d"); let w, h, dpr, px = 0, py = 0, hidden = false;
     const glyph = C.emoji || "🚀", accent = col.accent || "#ff6a2b";
     let sprite = null; if (C.mascot) { const im = new Image(); im.onload = () => { sprite = im; }; im.src = "mascot.svg"; }
-    const N = 42, dots = Array.from({ length: N }, (_, i) => ({ x: Math.random(), y: Math.random(), z: .25 + Math.random() * .75, r: Math.random() * 6.28, s: .2 + Math.random() * .8, e: i % 4 === 0, c: i % 3 }));
+    const N = 26, dots = Array.from({ length: N }, (_, i) => ({ x: Math.random(), y: Math.random(), z: .25 + Math.random() * .75, r: Math.random() * 6.28, s: .2 + Math.random() * .8, e: i % 4 === 0, c: i % 3 }));
     const size = () => { dpr = Math.min(2, devicePixelRatio || 1); w = cv.width = innerWidth * dpr; h = cv.height = innerHeight * dpr; };
     size(); addEventListener("resize", size);
     addEventListener("pointermove", e => { px = (e.clientX / innerWidth - .5) * 2; py = (e.clientY / innerHeight - .5) * 2; }, { passive: true });
@@ -617,8 +647,8 @@ html[data-layout="poster"], [data-layout="poster"] body { overflow-x: clip; }
         const X = ((d.x + px * .04 * d.z) * w), Y = ((d.y - sy * d.z + py * .04 * d.z) * h);
         const sc = d.z * dpr;
         ctx.save(); ctx.translate(X, Y); ctx.rotate(Math.sin(d.r) * .4); ctx.globalAlpha = .18 + d.z * .5;
-        if (d.e && sprite) { const s = 34 * sc; ctx.drawImage(sprite, -s / 2, -s / 2, s, s); }
-        else if (d.e) { ctx.font = `${Math.round(22 * sc)}px system-ui`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(glyph, 0, 0); }
+        if (d.e && sprite) { const s = 34 * sc; ctx.globalAlpha *= .5; ctx.drawImage(sprite, -s / 2, -s / 2, s, s); }
+        else if (d.e) { ctx.globalAlpha *= .35; ctx.beginPath(); ctx.arc(0, 0, 4 * sc, 0, 6.28); ctx.fillStyle = col.accent2 || accent; ctx.fill(); }
         else { ctx.fillStyle = [accent, col.accent2 || accent, col.accent3 || accent][d.c]; ctx.beginPath(); ctx.arc(0, 0, 2.2 * sc, 0, 6.28); ctx.fill(); }
         ctx.restore();
       }

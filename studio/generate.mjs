@@ -202,21 +202,31 @@ const STOP = new Set("a an the for of to and with that this my our your launchpa
 export function rules(idea) {
   const words = String(idea || "").toLowerCase().match(/[a-z]{3,}/g) || [];
   const key = words.find(w => !STOP.has(w)) || "moon";
-  const brand = key[0].toUpperCase() + key.slice(1, 8) + (key.length > 5 ? "Pad" : "pad");
-  const theme = words.filter(w => !STOP.has(w)).slice(0, 4).join(" ") || key;
+  const named = /^\s*([A-Z][\w'-]{1,20}(?:\s[A-Z][\w'-]{1,20})?)\b/.exec(String(idea || ""));          // "Vendo, a snack machine…" -> Vendo
+  const kindOf = /three-in-one|\bcombo\b|game \+ utility|game, utility,? and launchpad/i.test(idea) ? "combo" : /\b(game|play|runner|arcade|quiz|puzzle)\b/i.test(idea) ? "game" : /\b(tool|utility|tracker|generator|calculator|bot)\b/i.test(idea) ? "utility" : "launchpad";
+  const brand = named ? named[1] : key[0].toUpperCase() + key.slice(1, 10);
+  const theme = words.filter(w => !STOP.has(w) && w !== brand.toLowerCase()).slice(0, 3).join(" ") || key;
   const t = brand.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 8);
+  const pick = list => list[(brand.length + theme.length) % list.length];
+  const tagline = { game: pick([`Easy to start. Hard to put down.`, `One more round. Always one more round.`, `Press start.`]),
+                    combo: pick([`Play it. Use it. Launch with it.`, `Three things, one place.`, `Play, build, launch.`]),
+                    utility: pick([`The tool you open every day.`, `Less guessing. More shipping.`, `Built to be used.`]),
+                    launchpad: pick([`Your coin, live in a minute.`, `Name it. Launch it.`, `The fastest way to ship a coin.`]) }[kindOf];
   return {
-    brand, tagline: `Launch a coin for the ${theme} crowd.`, emoji: "🚀", accent: ["#ff6a2b", "#ff4fa3", "#36d399", "#6c5ce7", "#f9c80e", "#00c2ff"][(brand.length + theme.length) % 6], display: "Bagel Fat One",
-    about: `${brand} is the launch site for ${theme}. Launch a coin from your own wallet in a minute, then let the ${theme} crowd find it.`,
+    brand, tagline, emoji: "🚀", accent: ["#ff6a2b", "#ff4fa3", "#36d399", "#6c5ce7", "#f9c80e", "#00c2ff"][(brand.length + theme.length) % 6], display: "Bagel Fat One",
+    about: { game: `${brand} is a ${theme} game you play right here, free, on any phone or laptop. Beat your best score, unlock the rest, and bring friends.`,
+             combo: `${brand} is a game, a tool and a launchpad in one place. Play a round, build your kit, and launch from your own wallet when you are ready.`,
+             utility: `${brand} is a ${theme} tool that does one job well. Open it, get your answer, and get back to building.`,
+             launchpad: `${brand} is where ${theme} coins start. Name it, add a picture, and launch from your own wallet in about a minute.` }[kindOf],
     ticker: t, ticker_backups: [t.slice(0, 5) + "PAD", "GO" + t.slice(0, 6)],
     domains: [brand.toLowerCase() + ".fun", brand.toLowerCase() + ".lol", "get" + brand.toLowerCase() + ".xyz",
               brand.toLowerCase() + ".app", "launch" + key + ".fun", brand.toLowerCase() + ".io"],
-    lore: [`Every corner of the internet has its ${theme} people. They kept asking for one place to launch their coins.`,
-           `${brand} is that place: pick a name, drop a picture, launch from your own wallet, and let the ${theme} crowd find it.`],
+    lore: [`It started as a side project between friends who were tired of tabs, spreadsheets and half-finished ideas. They wanted one place that felt good to open.`,
+           `${brand} is that place. It is simple on purpose, fast on purpose, and built so the next person who opens it wants to stay.`],
     how: HOW(brand), next: ["A page of the newest launches", "Share cards for X"], ideas: ["Themed launch weeks"],
-    kind: /three-in-one|\bcombo\b|game \+ utility|game, utility,? and launchpad/i.test(idea) ? "combo" : /\b(game|play|runner|arcade|quiz|puzzle)\b/i.test(idea) ? "game" : /\b(tool|utility|tracker|generator|calculator|bot)\b/i.test(idea) ? "utility" : "launchpad",
+    kind: kindOf,
     product_name: brand, mechanic: "", holder_perk: "",
-    faq: [{ q: `What is ${brand}?`, a: `The launch site for ${theme}: launch coins from your own wallet, themed around ${theme}.` },
+    faq: [{ q: `What is ${brand}?`, a: { game: `A ${theme} game you play in the browser, free.`, combo: `A game, a tool and a launchpad on one site.`, utility: `A ${theme} tool that runs in your browser.`, launchpad: `A launch site for ${theme} coins.` }[kindOf] },
           { q: "Does it hold my SOL or keys?", a: "No. Every launch is signed in your own wallet." }],
   };
 }
