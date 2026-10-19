@@ -484,6 +484,11 @@ test("content kit: the plan passes the honesty filter, the templates are complet
   assert.equal((await makeVisual("pfp", "x", cfg, { client: bad })).source, "template", "a page pulling images from the web is refused; the template is used");
   const good = { messages: { stream: () => ({ finalMessage: async () => ({ stop_reason: "end_turn", content: [{ type: "text", text: "```html\n<!doctype html><html><body><canvas id=\"c\"></canvas><script>window.DURATION=5;window.render=t=>{}</script></body></html>\n```" }] }) }) } };
   assert.equal((await makeVisual("video", "", cfg, { client: good, video: intro })).source, "claude");
+  let calls = 0;
+  const fussy = { messages: { stream: r => ({ finalMessage: async () => { calls++; if (r.output_config) throw Object.assign(new Error("bad"), { status: 400 });
+    return { stop_reason: "end_turn", content: [{ type: "text", text: "<!doctype html><html><body><div>ok</div></body></html>" }] }; } }) } };
+  const second = await makeVisual("pfp", "x", cfg, { client: fussy });
+  assert.equal(second.source, "claude"); assert.equal(calls, 2, "a 400 gets one plainer retry");
   assert.equal(typeof renderStatus().videos, "boolean"); assert.deepEqual(SIZES.banner, [1500, 500]);
   const { withFonts } = await import("../render.mjs");
   const page = await withFonts("<!doctype html><html><head><title>x</title></head><body>hi</body></html>");
