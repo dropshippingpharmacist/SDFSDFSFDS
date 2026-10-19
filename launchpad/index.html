@@ -165,12 +165,51 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -2; pointer-even
 .perkbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 10px 0 14px; }
 .perkbar .status { color: var(--muted); font-size: 14px; }
 .perkbar .status.on { color: var(--ok); font-weight: 700; }
+/* ---- five layouts: the same content, five structures (data-layout on <html>) */
+.mascot { display: block; width: clamp(96px, 18vw, 180px); height: auto; margin: 0 0 14px; filter: drop-shadow(6px 8px 0 color-mix(in srgb, var(--line) 35%, transparent)); animation: bob 3s ease-in-out infinite; }
+.marquee { display: none; }
+html[data-layout="poster"], [data-layout="poster"] body { overflow-x: clip; }
+[data-layout="poster"] .hero { text-align: center; padding: 40px 16px 48px; margin-inline: calc(50% - 50vw); padding-inline: calc(50vw - 50%); background: var(--accent); color: var(--accent-ink); }
+[data-layout="poster"] .hero h1 { max-width: 16ch; margin-inline: auto; font-size: clamp(44px, 9vw, 96px); text-shadow: 6px 6px 0 color-mix(in srgb, var(--line) 60%, transparent); }
+[data-layout="poster"] .hero p { color: inherit; margin-inline: auto; font-size: 20px; }
+[data-layout="poster"] .hero .mascot { margin-inline: auto; width: clamp(140px, 26vw, 260px); }
+[data-layout="poster"] .cabar { margin-inline: auto; } [data-layout="poster"] .hero .ctas { justify-content: center; }
+[data-layout="poster"] .marquee { display: block; overflow: hidden; white-space: nowrap; background: var(--line); color: var(--bg); font: 800 15px/1 var(--body); letter-spacing: .12em; text-transform: uppercase; padding: 10px 0; margin-inline: calc(50% - 50vw); padding-inline: calc(50vw - 50%); }
+[data-layout="poster"] .marquee span { display: inline-block; padding-right: 40px; animation: marquee 18s linear infinite; }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+[data-layout="poster"] .site { gap: 0; } [data-layout="poster"] .site > section { padding: 48px 0; }
+[data-layout="poster"] .site > section:nth-child(even) { background: color-mix(in srgb, var(--accent) 14%, var(--bg)); margin-inline: calc(50% - 50vw); padding-inline: calc(50vw - 50%); }
+[data-layout="poster"] .site h2 { text-align: center; font-size: clamp(34px, 6vw, 56px); } [data-layout="poster"] .site p { margin-inline: auto; text-align: center; }
+[data-layout="poster"] .cards { max-width: 980px; margin-inline: auto; }
+[data-layout="split"] .hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 28px; align-items: center; }
+[data-layout="split"] .hero .mascot { grid-column: 2; grid-row: 1 / span 4; width: min(100%, 360px); margin: 0 auto; transform: rotate(-6deg); border: 4px solid var(--line); border-radius: 28px; background: var(--card); padding: 24px; box-shadow: 14px 14px 0 var(--accent); }
+[data-layout="split"] .hero > *:not(.mascot) { grid-column: 1; }
+[data-layout="split"] .cards { grid-template-columns: minmax(0, 1fr); } [data-layout="split"] .cards > div { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 16px; align-items: start; border-width: 0 0 3px 0; border-radius: 0; background: transparent; }
+[data-layout="split"] .site h2 { border-left: 10px solid var(--accent); padding-left: 16px; }
+[data-layout="terminal"] { --bg: #06090c; --ink: #d9ffe7; --muted: #7aa58a; --card: #0b1218; --field: #0b1218; --line: var(--accent); --display: var(--mono); --body: var(--mono); color-scheme: dark; }
+[data-layout="terminal"] body::before { background: repeating-linear-gradient(0deg, transparent 0 2px, rgba(0,0,0,.25) 2px 3px); }
+[data-layout="terminal"] .btn, [data-layout="terminal"] .panel, [data-layout="terminal"] .cards > div, [data-layout="terminal"] .cabar .carow, [data-layout="terminal"] .abar, [data-layout="terminal"] .kv > div { border-radius: 0; border-width: 2px; box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent), 0 0 24px color-mix(in srgb, var(--accent) 20%, transparent); }
+[data-layout="terminal"] .hero h1 { font-size: clamp(28px, 5vw, 48px); text-transform: uppercase; letter-spacing: .02em; }
+[data-layout="terminal"] .hero h1::before { content: "> "; color: var(--accent); } [data-layout="terminal"] .hero h1::after { content: "▌"; color: var(--accent); animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+[data-layout="terminal"] .site h2::before { content: "## "; color: var(--accent); } [data-layout="terminal"] .mascot { filter: drop-shadow(0 0 18px var(--accent)); }
+[data-layout="magazine"] .hero { padding-top: 32px; border-top: 6px solid var(--ink); border-bottom: 1px solid var(--line); padding-bottom: 36px; }
+[data-layout="magazine"] .hero h1 { font-size: clamp(44px, 8vw, 88px); max-width: 14ch; letter-spacing: -.02em; }
+[data-layout="magazine"] .site { gap: 64px; } [data-layout="magazine"] .site > section { border-top: 1px solid var(--line); padding-top: 28px; counter-increment: sec; position: relative; }
+[data-layout="magazine"] .site { counter-reset: sec; } [data-layout="magazine"] .site h2::before { content: counter(sec, decimal-leading-zero); display: block; font: 800 13px/1 var(--body); letter-spacing: .2em; color: var(--accent); margin-bottom: 10px; }
+[data-layout="magazine"] .site h2 { font-size: clamp(34px, 5vw, 60px); max-width: 14ch; }
+[data-layout="magazine"] .site > section > p:first-of-type::first-letter { font: 400 3.2em/0.8 var(--display); float: left; margin: 8px 10px 0 0; color: var(--accent); }
+[data-layout="magazine"] .cards > div { background: transparent; border-width: 0 0 1px 0; border-radius: 0; padding-inline: 0; } [data-layout="magazine"] .btn { border-radius: 0; }
+[data-layout="magazine"] .mascot { float: right; width: clamp(90px, 14vw, 150px); margin: 0 0 10px 16px; }
+@media (max-width: 760px) { [data-layout="split"] .hero { grid-template-columns: minmax(0, 1fr); } [data-layout="split"] .hero .mascot { grid-column: 1; grid-row: auto; width: min(70%, 260px); }
+  [data-layout="split"] .cards > div { grid-template-columns: minmax(0, 1fr); } }
 @media (prefers-reduced-motion: reduce) {
-  .btn:hover:not(:disabled) { transform: none; } #scene { display: none; }
+  .btn:hover:not(:disabled) { transform: none; } #scene { display: none; } .mascot, .marquee span, [data-layout="terminal"] .hero h1::after { animation: none; }
   .hero h1, .hero p, .hero .cabar, .tickchip, .brand span:first-child, .cabar .carow::after { animation: none; }
   .site > section { opacity: 1; transform: none; transition: none; } .cards > div:hover { transform: none; }
 }
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 <canvas id="scene" aria-hidden="true"></canvas>
@@ -181,7 +220,9 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -2; pointer-even
   </header>
 
   <nav class="links-top" id="siteNav" aria-label="Sections" hidden></nav>
+  <div class="marquee" id="marquee" aria-hidden="true"></div>
   <section class="hero">
+    <img class="mascot" id="mascot" alt="" hidden>
     <span class="tickchip" id="heroTick" hidden></span>
     <h1 id="tagline"></h1>
     <p id="about"></p>
@@ -278,12 +319,17 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -2; pointer-even
   // ---- brand
   const col = C.colors || {};
   const root = document.documentElement.style;
+  const terminal = C.layout === "terminal";                 // the terminal look brings its own black and green
   if (col.accent) root.setProperty("--accent", col.accent);
-  if (col.accentInk) root.setProperty("--accent-ink", col.accentInk);
-  if (col.light) root.setProperty("--bg", col.light);
-  if (col.dark) root.setProperty("--bg-dark", col.dark);
+  if (col.accentInk && !terminal) root.setProperty("--accent-ink", col.accentInk);
+  if (col.light && !terminal) root.setProperty("--bg", col.light);
+  if (col.dark && !terminal) root.setProperty("--bg-dark", col.dark);
+  if (terminal) root.setProperty("--accent-ink", "#06090c");
   document.title = C.brand || "Launchpad";
   if (C.vibe) document.documentElement.dataset.vibe = C.vibe;
+  document.documentElement.dataset.layout = ["classic", "poster", "split", "terminal", "magazine"].includes(C.layout) ? C.layout : "classic";
+  if (C.mascot) { $("mascot").src = "mascot.svg"; $("mascot").hidden = false; }
+  if (document.documentElement.dataset.layout === "poster") { const m = $("marquee"), t = ((C.brand || "") + "  ·  $" + ((C.coin || {}).ticker || "") + "  ·  " + (C.tagline || "") + "  ·  ").repeat(6); m.append(Object.assign(document.createElement("span"), { textContent: t + t })); }
   if (C.emoji && !document.querySelector("link[rel=icon]")) { const l = document.createElement("link"); l.rel = "icon";
     l.href = "data:image/svg+xml," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>" + [...C.emoji][0] + "</text></svg>"); document.head.append(l); }
   set("brandName", C.brand || "Launchpad"); set("brandEmoji", C.emoji || "");
@@ -355,6 +401,7 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -2; pointer-even
       // under its own no-network policy, so it can never reach the wallet connection on this page
       const kids = [];
       if (pr.mechanic) kids.push(mk("p", { textContent: pr.mechanic }));
+      if (!pr.app) kids.push(mk("p", { className: "perk", textContent: (pr.kind === "game" ? "The game" : pr.kind === "combo" ? "The game, the tools and the launch kit" : "The tool") + " is being built right now and will appear right here. Check back in a few minutes." }));
       if (pr.holderPerk) kids.push(mk("p", {}, mk("span", { className: "perk", textContent: "Holder perk: " + pr.holderPerk })));
       let frame = null;
       if (pr.holderPerk && coin.ca) {
@@ -493,6 +540,7 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -2; pointer-even
     const cv = $("scene"); if (!cv || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const ctx = cv.getContext("2d"); let w, h, dpr, px = 0, py = 0, hidden = false;
     const glyph = C.emoji || "🚀", accent = col.accent || "#ff6a2b";
+    let sprite = null; if (C.mascot) { const im = new Image(); im.onload = () => { sprite = im; }; im.src = "mascot.svg"; }
     const N = 42, dots = Array.from({ length: N }, (_, i) => ({ x: Math.random(), y: Math.random(), z: .25 + Math.random() * .75, r: Math.random() * 6.28, s: .2 + Math.random() * .8, e: i % 4 === 0 }));
     const size = () => { dpr = Math.min(2, devicePixelRatio || 1); w = cv.width = innerWidth * dpr; h = cv.height = innerHeight * dpr; };
     size(); addEventListener("resize", size);
@@ -510,7 +558,8 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -2; pointer-even
         const X = ((d.x + px * .04 * d.z) * w), Y = ((d.y - sy * d.z + py * .04 * d.z) * h);
         const sc = d.z * dpr;
         ctx.save(); ctx.translate(X, Y); ctx.rotate(Math.sin(d.r) * .4); ctx.globalAlpha = .18 + d.z * .5;
-        if (d.e) { ctx.font = `${Math.round(22 * sc)}px system-ui`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(glyph, 0, 0); }
+        if (d.e && sprite) { const s = 34 * sc; ctx.drawImage(sprite, -s / 2, -s / 2, s, s); }
+        else if (d.e) { ctx.font = `${Math.round(22 * sc)}px system-ui`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(glyph, 0, 0); }
         else { ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(0, 0, 2.2 * sc, 0, 6.28); ctx.fill(); }
         ctx.restore();
       }

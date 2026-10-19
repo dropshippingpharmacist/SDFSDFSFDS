@@ -56,6 +56,7 @@ export async function deploy(cfg, slug, { fetchImpl = fetch, token = process.env
   for (const [name, text] of Object.entries(extra)) {           // e.g. play.html (the site's game or utility), og.png (the link preview)
     if (/^[a-z0-9-]+\.html$/.test(name) && text) files.push({ file: name, data: Buffer.from(text).toString("base64"), encoding: "base64" });
     if (/^[a-z0-9-]+\.png$/.test(name) && Buffer.isBuffer(text)) files.push({ file: name, data: text.toString("base64"), encoding: "base64" });
+    if (/^[a-z0-9-]+\.(css|svg)$/.test(name) && typeof text === "string") files.push({ file: name, data: Buffer.from(text).toString("base64"), encoding: "base64" });
   }
   const body = {
     name: slugify(slug), files, target: "production",

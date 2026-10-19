@@ -521,9 +521,9 @@ test("a new brand or ticker flows through every piece of copy; the site's buy li
 
   let body = null;
   const ff = async (u, init) => { body = JSON.parse(init.body); return new Response(JSON.stringify({ id: "d", alias: ["x.vercel.app"] }), { status: 200 }); };
-  await deploy(own, "x", { fetchImpl: ff, token: "t", extra: { "og.png": Buffer.from("png"), "play.html": "<!doctype html><html></html>", "evil.exe": Buffer.from("x") } });
+  await deploy(own, "x", { fetchImpl: ff, token: "t", extra: { "og.png": Buffer.from("png"), "play.html": "<!doctype html><html></html>", "evil.exe": Buffer.from("x"), "theme.css": ".a{}", "mascot.svg": "<svg/>" } });
   const names = body.files.map(f => f.file);
-  assert.ok(names.includes("og.png") && names.includes("play.html") && !names.includes("evil.exe"));
+  assert.ok(names.includes("og.png") && names.includes("play.html") && names.includes("theme.css") && names.includes("mascot.svg") && !names.includes("evil.exe"));
   const index = Buffer.from(body.files.find(f => f.file === "index.html").data, "base64").toString();
   assert.match(index, new RegExp(`<meta property="og:title" content="${own.brand} · \\$${own.coin.ticker}">`), "the link preview is baked into the deployed page");
 });
@@ -698,5 +698,59 @@ test("over HTTP: the book is written, served as docs.html / docs.zip to the owne
     assert.equal(gb2.status, 400); assert.match(gb2.error, /GITBOOK_TOKEN/);
     assert.equal((await fetch(base + "/public/book/nope-nope-nope-nope-nope.zip")).status, 404, "nothing is public");
     const s2 = await post("/api/studio/status"); assert.equal(s2.gitbook, false);
+  } finally { server.close(); delete process.env.STUDIO_PASSWORD; }
+});
+
+
+// ---- the look: layouts, the site's own stylesheet, the mascot (2026-10-19) -------------------------------------------
+import { cleanCss, cleanSvg, rulesLayout, makeTheme, LAYOUTS } from "../theme.mjs";
+
+test("the look: a layout per brand by default, Claude's stylesheet and mascot checked, nothing from the web", async () => {
+  const game = honest({ ...rules("cat runner game"), kind: "game" }, "x").config;
+  assert.equal(rulesLayout(game), "poster"); assert.equal(rulesLayout(honest({ ...rules("x"), kind: "utility" }, "x").config), "split");
+  assert.equal(rulesLayout({ brand: "AgentBot", about: "an ai agent", product: {} }), "terminal");
+  assert.ok(LAYOUTS.includes(rulesLayout({ brand: "Anything", about: "", product: { kind: "launchpad" } })));
+  assert.equal(cleanCss(".hero{background:url(https://evil/x.png)}"), "", "no web resources");
+  assert.equal(cleanCss("@import url(x.css); .a{}"), "");
+  assert.equal(cleanCss(".a{position:fixed;top:0}"), ".a{position: absolute;top:0}", "nothing may cover the page");
+  assert.ok(cleanCss(".hero{background:url(data:image/svg+xml,abc)} @keyframes x{to{rotate:1turn}}").includes("@keyframes"));
+  assert.equal(cleanSvg("<svg><script>x</script></svg>"), ""); assert.equal(cleanSvg("<svg><a href=\"https://x\">x</a></svg>"), "");
+  assert.match(cleanSvg("<?xml version=\"1.0\"?><svg viewBox=\"0 0 200 200\"><circle r=\"9\" fill=\"#f00\"/></svg>"), /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" viewBox/);
+  const th = await makeTheme(game, { client: fakeClaude({ layout: "magazine", css: ".hero{background:#111}", mascot_svg: "<svg viewBox=\"0 0 200 200\"><rect width=\"9\" height=\"9\"/></svg>", notes: "bold" }) });
+  assert.deepEqual([th.layout, th.css, th.source, th.notes], ["magazine", ".hero{background:#111}", "claude", "bold"]); assert.ok(th.svg.includes("<rect"));
+  const bad = await makeTheme(game, { client: fakeClaude({ layout: "nope", css: "@import url(x)", mascot_svg: "<svg onload=\"x()\"></svg>", notes: "" }) });
+  assert.equal(bad.layout, "poster"); assert.equal(bad.css, ""); assert.equal(bad.svg, "", "a bad answer falls back to the default look");
+  assert.equal((await makeTheme(game, {})).source, "rules", "no key: the default look");
+});
+
+test("over HTTP: the site carries its layout, the preview serves theme.css and mascot.svg, the deploy ships them", async () => {
+  const { createServer } = await import("../../route/server.mjs");
+  process.env.STUDIO_PASSWORD = "correct horse";
+  const { server, db } = createServer({ dbFile: ":memory:", background: false });
+  await new Promise(r => server.listen(0, r));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  let cookie = "";
+  const post = async (p, b) => {
+    const r = await fetch(base + p, { method: "POST", headers: { "content-type": "application/json", "x-route": "1", cookie }, body: JSON.stringify(b || {}) });
+    const sc = r.headers.get("set-cookie"); if (sc) cookie = sc.split(";")[0];
+    return { status: r.status, ...(await r.json()) };
+  };
+  try {
+    await post("/api/studio/login", { password: "correct horse" });
+    const g = await post("/api/studio/generate", { idea: "a cat runner game", ticker: "RUN" });
+    assert.equal(g.config.layout, "poster"); assert.equal(g.theme.layout, "poster"); assert.equal(g.theme.building, false);
+    assert.match(await (await fetch(base + `/studio/p/${g.id}/theme.css`, { headers: { cookie } })).text(), /default look/);
+    assert.equal((await fetch(base + `/studio/p/${g.id}/mascot.svg`, { headers: { cookie } })).status, 404);
+    db.prepare("UPDATE studio_drafts SET theme = ? WHERE id = ?").run(JSON.stringify({ css: ".hero{background:#123}", svg: "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><circle r=\"9\"/></svg>", layout: "magazine", source: "claude", notes: "" }), g.id);
+    const edited = { ...g.config, mascot: true, layout: "magazine" }; db.prepare("UPDATE studio_drafts SET config = ? WHERE id = ?").run(JSON.stringify(edited), g.id);
+    assert.equal(await (await fetch(base + `/studio/p/${g.id}/theme.css`, { headers: { cookie } })).text(), ".hero{background:#123}");
+    const svg = await fetch(base + `/studio/p/${g.id}/mascot.svg`, { headers: { cookie } });
+    assert.equal(svg.headers.get("content-type"), "image/svg+xml"); assert.match(await svg.text(), /<circle/);
+    const cfg = await (await fetch(base + `/studio/p/${g.id}/config.js`, { headers: { cookie } })).text();
+    assert.match(cfg, /"layout": "magazine"/); assert.match(cfg, /"mascot": true/);
+    const saved = await post("/api/studio/save", { id: g.id, config: { ...edited, tagline: "New line." } });
+    assert.equal(saved.config.layout, "magazine"); assert.equal(saved.config.mascot, true, "edits keep the look");
+    const page = await (await fetch(base + `/studio/p/${g.id}/`, { headers: { cookie } })).text();
+    assert.match(page, /href="theme\.css"/); assert.match(page, /id="mascot"/); assert.match(page, /data-layout="poster"\]/);
   } finally { server.close(); delete process.env.STUDIO_PASSWORD; }
 });
