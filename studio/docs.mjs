@@ -16,9 +16,7 @@ export function docSections(cfg) {
     list: [pr.holderPerk ? `Holder perk: ${pr.holderPerk} (unlocked on the site by connecting a wallet that holds ${tk})` : "", pr.app ? "Runs in the browser on the site; nothing to install." : ""].filter(Boolean) });
   if (cfg.how?.length) S.push({ id: "how", title: `How ${cfg.brand} works`, steps: cfg.how.map(h => `${h.title}: ${h.text}`) });
   S.push({ id: "tokenomics", title: "Tokenomics", list: [
-    "Total supply: 1,000,000,000", `Launched on: ${coin.launchedOn || (cfg.launchDesk === false ? "Solana, bonding-curve launch" : "pump.fun, bonding curve")}`,
-    "Tax: 0% buy, 0% sell", coin.devBuyPercent != null ? `Dev launch buy: ${coin.devBuyPercent}% of supply, public on-chain` : "Dev launch buy: public on-chain",
-    tn.devBuyPolicy ? `Dev buy policy: ${tn.devBuyPolicy}` : ""].filter(Boolean),
+    "Total supply: 1,000,000,000", "Team allocation: none held back; the whole supply is public from the first second"].filter(Boolean),
     body: tn.allocation?.length ? [`Where the money goes. ${tn.source || "Creator fees"} are split like this:`] : [],
     table: (tn.allocation || []).map(a => [`${a.pct}%`, a.name, a.what]) });
   if (cfg.roadmap?.length) S.push({ id: "roadmap", title: "Roadmap", groups: cfg.roadmap.map(ph => ({ title: ph.title || ph.status, items: ph.items })) });

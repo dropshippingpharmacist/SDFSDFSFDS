@@ -12,7 +12,7 @@ import { generate, honest, rename, tokenomics } from "../studio/generate.mjs";
 import { deploy, checkDomain, configJs, slugify } from "../studio/deploy.mjs";
 import { trends, coinStats, tickerTaken, registerLiveSource } from "../studio/trends.mjs";
 import { makeIdeas, ideaPrompt } from "../studio/ideas.mjs";
-import { makeMiniApp, polishMiniApp } from "../studio/miniapp.mjs";
+import { makeMiniApp, polishMiniApp, designMiniApp } from "../studio/miniapp.mjs";
 import { createPumpLive } from "../studio/pumplive.mjs";
 import { makeTheme, rulesLayout } from "../studio/theme.mjs";
 import { planContent, makeVisual, templateImage, templateVideo, SIZES, VIDEOS, HOW_TO_POST } from "../studio/content.mjs";
@@ -135,8 +135,11 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
     building.set(id, Date.now());
     try {
       const d = draft(id), pr = d.config.product || {};
-      const out = await makeMiniApp({ name: pr.name, kind: pr.kind === "launchpad" ? "launchpad" : pr.kind, pitch: d.config.tagline,
-                                      mechanic: pr.mechanic || d.idea, holderPerk: pr.holderPerk }, d.config);
+      const concept = { name: pr.name, kind: pr.kind === "launchpad" ? "launchpad" : pr.kind, pitch: d.config.tagline, mechanic: pr.mechanic || d.idea, holderPerk: pr.holderPerk };
+      // design -> build -> polish: three passes, so the game has modes, progression and content, not just a loop
+      const design = await designMiniApp(concept, d.config);
+      let out = await makeMiniApp(concept, d.config, { design });
+      if (!out.error) { const better = await polishMiniApp(out.html, concept, d.config); if (!better.error) out = better; }
       if (out.error) { db.prepare("UPDATE studio_drafts SET app_error = ? WHERE id = ?").run(out.error, id); building.delete(id); throw Object.assign(new Error(out.error), { status: 502 }); }
       d.config.product = { ...pr, kind: pr.kind === "launchpad" ? "utility" : (pr.kind || "game"), app: true };
       db.prepare("UPDATE studio_drafts SET app = ?, app_error = NULL, config = ?, updated = ? WHERE id = ?").run(out.html, JSON.stringify(d.config), Date.now(), id);
@@ -251,8 +254,8 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
     return `${w.pages.length} pages written` + (w.note ? ` (${w.note})` : "");
   }
   async function publishBook(id) {
-    let d = draft(id);
-    if (!d.book?.pages?.length) { await writeBook(id); d = draft(id); }    // the deep version goes to GitBook, never the plain one
+    await writeBook(id);                                                   // always from the site as it is right now
+    const d = draft(id);
     const out = await publishGitBook({ ...d.config, siteUrl: d.url }, d.book.pages, { existing: d.book.gitbook || null });
     const book = { ...d.book, gitbook: { at: Date.now(), ...out } };
     if (out.publishedUrl) d.config.docsUrl = out.publishedUrl;            // the site's GitBook button points at the coin's own book
@@ -524,7 +527,7 @@ async function makeKit(id) {
       if (p.startsWith("/api/studio/")) return await handleStudio(req, res, p);
       if (p.startsWith("/api/")) return await handleApi(req, res, p);
       // the front door is the Launchpad Maker; Route's own coin site lives at /route
-      if (p === "/" || p === "/studio") return await serveFile(res, path.join(STUDIO, "studio.html"), STUDIO);
+      if (p === "/" || p === "/studio") { res.setHeader("cache-control", "no-store"); return await serveFile(res, path.join(STUDIO, "studio.html"), STUDIO); }
       if (p === "/route") return await serveFile(res, path.join(PUBLIC, "index.html"), PUBLIC);
       if (p === "/route-config.js") {
         // the Route draft in the Studio is the source of truth for the coin's address and links

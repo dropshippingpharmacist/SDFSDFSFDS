@@ -21,7 +21,7 @@ const LIVE_PRODUCT = p => [p.kind === "game" ? `${p.name}, playable on this site
 
 const Site = z.object({
   brand: z.string(), tagline: z.string(), about: z.string(), emoji: z.string(),
-  accent: z.string(), display: z.enum(FONTS),
+  accent: z.string(), accent2: z.string(), accent3: z.string(), light: z.string(), dark: z.string(), display: z.enum(FONTS),
   ticker: z.string(), ticker_backups: z.array(z.string()),
   domains: z.array(z.string()),
   lore: z.array(z.string()),
@@ -50,7 +50,11 @@ Rules you never break:
 - "next" are things the owner could build next, written as plans; "ideas" are further-out ideas. 2-4 each.
 - brand: 1-2 words, catchy, easy to say. ticker: 3-10 capital letters, not an everyday word, related to the brand.
 - domains: 6 short domain names for the brand (.fun .lol .xyz .app .io .com), no hyphens.
-- accent: one hex color that fits the theme, readable with dark text on it. display: the font that fits best.
+- Colors, as hex: accent (the main one, readable with dark text on it), accent2 and accent3 (two more that work with
+  it: a complementary or triadic pair, a pop and a calm one; the site uses all three), light (a tinted page background,
+  never plain white) and dark (a deep page background for dark mode, tinted toward the accent). A palette with
+  character: candy pinks and mint, acid lime and violet, sunset orange and teal, not just one color and grey.
+  display: the font that fits best.
 - how: 3 or 4 steps of using the launchpad, each with a short title and one sentence.
 - faq: 4 to 6 questions a first-time visitor would ask, answered truthfully from the rules above.
 - allocation: where the money goes, 3-5 buckets that add up to 100 (e.g. product / the game, marketing, community &
@@ -92,7 +96,7 @@ export function honest(raw, idea, opts = {}) {
     tagline: keep(raw.tagline, 90) || `Launch a coin with ${brand}.`,
     about: keep(raw.about, 380) || `${brand} is a launch site with its own coin. Launch from your own wallet; your keys never leave it.`,
     emoji: [...String(raw.emoji || "🚀")][0] || "🚀",
-    colors: { accent, accentInk: inkFor(accent), light: "#fff8f1", dark: "#140f22" },
+    colors: palette(accent, raw),
     display: FONTS.includes(raw.display) ? raw.display : "Bagel Fat One",
     maxDevBuySol: 5, defaultDevBuySol: 0.1,
     coin: { ticker, ca: "", x: clean(opts.x, 200) || "", telegram: clean(opts.telegram, 200) || "", devBuyPercent: null,
@@ -151,6 +155,27 @@ export function tokenomics(raw, keep = (t, n) => clean(t, n)) {
   return { source: keep(raw.fee_source, 80) || "Creator fees from trading", allocation: alloc,
            devBuyPolicy: keep(raw.dev_buy_policy, 160) || "A small, public launch buy, held through the roadmap." };
 }
+const HEX = /^#[0-9a-f]{6}$/i;
+// three accents and two grounds: the writer's when they are colors, else derived from the accent by rotating its hue
+export function palette(accent, raw = {}) {
+  const [h, s, l] = hsl(accent);
+  const rot = (deg, sat = s, lig = l) => hex(((h + deg) % 360 + 360) % 360, sat, lig);
+  const pick = (v, fb) => HEX.test(v || "") ? v : fb;
+  return { accent, accentInk: inkFor(accent), accent2: pick(raw.accent2, rot(150, Math.min(1, s * 1.05), 0.62)), accent3: pick(raw.accent3, rot(-70, Math.min(1, s), 0.7)),
+           light: pick(raw.light, hex(h, 0.6, 0.96)), dark: pick(raw.dark, hex(h, 0.45, 0.1)) };
+}
+function hsl(hexStr) {
+  const n = parseInt(hexStr.slice(1), 16), r = (n >> 16) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2, d = max - min;
+  if (!d) return [0, 0, l];
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  const h = max === r ? ((g - b) / d + (g < b ? 6 : 0)) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [h * 60, s, l];
+}
+function hex(h, s, l) {
+  const f = n => { const k = (n + h / 30) % 12, a = s * Math.min(l, 1 - l); const v = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); return Math.round(v * 255).toString(16).padStart(2, "0"); };
+  return "#" + f(0) + f(8) + f(4);
+}
 function inkFor(hex) {
   const n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
   return (0.299 * r + 0.587 * g + 0.114 * b) > 140 ? "#1d1530" : "#ffffff";
@@ -175,7 +200,7 @@ export function rules(idea) {
   const theme = words.filter(w => !STOP.has(w)).slice(0, 4).join(" ") || key;
   const t = brand.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 8);
   return {
-    brand, tagline: `Launch a coin for the ${theme} crowd.`, emoji: "🚀", accent: "#ff6a2b", display: "Bagel Fat One",
+    brand, tagline: `Launch a coin for the ${theme} crowd.`, emoji: "🚀", accent: ["#ff6a2b", "#ff4fa3", "#36d399", "#6c5ce7", "#f9c80e", "#00c2ff"][(brand.length + theme.length) % 6], display: "Bagel Fat One",
     about: `${brand} is the launch site for ${theme}. Launch a coin from your own wallet in a minute, then let the ${theme} crowd find it.`,
     ticker: t, ticker_backups: [t.slice(0, 5) + "PAD", "GO" + t.slice(0, 6)],
     domains: [brand.toLowerCase() + ".fun", brand.toLowerCase() + ".lol", "get" + brand.toLowerCase() + ".xyz",
