@@ -248,7 +248,15 @@ export async function makeVisual(kind, brief, cfg, { client = null, video = null
     `\nHere is a plain template that already works; make yours clearly better:\n\`\`\`html\n${fallback.slice(0, 9000)}\n\`\`\``;
   try {
     const c = client || new Anthropic();
-    const msg = await withRetry(() => c.messages.stream({ model: MODEL, max_tokens: 32000, output_config: { effort: "high" }, system: VISUAL_SYSTEM, messages: [{ role: "user", content: ask }] }).finalMessage());
+    const req = { model: MODEL, max_tokens: 32000, output_config: { effort: "high" }, system: VISUAL_SYSTEM, messages: [{ role: "user", content: ask }] };
+    let msg;
+    try { msg = await withRetry(() => c.messages.stream(req).finalMessage()); }
+    catch (e) {
+      if (e?.status !== 400) throw e;
+      // a 400 is a request the API will not take as written: try once more in the plainest form (no effort setting, a smaller budget)
+      const { output_config: _o, ...plain } = req;
+      msg = await withRetry(() => c.messages.stream({ ...plain, max_tokens: 16000 }).finalMessage());
+    }
     const html = msg.stop_reason === "end_turn" ? extract(msg.content.filter(b => b.type === "text").map(b => b.text).join("")) : null;
     if (html && (!video || (/window\.render\s*=|function\s+render\s*\(/.test(html) && /id="c"/.test(html)))) return { html, source: "claude" };
     return { html: fallback, source: "template", note: "Claude's version failed the checks; the template was used." };
