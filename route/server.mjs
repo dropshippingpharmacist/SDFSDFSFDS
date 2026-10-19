@@ -114,6 +114,20 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
     const tick = () => refreshIntel().catch(e => console.error("[intel]", e.message));
     setTimeout(tick, 5000).unref(); setInterval(tick, 30 * 60 * 1000).unref();
   }
+  // Long work (a game, a look, the content kit, the docs, GitBook) never runs inside one HTTP request: Railway's proxy
+  // would cut it off. Each is a background job; the Studio asks /api/studio/jobs how they are doing.
+  const jobs = new Map();                              // "kind:id" -> { state, at, error, note }
+  const jobKey = (kind, id) => `${kind}:${id}`;
+  const jobRunning = (kind, id) => jobs.get(jobKey(kind, id))?.state === "running";
+  function runJob(kind, id, fn) {
+    const k = jobKey(kind, id);
+    if (jobs.get(k)?.state === "running") return false;
+    jobs.set(k, { state: "running", at: Date.now() });
+    fn().then(note => jobs.set(k, { state: "done", at: Date.now(), note: note || null }))
+        .catch(e => { console.error(`[job ${k}]`, e.message); jobs.set(k, { state: "error", at: Date.now(), error: e.status ? e.message : (e.message || "failed") }); });
+    return true;
+  }
+  const jobStates = id => Object.fromEntries(["app", "polish", "theme", "content", "book", "gitbook"].map(k => [k, jobs.get(jobKey(k, id)) || null]));
   // the game / tool / three-in-one is built right after the site, in the background; the Studio polls until it is there
   const building = new Map();                         // draft id -> started at
   async function buildApp(id) {
@@ -123,12 +137,13 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
       const d = draft(id), pr = d.config.product || {};
       const out = await makeMiniApp({ name: pr.name, kind: pr.kind === "launchpad" ? "launchpad" : pr.kind, pitch: d.config.tagline,
                                       mechanic: pr.mechanic || d.idea, holderPerk: pr.holderPerk }, d.config);
-      if (out.error) { db.prepare("UPDATE studio_drafts SET app_error = ? WHERE id = ?").run(out.error, id); building.delete(id); return; }
+      if (out.error) { db.prepare("UPDATE studio_drafts SET app_error = ? WHERE id = ?").run(out.error, id); building.delete(id); throw Object.assign(new Error(out.error), { status: 502 }); }
       d.config.product = { ...pr, kind: pr.kind === "launchpad" ? "utility" : (pr.kind || "game"), app: true };
       db.prepare("UPDATE studio_drafts SET app = ?, app_error = NULL, config = ?, updated = ? WHERE id = ?").run(out.html, JSON.stringify(d.config), Date.now(), id);
       building.delete(id);
-    } catch (e) { db.prepare("UPDATE studio_drafts SET app_error = ? WHERE id = ?").run(e.message, id); building.delete(id); }
+    } catch (e) { db.prepare("UPDATE studio_drafts SET app_error = ? WHERE id = ?").run(e.message, id); building.delete(id); throw e; }
   }
+  const startApp = id => runJob("app", id, () => buildApp(id));
   // the look: a layout, the site's own stylesheet and its mascot, designed in the background right after the site
   const styling = new Set();
   async function buildTheme(id) {
@@ -227,6 +242,57 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
     throw err(404, "No such endpoint.");
   }
 
+  // the docs: written by Claude, kept with the draft; published to GitBook with the link put on the site
+  async function writeBook(id) {
+    const d = draft(id);
+    const w = await makeBook({ ...d.config, siteUrl: d.url });
+    const book = { ...(d.book || {}), at: Date.now(), source: w.source, note: w.note, pages: w.pages };
+    db.prepare("UPDATE studio_drafts SET book = ?, updated = ? WHERE id = ?").run(JSON.stringify(book), Date.now(), id);
+    return `${w.pages.length} pages written` + (w.note ? ` (${w.note})` : "");
+  }
+  async function publishBook(id) {
+    let d = draft(id);
+    if (!d.book?.pages?.length) { await writeBook(id); d = draft(id); }    // the deep version goes to GitBook, never the plain one
+    const out = await publishGitBook({ ...d.config, siteUrl: d.url }, d.book.pages, { existing: d.book.gitbook || null });
+    const book = { ...d.book, gitbook: { at: Date.now(), ...out } };
+    if (out.publishedUrl) d.config.docsUrl = out.publishedUrl;            // the site's GitBook button points at the coin's own book
+    db.prepare("UPDATE studio_drafts SET book = ?, config = ?, updated = ? WHERE id = ?").run(JSON.stringify(book), JSON.stringify(d.config), Date.now(), id);
+    return out.publishedUrl ? `Published: ${out.publishedUrl}` : out.steps.join(" · ");
+  }
+
+async function makeKit(id) {
+  const d = draft(id), t = Date.now();
+      const dir = path.join(DATA, "content", String(d.id));
+      await mkdir(dir, { recursive: true });
+      const { plan, source, note } = await planContent(d.config);
+      const kit = { at: t, source, note, plan, files: {}, notes: [], howToPost: HOW_TO_POST, render: renderStatus() };
+      const put = (k, v) => { kit.files[k] = v; db.prepare("UPDATE studio_drafts SET content = ?, updated = ? WHERE id = ?").run(JSON.stringify(kit), Date.now(), d.id); };
+      for (const kind of ["pfp", "banner", "launch"]) {
+        const v = await makeVisual(kind, plan.briefs[kind], d.config);
+        if (v.note) kit.notes.push(`${kind}: ${v.note}`);
+        await saveHtml(path.join(dir, `${kind}.html`), v.html);
+        const file = { html: `${kind}.html`, source: v.source, w: SIZES[kind][0], h: SIZES[kind][1] };
+        if (kit.render.images) {
+          try { await writeFile(path.join(dir, `${kind}.png`), await renderImage(v.html, { width: SIZES[kind][0], height: SIZES[kind][1] })); file.png = `${kind}.png`; }
+          catch (e) { kit.notes.push(`${kind}: could not render (${e.message})`); }
+        }
+        put(kind, file);
+      }
+      for (const v of plan.videos) {
+        const made = await makeVisual("video", "", d.config, { video: v });
+        if (made.note) kit.notes.push(`${v.key} video: ${made.note}`);
+        await saveHtml(path.join(dir, `${v.key}.html`), made.html);
+        const file = { html: `${v.key}.html`, source: made.source, title: v.title, w: SIZES.video[0], h: SIZES.video[1] };
+        if (kit.render.videos) {
+          try { const r = await renderVideo(made.html, { out: path.join(dir, `${v.key}.mp4`), fps: Number(process.env.VIDEO_FPS) || 30 }); file.mp4 = `${v.key}.mp4`; file.seconds = r.seconds; }
+          catch (e) { kit.notes.push(`${v.key} video: could not render (${e.message})`); }
+        }
+        put(v.key, file);
+      }
+      if (!kit.render.images) kit.notes.push("No browser on the server: the pictures and videos are HTML pages. Open each one and screenshot or screen-record it, or add chromium and ffmpeg to the build (see the README).");
+  return `${Object.keys(kit.files).length} files made` + (kit.notes.length ? " · " + kit.notes.join(" · ") : "");
+}
+
   async function handleStudio(req, res, p) {
     if (req.method !== "POST" || req.headers["x-route"] !== "1") throw err(403, "Missing the app header.");
     const b = await body(req);
@@ -247,24 +313,23 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
       case "/api/studio/book": {
         // Claude writes the launch's docs (8-11 pages); kept with the draft, shipped as docs.html, importable into GitBook
         const d = draft(b.id);
+        if (jobRunning("book", d.id) || jobRunning("gitbook", d.id)) throw err(409, "The docs are being written right now.");
         if (limited("studio:book", 20, 36e5)) throw err(429, "20 books an hour is the limit. Try again later.");
-        const out = await makeBook({ ...d.config, siteUrl: d.url });
-        const book = { at: t, source: out.source, note: out.note, pages: out.pages };
-        db.prepare("UPDATE studio_drafts SET book = ?, updated = ? WHERE id = ?").run(JSON.stringify(book), t, d.id);
-        return send(res, 200, { ok: true, source: out.source, note: out.note, pages: out.pages.map(p => ({ title: p.title, slug: p.slug, words: p.markdown.split(/\s+/).length })) });
+        runJob("book", d.id, () => writeBook(d.id));
+        return send(res, 200, { ok: true, started: true });
       }
       case "/api/studio/gitbook": {
         const d = draft(b.id);
         if (!process.env.GITBOOK_TOKEN) throw err(400, "Set GITBOOK_TOKEN on the server (gitbook.com → account → Developer settings → personal access token).");
+        if (jobRunning("book", d.id) || jobRunning("gitbook", d.id)) throw err(409, "The docs are being worked on right now.");
         if (limited("studio:gitbook", 10, 36e5)) throw err(429, "10 GitBook publishes an hour is the limit.");
-        // no book yet: Claude writes it first, so what goes to GitBook is the deep version
-        let book = d.book;
-        if (!book?.pages?.length) { const w = await makeBook({ ...d.config, siteUrl: d.url }); book = { at: t, source: w.source, note: w.note, pages: w.pages }; }
-        const out = await publishGitBook({ ...d.config, siteUrl: d.url }, book.pages, { existing: book.gitbook || null });
-        book = { ...book, gitbook: { at: t, ...out } };
-        if (out.publishedUrl) d.config.docsUrl = out.publishedUrl;     // the site's GitBook button points at the coin's own book
-        db.prepare("UPDATE studio_drafts SET book = ?, config = ?, updated = ? WHERE id = ?").run(JSON.stringify(book), JSON.stringify(d.config), t, d.id);
-        return send(res, 200, { ...out, config: d.config });
+        runJob("gitbook", d.id, () => publishBook(d.id));
+        return send(res, 200, { ok: true, started: true });
+      }
+      case "/api/studio/jobs": {
+        const d = draft(b.id);
+        return send(res, 200, { jobs: jobStates(d.id), hasApp: !!d.app, appError: d.app_error || null, theme: themeState(d.id, d), config: d.config, url: d.url,
+                                docsUrl: d.config.docsUrl || "", gitbook: d.book?.gitbook || null, content: !!d.content });
       }
       case "/api/studio/book/get": {
         const d = draft(b.id);
@@ -309,10 +374,10 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
         // the look first (a layout right away, Claude's own stylesheet and mascot in the background), then the product
         g.config.layout = rulesLayout(g.config);
         db.prepare("UPDATE studio_drafts SET config = ? WHERE id = ?").run(JSON.stringify(g.config), id);
-        if (process.env.ANTHROPIC_API_KEY && b.auto !== false) buildTheme(id);
+        if (process.env.ANTHROPIC_API_KEY && b.auto !== false) runJob("theme", id, () => buildTheme(id));
         // a game, a tool or a three-in-one: build it now, in the background, so the site is playable without another click
         const auto = !!process.env.ANTHROPIC_API_KEY && g.config.product?.kind !== "launchpad" && b.auto !== false && !limited("studio:app", 20, 36e5);
-        if (auto) buildApp(id);
+        if (auto) startApp(id);
         return send(res, 200, { id, config: g.config, ...meta, preview: `/studio/p/${id}/`, build: auto ? { building: true } : null, theme: themeState(id, draft(id)) });
       }
       case "/api/studio/save": {
@@ -344,18 +409,12 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
       case "/api/studio/deploy": {
         const d = draft(b.id);
         if (d.meta.builtin === "route") throw err(400, "Route already runs on this server at /route; it deploys with the repo.");
-        // the GitBook: written and published on its own the first time the site goes out, so the site ships with the link
+        // the GitBook: written and published on its own the first time the site goes out (in the background; the site
+        // gets the GitBook button on the next deploy, which the Studio does by itself when the link arrives)
         let gitbookNote = null;
-        if (process.env.GITBOOK_TOKEN && !d.book?.gitbook?.publishedUrl && !limited("studio:gitbook", 10, 36e5)) {
-          try {
-            let book = d.book;
-            if (!book?.pages?.length) { const w = await makeBook({ ...d.config, siteUrl: d.url }); book = { at: t, source: w.source, note: w.note, pages: w.pages }; }
-            const out = await publishGitBook({ ...d.config, siteUrl: d.url }, book.pages, { existing: book.gitbook || null });
-            book = { ...book, gitbook: { at: t, ...out } };
-            if (out.publishedUrl) d.config.docsUrl = out.publishedUrl;
-            db.prepare("UPDATE studio_drafts SET book = ?, config = ? WHERE id = ?").run(JSON.stringify(book), JSON.stringify(d.config), d.id);
-            gitbookNote = out.publishedUrl ? `GitBook published: ${out.publishedUrl}` : "GitBook: " + out.steps.join(" · ");
-          } catch (e) { gitbookNote = `GitBook skipped: ${e.message}`; }
+        if (process.env.GITBOOK_TOKEN && !d.book?.gitbook?.publishedUrl && !jobRunning("gitbook", d.id) && !jobRunning("book", d.id) && !limited("studio:gitbook", 10, 36e5)) {
+          runJob("gitbook", d.id, () => publishBook(d.id));
+          gitbookNote = "The GitBook is being written and published in the background; the site gets its GitBook button when it is done.";
         }
         const extra = d.app ? { "play.html": d.app } : {};
         extra["docs.html"] = bookHtml({ ...d.config, siteUrl: d.url }, bookOf(d));
@@ -376,74 +435,50 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
       case "/api/studio/app": {
         // Claude writes the site's game or utility (play.html); it can take a minute or two
         const d = draft(b.id);
-        if (building.get(d.id) && typeof building.get(d.id) === "number") throw err(409, "It is already being built. Give it a minute.");
+        if (!process.env.ANTHROPIC_API_KEY) throw err(400, "Add ANTHROPIC_API_KEY on the server: the game or utility is written by Claude.");
+        if (jobRunning("app", d.id)) throw err(409, "It is already being built. Give it a minute.");
         if (limited("studio:app", 20, 36e5)) throw err(429, "20 apps an hour is the limit. Try again later.");
-        const pr = d.config.product || {};
-        const out = await makeMiniApp({ name: pr.name, kind: pr.kind === "launchpad" ? "launchpad" : pr.kind, pitch: d.config.tagline,
-                                        mechanic: pr.mechanic || d.idea, holderPerk: pr.holderPerk }, d.config);
-        if (out.error) throw err(502, out.error);
-        d.config.product = { ...pr, kind: pr.kind === "launchpad" ? "utility" : (pr.kind || "game"), app: true };
-        db.prepare("UPDATE studio_drafts SET app = ?, config = ?, updated = ? WHERE id = ?").run(out.html, JSON.stringify(d.config), t, d.id);
-        return send(res, 200, { ok: true, bytes: Buffer.byteLength(out.html), config: d.config });
+        db.prepare("UPDATE studio_drafts SET app_error = NULL WHERE id = ?").run(d.id);
+        startApp(d.id);
+        return send(res, 200, { ok: true, started: true });
       }
       case "/api/studio/restyle": {
         // a new look for the site: another layout, stylesheet and mascot from Claude
         const d = draft(b.id);
-        if (styling.has(d.id)) throw err(409, "The look is being designed right now. Give it a minute.");
+        if (!process.env.ANTHROPIC_API_KEY) throw err(400, "Add ANTHROPIC_API_KEY on the server: the look is designed by Claude.");
+        if (jobRunning("theme", d.id)) throw err(409, "The look is being designed right now. Give it a minute.");
         if (limited("studio:theme", 30, 36e5)) throw err(429, "30 restyles an hour is the limit.");
-        await buildTheme(d.id);
-        const d2 = draft(d.id);
-        return send(res, 200, { ok: true, config: d2.config, theme: themeState(d2.id, d2) });
+        runJob("theme", d.id, () => buildTheme(d.id));
+        return send(res, 200, { ok: true, started: true });
       }
       case "/api/studio/polish": {
         // a second pass by Claude over the built game or tool: bugs fixed, juice added
         const d = draft(b.id);
         if (!d.app) throw err(400, "Build the game or tool first.");
+        if (jobRunning("polish", d.id) || jobRunning("app", d.id)) throw err(409, "It is being worked on right now. Give it a minute.");
         if (limited("studio:app", 20, 36e5)) throw err(429, "20 apps an hour is the limit. Try again later.");
-        const pr = d.config.product || {};
-        const out = await polishMiniApp(d.app, { name: pr.name, kind: pr.kind }, d.config);
-        if (out.error) throw err(502, out.error);
-        db.prepare("UPDATE studio_drafts SET app = ?, updated = ? WHERE id = ?").run(out.html, t, d.id);
-        return send(res, 200, { ok: true, bytes: Buffer.byteLength(out.html) });
+        runJob("polish", d.id, async () => {
+          const pr = d.config.product || {};
+          const out = await polishMiniApp(d.app, { name: pr.name, kind: pr.kind }, d.config);
+          if (out.error) throw Object.assign(new Error(out.error), { status: 502 });
+          db.prepare("UPDATE studio_drafts SET app = ?, updated = ? WHERE id = ?").run(out.html, Date.now(), d.id);
+          return `Polished (${Math.round(Buffer.byteLength(out.html) / 1024)} KB).`;
+        });
+        return send(res, 200, { ok: true, started: true });
       }
       case "/api/studio/content": {
         // the content kit: plan, then the three pictures, then the three videos; files land on the volume
         const d = draft(b.id);
+        if (jobRunning("content", d.id)) throw err(409, "The content kit is being made right now.");
         if (limited("studio:content", 6, 36e5)) throw err(429, "6 content kits an hour is the limit. Try again later.");
-        const dir = path.join(DATA, "content", String(d.id));
-        await mkdir(dir, { recursive: true });
-        const { plan, source, note } = await planContent(d.config);
-        const kit = { at: t, source, note, plan, files: {}, notes: [], howToPost: HOW_TO_POST, render: renderStatus() };
-        const put = (k, v) => { kit.files[k] = v; db.prepare("UPDATE studio_drafts SET content = ?, updated = ? WHERE id = ?").run(JSON.stringify(kit), Date.now(), d.id); };
-        for (const kind of ["pfp", "banner", "launch"]) {
-          const v = await makeVisual(kind, plan.briefs[kind], d.config);
-          if (v.note) kit.notes.push(`${kind}: ${v.note}`);
-          await saveHtml(path.join(dir, `${kind}.html`), v.html);
-          const file = { html: `${kind}.html`, source: v.source, w: SIZES[kind][0], h: SIZES[kind][1] };
-          if (kit.render.images) {
-            try { await writeFile(path.join(dir, `${kind}.png`), await renderImage(v.html, { width: SIZES[kind][0], height: SIZES[kind][1] })); file.png = `${kind}.png`; }
-            catch (e) { kit.notes.push(`${kind}: could not render (${e.message})`); }
-          }
-          put(kind, file);
-        }
-        for (const v of plan.videos) {
-          const made = await makeVisual("video", "", d.config, { video: v });
-          if (made.note) kit.notes.push(`${v.key} video: ${made.note}`);
-          await saveHtml(path.join(dir, `${v.key}.html`), made.html);
-          const file = { html: `${v.key}.html`, source: made.source, title: v.title, w: SIZES.video[0], h: SIZES.video[1] };
-          if (kit.render.videos) {
-            try { const r = await renderVideo(made.html, { out: path.join(dir, `${v.key}.mp4`), fps: Number(process.env.VIDEO_FPS) || 30 }); file.mp4 = `${v.key}.mp4`; file.seconds = r.seconds; }
-            catch (e) { kit.notes.push(`${v.key} video: could not render (${e.message})`); }
-          }
-          put(v.key, file);
-        }
-        if (!kit.render.images) kit.notes.push("No browser on the server: the pictures and videos are HTML pages. Open each one and screenshot or screen-record it, or add chromium and ffmpeg to the build (see the README).");
-        return send(res, 200, { ok: true, content: kit });
+        runJob("content", d.id, () => makeKit(d.id));
+        return send(res, 200, { ok: true, started: true });
       }
       case "/api/studio/content/get": {
         const d = draft(b.id);
         return send(res, 200, { content: d.content });
       }
+
       case "/api/studio/rate": {
         const d = draft(b.id);
         const rating = Math.max(-1, Math.min(1, Math.round(Number(b.rating) || 0)));

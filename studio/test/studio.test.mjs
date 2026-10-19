@@ -428,6 +428,10 @@ test("the trend feeds take live sources, and the server exposes the switch, the 
     const cfg = await (await fetch(base + `/studio/p/${g.id}/config.js`, { headers: { cookie } })).text();
     assert.match(cfg, /"launchDesk": true/); assert.match(cfg, /"vibe": "arcade"/);
     assert.equal((await post("/api/studio/polish", { id: g.id })).status, 400, "nothing to polish before the app exists");
+    assert.equal((await post("/api/studio/app", { id: g.id })).status, 400, "no key: the build needs Claude");
+    assert.equal((await post("/api/studio/restyle", { id: g.id })).status, 400);
+    const js = await post("/api/studio/jobs", { id: g.id });
+    assert.deepEqual(Object.keys(js.jobs).sort(), ["app", "book", "content", "gitbook", "polish", "theme"]); assert.equal(js.hasApp, false);
     const ideas = await post("/api/studio/ideas", { mix: "combo" });
     assert.ok(ideas.ideas.length && ideas.ideas.every(i => i.kind === "combo"), "the Idea Maker can be told: three-in-one only");
     const st = await post("/api/studio/status"); assert.equal(st.pump, null, "no live feed in tests");
@@ -436,6 +440,17 @@ test("the trend feeds take live sources, and the server exposes the switch, the 
   } finally { server.close(); delete process.env.STUDIO_PASSWORD; }
 });
 
+
+// long work runs as background jobs; the tests wait for them the way the Studio does
+async function waitJob(post, id, kind, ms = 120000) {
+  const t0 = Date.now();
+  for (;;) {
+    const j = (await post("/api/studio/jobs", { id })).jobs[kind];
+    if (j && j.state !== "running") return j;
+    if (Date.now() - t0 > ms) throw new Error(kind + " job did not finish");
+    await new Promise(r => setTimeout(r, 150));
+  }
+}
 
 // ---- the content kit (2026-10-19) ---------------------------------------------------------------------------------
 import { planContent, rulesPlan, templateImage, templateVideo, makeVisual, HOW_TO_POST, SIZES } from "../content.mjs";
@@ -482,8 +497,13 @@ test("content kit over HTTP: files land on the volume, are served to the owner o
   try {
     await post("/api/studio/login", { password: "correct horse" });
     const g = await post("/api/studio/generate", { idea: "a cat clicker game", ticker: "CLICK" });
-    const k = await post("/api/studio/content", { id: g.id });
-    assert.equal(k.status, 200); assert.equal(k.content.source, "rules");
+    const started = await post("/api/studio/content", { id: g.id });
+    assert.equal(started.status, 200); assert.equal(started.started, true);
+    assert.equal((await post("/api/studio/content", { id: g.id })).status, 409, "one kit at a time");
+    const job = await waitJob(post, g.id, "content", 300000);
+    assert.equal(job.state, "done", job.error);
+    const k = { content: (await post("/api/studio/content/get", { id: g.id })).content };
+    assert.equal(k.content.source, "rules");
     assert.ok(k.content.files.pfp.html === "pfp.html" && k.content.files.intro.html === "intro.html" && k.content.plan.posts.length === 4);
     const page = await fetch(base + `/studio/c/${g.id}/pfp.html`, { headers: { cookie } });
     assert.equal(page.status, 200); assert.match(await page.text(), /<!doctype html>/);
@@ -687,8 +707,11 @@ test("over HTTP: the book is written, served as docs.html / docs.zip to the owne
     await post("/api/studio/login", { password: "correct horse" });
     const g = await post("/api/studio/generate", { idea: "a cat runner game", ticker: "RUN" });
     assert.equal((await post("/api/studio/book/get", { id: g.id })).book, null);
-    const w = await post("/api/studio/book", { id: g.id });
-    assert.equal(w.status, 200); assert.equal(w.source, "rules"); assert.ok(w.pages.length >= 6);
+    const w0 = await post("/api/studio/book", { id: g.id });
+    assert.equal(w0.status, 200); assert.equal(w0.started, true);
+    assert.equal((await waitJob(post, g.id, "book")).state, "done");
+    const w = (await post("/api/studio/book/get", { id: g.id })).book;
+    assert.equal(w.source, "rules"); assert.ok(w.pages.length >= 6);
     const docs = await (await fetch(base + `/studio/p/${g.id}/docs.html`, { headers: { cookie } })).text();
     assert.match(docs, /<article id="tokenomics">/); assert.match(docs, /Where the money goes/);
     const z = await fetch(base + `/studio/p/${g.id}/docs.zip`, { headers: { cookie } });

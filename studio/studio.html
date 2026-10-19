@@ -365,9 +365,9 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     $("builtinNote").textContent = builtin ? "Route runs on this server at /route and deploys with the repo. Save the contract address and links here after you launch; /route updates on its own." : "";
     checklist();
     $("appState").textContent = "";
-    themeLine(r.theme); if (r.theme && r.theme.building) watchTheme(r.id);
-    if (r.build && r.build.building) watchBuild(r.id);
-    else if (r.build && r.build.error) $("appState").textContent = "The build failed: " + r.build.error + " Press the button to try again.";
+    themeLine(r.theme);
+    if (r.build && r.build.error) $("appState").textContent = "The build failed: " + r.build.error + " Press the button to try again.";
+    jobsSeen = {}; watchJobs(r.id);
     if (r.hasApp) $("appState").append("This site has its " + (c.product?.kind === "game" ? "game" : c.product?.kind === "combo" ? "three-in-one" : "tool") + ". ", el("a", { href: r.preview + "play.html", target: "_blank", rel: "noopener", textContent: "Open it full screen" }), ". Make it again to replace it.");
     $("appBtn").textContent = (c.product?.kind === "game" ? "Make the game" : c.product?.kind === "utility" ? "Make the tool" : c.product?.kind === "combo" ? "Make the three-in-one" : "Make a companion tool");
     $("polishBtn").hidden = !r.hasApp;
@@ -412,66 +412,68 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
   $("rateUp").addEventListener("click", () => rate(cur && cur.rating > 0 ? 0 : 1));
   $("rateDown").addEventListener("click", () => rate(cur && cur.rating < 0 ? 0 : -1));
   $("rateNote").addEventListener("change", () => { if (cur) rate(cur.rating || 0); });
+  // every long job runs on the server in the background; this asks how they are doing and updates the page
+  let jobTimer = null, jobsSeen = {};
+  function watchJobs(id) {
+    clearTimeout(jobTimer);
+    const tick = async () => {
+      if (!cur || cur.id !== id) return;
+      let r; try { r = await call("/api/studio/jobs", { id }); } catch (e) { jobTimer = setTimeout(tick, 8000); return; }
+      const J = r.jobs, was = jobsSeen; jobsSeen = JSON.parse(JSON.stringify(J));
+      const changed = k => JSON.stringify(J[k]) !== JSON.stringify(was[k]);
+      if (J.app && J.app.state === "running") { $("appBtn").disabled = true; $("appState").textContent = "Claude is building the " + kindName(r.config) + " now. Two or three minutes; the preview will show it."; }
+      else if (changed("app") || changed("polish")) {
+        $("appBtn").disabled = false; $("polishBtn").disabled = false;
+        if (J.app && J.app.state === "error") $("appState").textContent = "The build failed: " + J.app.error + " Press the button to try again.";
+        else if (J.polish && J.polish.state === "running") $("appState").textContent = "Claude is play-testing and polishing it…";
+        else if (J.polish && J.polish.state === "error") $("appState").textContent = "The polish failed: " + J.polish.error;
+        else if (r.hasApp) { cur.config = r.config; cur.hasApp = true; fill(r.config); $("polishBtn").hidden = false; $("appState").textContent = "";
+          $("appState").append((J.polish && J.polish.state === "done" ? J.polish.note + " " : "Built. ") + "It's on the site under its own section. ", el("a", { href: cur.preview + "play.html", target: "_blank", rel: "noopener", textContent: "Open it full screen" }), ".");
+          $("preview").src = cur.preview + "?t=" + Date.now() + "#product"; checklist(); loadDrafts(); }
+      } else if (J.polish && J.polish.state === "running") { $("polishBtn").disabled = true; $("appState").textContent = "Claude is play-testing and polishing it…"; }
+      themeLine(r.theme);
+      if (changed("theme") && J.theme && J.theme.state !== "running") { $("restyleBtn").disabled = false; cur.config = r.config; $("preview").src = cur.preview + "?t=" + Date.now(); if (J.theme.state === "error") $("themeState").textContent = "The look failed: " + J.theme.error; }
+      if (J.content && J.content.state === "running") $("kitState").textContent = "Writing the plan, designing the pictures, rendering the videos… several minutes. You can keep working; this updates on its own.";
+      else if (changed("content") && J.content) { $("kitBtn").disabled = false; $("kitState").textContent = J.content.state === "error" ? "The content kit failed: " + J.content.error : "";
+        if (J.content.state === "done") { try { renderKit((await call("/api/studio/content/get", { id })).content); } catch (e) {} } }
+      if ((J.book && J.book.state === "running") || (J.gitbook && J.gitbook.state === "running")) $("bookState").textContent = J.gitbook && J.gitbook.state === "running" ? "Writing the book if needed, then creating the GitBook space, the pages and the docs site, publishing and branding it. A few minutes…" : "Claude is writing the book. A minute or two…";
+      else if (changed("book") || changed("gitbook")) {
+        $("bookBtn").disabled = false; $("gitbookBtn").disabled = false;
+        try { bookState((await call("/api/studio/book/get", { id })).book); } catch (e) {}
+        const failed = ["book", "gitbook"].find(k => J[k] && J[k].state === "error" && changed(k));
+        if (failed) $("bookState").textContent = "GitBook/docs: " + J[failed].error;
+        if (r.docsUrl && r.docsUrl !== (cur.config.docsUrl || "")) {             // the GitBook link arrived: onto the site, and out, if the site is live
+          cur.config = r.config; fill(r.config); $("preview").src = cur.preview + "?t=" + Date.now();
+          if (cur.url && /^https:/.test(cur.url) && !$("deployRow").hidden) $("deployBtn").click();
+        }
+      }
+      if (Object.values(J).some(j => j && j.state === "running")) jobTimer = setTimeout(tick, 6000);
+    };
+    jobTimer = setTimeout(tick, 1500);
+  }
+  const kindName = c => (c && c.product && c.product.kind) === "combo" ? "three-in-one" : (c && c.product && c.product.kind) === "game" ? "game" : "tool";
   function themeLine(t) {
     if (!t) { $("themeState").textContent = ""; return; }
     $("themeState").textContent = t.building ? "Claude is designing this site's own look (layout, stylesheet, mascot)…"
       : "Look: " + t.layout + " layout" + (t.mascot ? " · its own mascot" : "") + (t.source === "claude" ? " · designed by Claude" : " · default look") + (t.notes ? " · " + t.notes : "");
   }
-  let themeTimer = null;
-  function watchTheme(id) {
-    clearTimeout(themeTimer);
-    const tick = async () => {
-      if (!cur || cur.id !== id) return;
-      try { const r = await call("/api/studio/get", { id }); themeLine(r.theme);
-        if (!r.theme.building) { cur.config = r.config; $("preview").src = cur.preview + "?t=" + Date.now(); return; } } catch (e) { /* keep polling */ }
-      themeTimer = setTimeout(tick, 6000);
-    };
-    themeTimer = setTimeout(tick, 6000);
-  }
   $("restyleBtn").addEventListener("click", async () => {
     if (!cur) return;
     $("restyleBtn").disabled = true; $("themeState").textContent = "Designing a new look… about a minute.";
-    try { const r = await call("/api/studio/restyle", { id: cur.id }); cur.config = r.config; themeLine(r.theme); $("preview").src = cur.preview + "?t=" + Date.now(); }
-    catch (e) { $("themeState").textContent = e.message; } finally { $("restyleBtn").disabled = false; }
+    try { await call("/api/studio/restyle", { id: cur.id }); watchJobs(cur.id); }
+    catch (e) { $("themeState").textContent = e.message; $("restyleBtn").disabled = false; }
   });
-  // the game / tool is being built in the background: poll until it lands, then show it
-  let buildTimer = null;
-  function watchBuild(id) {
-    clearTimeout(buildTimer);
-    $("appState").textContent = "Claude is building the " + ((cur && cur.config.product && cur.config.product.kind) === "combo" ? "three-in-one" : "game / tool") + " now. Two or three minutes; the preview will show it."; $("appBtn").disabled = true;
-    const tick = async () => {
-      if (!cur || cur.id !== id) { $("appBtn").disabled = false; return; }
-      try {
-        const r = await call("/api/studio/get", { id });
-        if (r.hasApp) { cur.config = r.config; cur.hasApp = true; fill(r.config); $("appBtn").disabled = false; $("polishBtn").hidden = false;
-          $("appState").textContent = ""; $("appState").append("Built. It's on the site under its own section. ", el("a", { href: cur.preview + "play.html", target: "_blank", rel: "noopener", textContent: "Open it full screen" }), ".");
-          $("preview").src = cur.preview + "?t=" + Date.now() + "#product"; checklist(); loadDrafts(); return; }
-        if (r.build && r.build.error) { $("appBtn").disabled = false; $("appState").textContent = "The build failed: " + r.build.error + " Press the button to try again."; return; }
-      } catch (e) { /* keep polling */ }
-      buildTimer = setTimeout(tick, 8000);
-    };
-    buildTimer = setTimeout(tick, 8000);
-  }
   $("appBtn").addEventListener("click", async () => {
     if (!cur) return;
-    $("appBtn").disabled = true; $("appState").textContent = "Claude is building it. This takes a minute or two…";
-    try {
-      const r = await call("/api/studio/app", { id: cur.id });
-      cur.config = r.config; cur.hasApp = true; fill(r.config);
-      $("appState").textContent = ""; $("appState").append("Built (" + Math.round(r.bytes / 1024) + " KB). It's on the site under its own section (the preview on the right scrolls to it). ",
-        el("a", { href: cur.preview + "play.html", target: "_blank", rel: "noopener", textContent: "Open it full screen" }), ". Press Polish it for a second pass.");
-      $("polishBtn").hidden = false;
-      $("preview").src = cur.preview + "?t=" + Date.now() + "#product"; checklist();
-    } catch (e) { $("appState").textContent = e.message; } finally { $("appBtn").disabled = false; }
+    $("appBtn").disabled = true; $("appState").textContent = "Claude is building the " + kindName(cur.config) + " now. Two or three minutes; the preview will show it.";
+    try { await call("/api/studio/app", { id: cur.id }); watchJobs(cur.id); }
+    catch (e) { $("appState").textContent = e.message; $("appBtn").disabled = false; }
   });
   $("polishBtn").addEventListener("click", async () => {
     if (!cur) return;
-    $("polishBtn").disabled = true; $("appBtn").disabled = true; $("appState").textContent = "Claude is play-testing and polishing it. A minute or two…";
-    try {
-      const r = await call("/api/studio/polish", { id: cur.id });
-      $("appState").textContent = "Polished (" + Math.round(r.bytes / 1024) + " KB).";
-      $("preview").src = cur.preview + "?t=" + Date.now() + "#product";
-    } catch (e) { $("appState").textContent = e.message; } finally { $("polishBtn").disabled = false; $("appBtn").disabled = false; }
+    $("polishBtn").disabled = true; $("appState").textContent = "Claude is play-testing and polishing it. A minute or two…";
+    try { await call("/api/studio/polish", { id: cur.id }); watchJobs(cur.id); }
+    catch (e) { $("appState").textContent = e.message; $("polishBtn").disabled = false; }
   });
   function bookState(bk) {
     const s = $("bookState");
@@ -487,22 +489,20 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
   $("bookBtn").addEventListener("click", async () => {
     if (!cur) return;
     $("bookBtn").disabled = true; $("bookState").textContent = "Claude is writing the book. A minute or two…";
-    try { await call("/api/studio/book", { id: cur.id }); bookState((await call("/api/studio/book/get", { id: cur.id })).book); }
-    catch (e) { $("bookState").textContent = e.message; } finally { $("bookBtn").disabled = false; }
+    try { await call("/api/studio/book", { id: cur.id }); watchJobs(cur.id); }
+    catch (e) { $("bookState").textContent = e.message; $("bookBtn").disabled = false; }
   });
   $("gitbookBtn").addEventListener("click", async () => {
     if (!cur) return;
     $("gitbookBtn").disabled = true; $("bookState").textContent = "Writing the book if needed, then creating the GitBook space, the pages and the docs site, publishing and branding it. A few minutes…";
-    try { const r = await call("/api/studio/gitbook", { id: cur.id }); if (r.config) { cur.config = r.config; fill(r.config); } bookState((await call("/api/studio/book/get", { id: cur.id })).book);
-      $("preview").src = cur.preview + "?t=" + Date.now(); }
-    catch (e) { $("bookState").textContent = e.message; } finally { $("gitbookBtn").disabled = false; }
+    try { await call("/api/studio/gitbook", { id: cur.id }); watchJobs(cur.id); }
+    catch (e) { $("bookState").textContent = e.message; $("gitbookBtn").disabled = false; }
   });
   $("kitBtn").addEventListener("click", async () => {
     if (!cur) return;
-    $("kitErr").textContent = ""; $("kitBtn").disabled = true; $("kitState").textContent = "Writing the plan, designing the pictures, rendering the videos… several minutes. Leave this tab open.";
-    try { const r = await call("/api/studio/content", { id: cur.id }); renderKit(r.content); $("kitState").textContent = ""; }
-    catch (e) { $("kitErr").textContent = e.message; $("kitState").textContent = ""; }
-    finally { $("kitBtn").disabled = false; $("kitBtn").textContent = "Make it again"; }
+    $("kitErr").textContent = ""; $("kitBtn").disabled = true; $("kitState").textContent = "Writing the plan, designing the pictures, rendering the videos… several minutes. You can keep working; this updates on its own.";
+    try { await call("/api/studio/content", { id: cur.id }); $("kitBtn").textContent = "Make it again"; watchJobs(cur.id); }
+    catch (e) { $("kitErr").textContent = e.message; $("kitState").textContent = ""; $("kitBtn").disabled = false; }
   });
   function renderKit(k) {
     const box = $("kit"); box.textContent = ""; const id = cur.id, f = k.files || {};
@@ -630,7 +630,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     if (!cur) return;
     $("deployErr").textContent = ""; $("deployBtn").disabled = true; $("deployBtn").textContent = "Deploying…";
     try { const r = await call("/api/studio/deploy", { id: cur.id, slug: $("slug").value }); cur.url = r.url; setLive(r.url); if (r.config) { cur.config = r.config; fill(r.config); } checklist(); loadDrafts();
-      if (r.gitbook) { $("deployErr").textContent = ""; $("liveUrl").append(el("br"), r.gitbook); bookState((await call("/api/studio/book/get", { id: cur.id })).book); } }
+      if (r.gitbook) { $("deployErr").textContent = ""; $("liveUrl").append(el("br"), r.gitbook); watchJobs(cur.id); } }
     catch (e) { $("deployErr").textContent = e.message; }
     finally { $("deployBtn").disabled = false; $("deployBtn").textContent = "Deploy to Vercel"; }
   });
