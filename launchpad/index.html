@@ -127,8 +127,19 @@ details + details { margin-top: 10px; } summary { font-weight: 800; cursor: poin
 /* the scene: a canvas of the brand's emoji and sparks floating in depth behind the hero, steered by the pointer / tilt */
 #scene { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; opacity: .9; }
 body::before { content: ""; position: fixed; inset: 0; z-index: -2; pointer-events: none;
-  background: radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 60%),
-              radial-gradient(900px 500px at 110% 20%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%); }
+  background: radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 60%),
+              radial-gradient(900px 500px at 110% 20%, color-mix(in srgb, var(--accent2) 26%, transparent), transparent 60%),
+              radial-gradient(700px 500px at 50% 110%, color-mix(in srgb, var(--accent3) 22%, transparent), transparent 60%); }
+.tickchip { background: var(--accent2); color: var(--ink); border-color: var(--line); }
+.btn.ghost:hover:not(:disabled) { background: color-mix(in srgb, var(--accent3) 30%, var(--card)); }
+.site > section:nth-of-type(3n+2) h2 { color: var(--accent2-ink, var(--ink)); } .site h2 { position: relative; display: inline-block; }
+.site h2::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3)); opacity: .9; }
+.cards > div:nth-child(3n+2) { border-color: color-mix(in srgb, var(--accent2) 70%, var(--line)); } .cards > div:nth-child(3n) { border-color: color-mix(in srgb, var(--accent3) 70%, var(--line)); }
+.abar:nth-child(2) span { background: color-mix(in srgb, var(--accent2) 32%, transparent); } .abar:nth-child(3) span { background: color-mix(in srgb, var(--accent3) 32%, transparent); }
+.phase.next { border-color: var(--accent2); } .phase.idea { border-color: var(--accent3); }
+[data-layout="poster"] .marquee { background: linear-gradient(90deg, var(--accent2), var(--accent3)); color: var(--ink); }
+[data-layout="poster"] .site > section:nth-child(even) { background: color-mix(in srgb, var(--accent2) 16%, var(--bg)); }
+[data-layout="poster"] .site > section:nth-child(3n) { background: color-mix(in srgb, var(--accent3) 14%, var(--bg)); }
 .hero h1 { animation: rise .7s cubic-bezier(.2,.9,.2,1.2) both; } .hero p { animation: rise .7s .08s cubic-bezier(.2,.9,.2,1.2) both; }
 .hero .cabar, .hero .tickchip { animation: rise .7s .16s cubic-bezier(.2,.9,.2,1.2) both; }
 @keyframes rise { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: none; } }
@@ -321,6 +332,7 @@ html[data-layout="poster"], [data-layout="poster"] body { overflow-x: clip; }
   const root = document.documentElement.style;
   const terminal = C.layout === "terminal";                 // the terminal look brings its own black and green
   if (col.accent) root.setProperty("--accent", col.accent);
+  root.setProperty("--accent2", col.accent2 || col.accent || "#ff6a2b"); root.setProperty("--accent3", col.accent3 || col.accent || "#ff6a2b");
   if (col.accentInk && !terminal) root.setProperty("--accent-ink", col.accentInk);
   if (col.light && !terminal) root.setProperty("--bg", col.light);
   if (col.dark && !terminal) root.setProperty("--bg-dark", col.dark);
@@ -449,16 +461,16 @@ html[data-layout="poster"], [data-layout="poster"] body { overflow-x: clip; }
       mk("div", {}, mk("b", { textContent: "3. Buy " + tk }), mk("span", { textContent: "Use the Buy button at the top. Check the contract address matches this page first." }))));
     // tokenomics are FACTS about a pump.fun launch, never generated text
     const launchedOn = coin.launchedOn || (C.launchDesk === false ? "Solana, bonding-curve launch" : "pump.fun, bonding curve");
-    const kv = [["Total supply", "1,000,000,000"], ["Launched on", launchedOn],
-      ["Team allocation", coin.devBuyPercent != null ? `None held back. The dev bought ${coin.devBuyPercent}% at launch, public on-chain.` : "None held back. The dev's launch buy is public on-chain."],
-      ["Tax", "0% buy, 0% sell"], ["Liquidity", /pump\.fun/i.test(launchedOn) ? "Moves to PumpSwap automatically if the bonding curve completes" : "Locked by the launch platform"],
+    const kv = [["Total supply", "1,000,000,000"],
+      ["Team allocation", coin.devBuyPercent != null ? `None held back. The dev bought ${coin.devBuyPercent}% at launch, public on-chain.` : "None held back. The whole supply is public from the first second."],
+      ...(C.launchDesk === false ? [] : [["Launched on", launchedOn], ["Tax", "0% buy, 0% sell"]]),
       ["Utility", tk + " is the community coin of " + (C.brand || "this site") + ". " + (C.launchDesk === false ? "The " + (pr && pr.kind === "game" ? "game" : pr && pr.kind === "combo" ? "site" : "tool") + " works without it." : "The launchpad works without it.")]];
     const tn = C.tokenomics || {};
     const alloc = (tn.allocation || []).length ? [mk("h3", { textContent: "Where the money goes" }),
       mk("p", { textContent: (tn.source || "Creator fees") + " are split like this:" }),
       mk("div", { className: "alloc" }, ...tn.allocation.map(a => mk("div", { className: "abar" }, mk("span", { style: "width:" + Math.max(0, Math.min(100, a.pct)) + "%" }),
         mk("b", { textContent: a.pct + "% · " + a.name }), mk("small", { textContent: a.what })))),
-      tn.devBuyPolicy ? mk("p", { className: "muted", textContent: "Dev buy: " + tn.devBuyPolicy }) : ""] : [];
+      ] : [];
     section("tokenomics", "Tokenomics", mk("div", { className: "kv" }, ...kv.flatMap(([k, v]) => [mk("div", { textContent: k }), mk("div", { textContent: v })])), ...alloc);
     if ((C.roadmap || []).length) section("roadmap", "Roadmap", ...C.roadmap.map(ph => mk("div", { className: "phase " + (ph.status || "") },
       mk("span", { className: "st", textContent: { live: "Live now", next: "Building next", idea: "Ideas, not promises" }[ph.status] || ph.status }),
@@ -541,7 +553,7 @@ html[data-layout="poster"], [data-layout="poster"] body { overflow-x: clip; }
     const ctx = cv.getContext("2d"); let w, h, dpr, px = 0, py = 0, hidden = false;
     const glyph = C.emoji || "🚀", accent = col.accent || "#ff6a2b";
     let sprite = null; if (C.mascot) { const im = new Image(); im.onload = () => { sprite = im; }; im.src = "mascot.svg"; }
-    const N = 42, dots = Array.from({ length: N }, (_, i) => ({ x: Math.random(), y: Math.random(), z: .25 + Math.random() * .75, r: Math.random() * 6.28, s: .2 + Math.random() * .8, e: i % 4 === 0 }));
+    const N = 42, dots = Array.from({ length: N }, (_, i) => ({ x: Math.random(), y: Math.random(), z: .25 + Math.random() * .75, r: Math.random() * 6.28, s: .2 + Math.random() * .8, e: i % 4 === 0, c: i % 3 }));
     const size = () => { dpr = Math.min(2, devicePixelRatio || 1); w = cv.width = innerWidth * dpr; h = cv.height = innerHeight * dpr; };
     size(); addEventListener("resize", size);
     addEventListener("pointermove", e => { px = (e.clientX / innerWidth - .5) * 2; py = (e.clientY / innerHeight - .5) * 2; }, { passive: true });
@@ -560,7 +572,7 @@ html[data-layout="poster"], [data-layout="poster"] body { overflow-x: clip; }
         ctx.save(); ctx.translate(X, Y); ctx.rotate(Math.sin(d.r) * .4); ctx.globalAlpha = .18 + d.z * .5;
         if (d.e && sprite) { const s = 34 * sc; ctx.drawImage(sprite, -s / 2, -s / 2, s, s); }
         else if (d.e) { ctx.font = `${Math.round(22 * sc)}px system-ui`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(glyph, 0, 0); }
-        else { ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(0, 0, 2.2 * sc, 0, 6.28); ctx.fill(); }
+        else { ctx.fillStyle = [accent, col.accent2 || accent, col.accent3 || accent][d.c]; ctx.beginPath(); ctx.arc(0, 0, 2.2 * sc, 0, 6.28); ctx.fill(); }
         ctx.restore();
       }
       requestAnimationFrame(draw);

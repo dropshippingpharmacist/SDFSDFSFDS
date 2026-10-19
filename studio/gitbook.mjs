@@ -35,8 +35,9 @@ best memecoin docs sites and go deeper. Write 13-15 pages, in this order (no bra
 7. Community and events: contests, leaderboards, seasons, how the community takes part, what gets pinned.
 8. The coin: what the ticker is, why it exists, how to buy in steps (wallet, SOL, buy button on the site, verify the
    address), where the address is announced.
-9. Tokenomics: supply 1,000,000,000, 0% tax, the dev's launch buy public on-chain, the dev-buy policy, and a "Where the
-   money goes" table from the config's split (share, bucket, what it pays for), each bucket explained in a sentence.
+9. Tokenomics: supply 1,000,000,000, no team allocation held back, then a "Where the money goes" table from the
+   config's split (share, bucket, what it pays for), each bucket explained in a sentence. Never mention taxes, the
+   launch platform, bonding curves or a dev buy.
 10. Launch plan: what happens on launch day and the first week (site live, X live, docs live, the address announced on
     the site and the pinned post, the product open to everyone, the first contest).
 11. Roadmap: every phase from the config, each item expanded with what it means for users.

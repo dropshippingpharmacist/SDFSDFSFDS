@@ -76,7 +76,27 @@ ${String(html).slice(0, MAX_BYTES)}
   }
 }
 
-export async function makeMiniApp(concept, cfg, { client = null } = {}) {
+// stage one: the design document. Depth comes from design, not from asking for "more": modes, progression, economy,
+// content lists, achievements, a daily challenge, meta-unlocks and the holder-perk hooks are decided here first.
+const DESIGN_SYSTEM = `You are a senior game designer. Write a tight game design document (Markdown, 700-1200 words) for a browser
+game that must feel deep and replayable, not a demo. Cover, with concrete numbers: the core loop and controls (phone and
+desktop); 3 modes (e.g. classic, endless, daily challenge with a date seed); difficulty curve and waves/levels with named
+content (at least 8 levels / wave types / enemy or item types with distinct behavior); scoring, combos and multipliers;
+a progression system (XP, ranks, currency earned in play) and an upgrade / unlock tree of 8+ items with costs and
+effects; 10+ achievements with conditions; a meta layer (collection, skins, a map or a shop); the holder perk (cosmetic or
+access, unlocked by the parent page's holder message); juice (what shakes, pops, flashes); the share card; what is
+saved. For a utility: the equivalent depth (every function, inputs/outputs, presets, history, export). For a three-in-one:
+all three parts and how they feed each other. Only what can be built as ONE self-contained HTML file with canvas/SVG.`;
+export async function designMiniApp(concept, cfg, { client = null } = {}) {
+  const c = client || new Anthropic();
+  const brief = `Product: ${concept.name || cfg.brand} — a ${concept.kind || "game"} for ${cfg.brand} ($${cfg.coin?.ticker}).\nPitch: ${concept.pitch || ""}\nMechanic: ${concept.mechanic || ""}\nHolder perk: ${concept.holderPerk || "none"}\nBrand: emoji ${cfg.emoji}, vibe ${cfg.vibe}, accents ${cfg.colors?.accent}/${cfg.colors?.accent2}/${cfg.colors?.accent3}.`;
+  try {
+    const msg = await c.messages.stream({ model: MODEL, max_tokens: 6000, output_config: { effort: "high" }, system: DESIGN_SYSTEM, messages: [{ role: "user", content: brief }] }).finalMessage();
+    return msg.content.filter(b => b.type === "text").map(b => b.text).join("").slice(0, 12000);
+  } catch { return ""; }
+}
+
+export async function makeMiniApp(concept, cfg, { client = null, design = null } = {}) {
   if (!client && !process.env.ANTHROPIC_API_KEY) {
     return { error: "Add ANTHROPIC_API_KEY on the server: the game or utility is written by Claude." };
   }
@@ -86,9 +106,11 @@ export async function makeMiniApp(concept, cfg, { client = null } = {}) {
     concept.pitch ? `Pitch: ${concept.pitch}` : "",
     concept.mechanic ? `How it works: ${concept.mechanic}` : "",
     concept.holderPerk ? `Holder perk: ${concept.holderPerk}` : "",
-    `Brand: ${cfg.brand} ($${cfg.coin?.ticker}). Accent color ${cfg.colors?.accent}, light background ${cfg.colors?.light}, dark ${cfg.colors?.dark}. Display font: ${cfg.display}. Vibe: ${cfg.vibe || "candy"}.`,
+    `Brand: ${cfg.brand} ($${cfg.coin?.ticker}). Palette: accent ${cfg.colors?.accent}, accent2 ${cfg.colors?.accent2}, accent3 ${cfg.colors?.accent3} (use all three), light background ${cfg.colors?.light}, dark ${cfg.colors?.dark}. Display font: ${cfg.display}. Vibe: ${cfg.vibe || "candy"}.`,
     concept.kind === "launchpad" ? "This is a launchpad: build a fun companion tool for it instead (for example a coin name and ticker generator with a preview card), since the real launch form already exists on the page." : "",
     concept.kind === "combo" ? "This is a three-in-one: Play / Tools / Launch tabs on one page. Ways to fuse them: " + COMBOS.map(c => c[0] + " (" + c[1] + ")").join("; ") : "",
+    design ? "\nBUILD EXACTLY THIS DESIGN, all of it (every mode, level, upgrade, achievement and screen it lists):\n" + design : "",
+    "Depth is the point: a first screen with mode select, a real run, an upgrade/shop screen, an achievements screen, a daily challenge, settings (sound, reduced motion), and persistent progress. Big file is fine.",
   ].filter(Boolean).join("\n");
   try {
     let msg = await c.messages.stream({ model: MODEL, max_tokens: 100000, output_config: { effort: "high" }, system: SYSTEM,

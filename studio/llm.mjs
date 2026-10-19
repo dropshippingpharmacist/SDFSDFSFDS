@@ -1,6 +1,7 @@
 // llm.mjs — one way to ask Claude for structured output of any size.
 // The SDK refuses a non-streaming request that may run longer than ten minutes (which, by its own estimate, is any
 // request with more than ~21k max_tokens). Small answers use messages.parse; big ones stream and are parsed here.
+import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 
 const SMALL = 20000;
@@ -12,9 +13,14 @@ export async function parseBig(client, req, schema) {
     const r = await client.messages.parse({ ...req, output_config });
     return { stop_reason: r.stop_reason, parsed: r.parsed_output || null };
   }
-  const msg = await client.messages.stream({ ...req, output_config }).finalMessage();
+  // streaming: the schema goes in the prompt, the answer is JSON text, zod checks it here
+  const { format: _f, ...plain } = output_config;
+  const system = String(req.system || "") + "\n\nReply with ONE JSON object only (no prose, no code fences) matching this JSON Schema exactly:\n" + JSON.stringify(z.toJSONSchema(schema));
+  const msg = await client.messages.stream({ ...req, system, output_config: plain }).finalMessage();
   if (msg.stop_reason !== "end_turn") return { stop_reason: msg.stop_reason, parsed: null };
-  const text = (msg.content || []).filter(b => b.type === "text").map(b => b.text).join("");
+  let text = (msg.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim();
+  const fence = /```(?:json)?\s*([\s\S]*?)```/.exec(text); if (fence) text = fence[1].trim();
+  const a = text.indexOf("{"), b = text.lastIndexOf("}"); if (a > 0 || b < text.length - 1) text = text.slice(Math.max(0, a), b + 1);
   try { return { stop_reason: "end_turn", parsed: schema.parse(JSON.parse(text)) }; }
   catch { return { stop_reason: "end_turn", parsed: null }; }
 }

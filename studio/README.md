@@ -65,6 +65,8 @@ address, and a **vibe** chosen per site: arcade, neon, candy, retro or clean. Ev
   tabs with one mascot and shared progress).
 - Ideas and builds lean on the loops the whole world knows (slingshot physics, endless runners, match-3, one-tap,
   2048, daily puzzles, idle clickers, lane defense…) with your own mascot and name, never a real game's title or art.
+- **Every game is built in three passes:** a game design document first (modes, levels, upgrades, achievements, a daily
+  challenge, meta-unlocks, the holder perk), then the build from that document, then an automatic polish pass.
 - **The game builds itself.** A site that is a game, a tool or a three-in-one starts building it the moment the site is
   written (two or three minutes, in the background); the preview on the right shows it when it lands, and "Open it
   full screen" plays it in its own tab. Anyone can play on the deployed site, free, no wallet. **Make the game / tool**

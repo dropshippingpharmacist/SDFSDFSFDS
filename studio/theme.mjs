@@ -77,7 +77,7 @@ export async function makeTheme(cfg, { client = null } = {}) {
   try {
     const c = client || new Anthropic();
     const r = await parseBig(c, { model: MODEL, max_tokens: 30000, output_config: { effort: "high" }, system: SYSTEM,
-      messages: [{ role: "user", content: `Brand: ${cfg.brand} ($${cfg.coin?.ticker}), emoji ${cfg.emoji}, accent ${cfg.colors?.accent}, light ${cfg.colors?.light}, dark ${cfg.colors?.dark}, display font "${cfg.display}", vibe ${cfg.vibe}.\n` +
+      messages: [{ role: "user", content: `Brand: ${cfg.brand} ($${cfg.coin?.ticker}), emoji ${cfg.emoji}, palette: accent ${cfg.colors?.accent}, accent2 ${cfg.colors?.accent2}, accent3 ${cfg.colors?.accent3} (CSS: --accent, --accent2, --accent3), light ${cfg.colors?.light}, dark ${cfg.colors?.dark}, display font "${cfg.display}", vibe ${cfg.vibe}. Use all three accents.\n` +
         `Tagline: ${cfg.tagline}\nAbout: ${cfg.about}\nProduct: ${cfg.product?.kind} — ${cfg.product?.name}: ${cfg.product?.mechanic || ""}\nLore: ${(cfg.lore || []).join(" ")}\n\n` +
         `Layouts: ${LAYOUTS.map(l => `${l} (${LAYOUT_NOTES[l]})`).join("; ")}.\n\nThe skeleton:\n${SKELETON}` }] }, Theme);
     if (r.stop_reason !== "end_turn" || !r.parsed) return { ...fallback, notes: "The designer's answer could not be read." };

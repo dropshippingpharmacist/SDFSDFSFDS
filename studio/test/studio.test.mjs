@@ -15,6 +15,8 @@ test("without a key the plain writer makes a complete, honest site", async () =>
   assert.equal(g.source, "rules");
   const c = g.config;
   assert.ok(c.brand && c.tagline && c.about && c.coin.ticker && c.lore.length && c.how.length && c.faq.length);
+  assert.ok(/^#[0-9a-f]{6}$/.test(c.colors.accent2) && /^#[0-9a-f]{6}$/.test(c.colors.accent3) && c.colors.accent2 !== c.colors.accent && c.colors.light !== "#ffffff", "a real palette, not one color");
+  assert.deepEqual([honest({ ...rules("x"), accent2: "#123456", light: "nope" }, "x").config.colors.accent2, /^#[0-9a-f]{6}$/.test(honest({ ...rules("x"), light: "nope" }, "x").config.colors.light)], ["#123456", true]);
   assert.equal(c.coin.ca, "");
   assert.equal(c.launchDesk, false, "the launch desk is off unless the owner turns it on: the token is launched elsewhere");
   assert.match(c.roadmap[0].items[0], /usable on this site$/, "live = facts about the product, not a launch form");
@@ -589,7 +591,7 @@ test("where the money goes: a split per kind that always adds up, the owner's ow
   const writer = honest({ ...rules("x"), kind: "utility", allocation: [{ name: "Tool", pct: 50, what: "Guaranteed 100x returns" }, { name: "Team", pct: 50, what: "people" }], fee_source: "Creator fees", dev_buy_policy: "small" }, "x").config;
   assert.equal(writer.tokenomics.allocation[0].what, "", "promises are dropped from the split too");
   const md = docsMarkdown({ ...game, siteUrl: "https://catrun.vercel.app" });
-  assert.match(md, /^# .* docs/); assert.match(md, /## Tokenomics/); assert.match(md, /\| 40% \| The game \|/); assert.match(md, /Site: https:\/\/catrun.vercel.app/); assert.match(md, /## FAQ/);
+  assert.match(md, /^# .* docs/); assert.match(md, /## Tokenomics/); assert.match(md, /\| 40% \| The game \|/); assert.ok(!/Tax:|Launched on:|Dev buy/.test(md), "no tax / platform / dev-buy lines"); assert.match(md, /Site: https:\/\/catrun.vercel.app/); assert.match(md, /## FAQ/);
   const html = docsHtml(game);
   assert.match(html, /<nav>.*href="#tokenomics".*<\/nav>/s); assert.match(html, /class="bar"><span style="width:40%"/); assert.match(html, /<title>.* docs<\/title>/);
   assert.ok(!html.includes("<script"), "the docs page is plain HTML");
@@ -776,4 +778,21 @@ test("over HTTP: the site carries its layout, the preview serves theme.css and m
     const page = await (await fetch(base + `/studio/p/${g.id}/`, { headers: { cookie } })).text();
     assert.match(page, /href="theme\.css"/); assert.match(page, /id="mascot"/); assert.match(page, /data-layout="poster"\]/);
   } finally { server.close(); delete process.env.STUDIO_PASSWORD; }
+});
+
+
+// ---- big structured calls stream (2026-10-19) ---------------------------------------------------------------------
+import { parseBig } from "../llm.mjs";
+import { z as zz } from "zod";
+
+test("parseBig: small requests use parse; big ones stream with the schema in the prompt and the JSON checked here", async () => {
+  const S = zz.object({ a: zz.number(), b: zz.string() });
+  const small = await parseBig({ messages: { parse: async r => ({ stop_reason: "end_turn", parsed_output: { a: 1, b: "x" } }) } }, { max_tokens: 1000, system: "s" }, S);
+  assert.deepEqual(small.parsed, { a: 1, b: "x" });
+  let seen = null;
+  const big = { messages: { parse: async () => { throw new Error("must stream"); }, stream: r => { seen = r; return { finalMessage: async () => ({ stop_reason: "end_turn", content: [{ type: "text", text: "Sure:\n```json\n{\"a\": 2, \"b\": \"y\"}\n```" }] }) }; } } };
+  const r = await parseBig(big, { max_tokens: 40000, system: "base", output_config: { effort: "high" } }, S);
+  assert.deepEqual(r.parsed, { a: 2, b: "y" }); assert.ok(!("format" in seen.output_config) && /JSON Schema/.test(seen.system) && seen.system.startsWith("base"));
+  const bad = { messages: { stream: () => ({ finalMessage: async () => ({ stop_reason: "end_turn", content: [{ type: "text", text: "{\"a\": \"no\"}" }] }) }) } };
+  assert.equal((await parseBig(bad, { max_tokens: 40000 }, S)).parsed, null, "a wrong answer is null, never a crash");
 });
