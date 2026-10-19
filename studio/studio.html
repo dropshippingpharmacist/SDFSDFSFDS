@@ -170,7 +170,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
         <div class="check" id="checklist"></div>
         <div><b>The docs (GitBook)</b></div>
         <div class="row"><button class="btn" id="bookBtn" type="button">Write the docs</button><a class="btn alt small" id="docsBtn" target="_blank" rel="noopener">Open the docs</a>
-          <a class="btn alt small" id="docsZip" download>Download for GitBook (.zip)</a><button class="btn alt small" id="gitbookBtn" type="button">Publish to GitBook</button></div>
+          <a class="btn alt small" id="docsZip" download hidden>Download for GitBook (.zip)</a><button class="btn alt small" id="gitbookBtn" type="button" hidden>Publish to GitBook</button></div>
         <p class="muted" id="bookState">Claude writes an in-depth, multi-page book (intro, getting started, the product, how to play, holder perks, tokenomics and where the money goes, roadmap, brand kit, FAQ, official links). It ships with the site at /docs.html. "Publish to GitBook" creates the space and docs site on your GitBook account (needs GITBOOK_TOKEN); the .zip imports by hand too.</p>
         <div class="row"><a class="btn alt" id="launchBtn" target="_blank" rel="noopener">Launch it here (pump.fun)</a>
           <span class="muted">Optional: this server's launchpad with everything filled in; the address comes back on its own. Launching somewhere else? Paste the contract address below and save.</span></div>
@@ -228,7 +228,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
           <label for="eTg">Telegram<input id="eTg" type="url"></label>
           <label for="eBuy">Buy link <small>where people buy (the coin's launchpad page)</small><input id="eBuy" type="url"></label>
           <label for="eOn">Launched on <small>optional</small><input id="eOn" maxlength="60" placeholder="e.g. a Solana launchpad, bonding curve"></label>
-          <label for="eDocs">GitBook link <small>filled in automatically; empty = the site's own /docs/ page</small><input id="eDocs" type="url" placeholder="https://….gitbook.io/…"></label>
+          <label for="eDocs">Docs link <small>leave empty: the site's own /docs/ page</small><input id="eDocs" type="url" placeholder="leave empty"></label>
         </div>
         <button class="btn" id="saveBtn" type="button">Save and refresh preview</button>
         <p class="muted">Tokenomics and the "Live now" roadmap are facts about the launchpad and stay as they are.
@@ -580,7 +580,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     $("eDesk").checked = c.launchDesk !== false;
     const cl = c.colors || {}; setColors("eColors", cl.picked && cl.picked.length ? cl.picked : [cl.accent, cl.accent2, cl.accent3].filter(Boolean)); $("eFinish").value = c.finish || "";
     $("eCa").value = c.coin.ca || ""; $("eDev").value = c.coin.devBuyPercent ?? ""; $("eX").value = c.coin.x || ""; $("eTg").value = c.coin.telegram || "";
-    $("eBuy").value = c.coin.buyUrl || ""; $("eOn").value = c.coin.launchedOn || ""; $("eDocs").value = c.docsUrl || "";
+    $("eBuy").value = c.coin.buyUrl || ""; $("eOn").value = c.coin.launchedOn || ""; $("eDocs").value = /gitbook\.io/i.test(c.docsUrl || "") ? "" : (c.docsUrl || "");
     const tn = c.tokenomics || {};
     $("eSource").value = tn.source || ""; $("eDevPolicy").value = tn.devBuyPolicy || "";
     $("eAlloc").value = (tn.allocation || []).map(a => a.name + ": " + a.pct + " — " + a.what).join("\n");

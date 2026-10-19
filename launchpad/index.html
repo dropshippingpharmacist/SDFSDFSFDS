@@ -478,8 +478,8 @@ html[data-layout="poster"], [data-layout="poster"] body { overflow-x: clip; }
     });
 
     const site = $("site"), nav = $("siteNav"), secs = [];
-    // the docs: the coin's own GitBook once published, else the docs page shipped with the site (/docs/)
-    const docsUrl = /^https:\/\//.test(C.docsUrl || "") ? C.docsUrl : "docs/";
+    // the docs: on the coin's own domain (/docs/); a gitbook.io link is never used
+    const docsUrl = /^https:\/\//.test(C.docsUrl || "") && !/gitbook\.io/i.test(C.docsUrl) ? C.docsUrl : "docs/";
     const section = (id, title, ...kids) => { const s = mk("section", { id }, mk("h2", { textContent: title }), ...kids); site.append(s); secs.push([id, title]); };
     // launchDesk false = this site is the coin's home and its product; the token was launched elsewhere
     if (C.launchDesk === false) { $("launch").hidden = true; $("siteLaunchLink").hidden = true; $("connectBtn").hidden = true; document.querySelector(".mine").hidden = true;
