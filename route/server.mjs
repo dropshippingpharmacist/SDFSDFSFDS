@@ -283,7 +283,7 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
   async function shipSite(id) {
     const d = draft(id);
     const extra = d.app ? { "play.html": appFor(d) } : {};
-    extra["docs.html"] = bookHtml({ ...d.config, siteUrl: siteOf(d) }, bookOf(d));
+    extra["docs.html"] = bookHtml({ ...d.config, siteUrl: siteOf(d) }, bookOf(d)); extra["docs/index.html"] = extra["docs.html"].replace('href="./"', 'href="../"');
     extra["theme.css"] = d.theme?.css || "/* the default look */\n";
     if (d.theme?.svg) extra["mascot.svg"] = d.theme.svg;
     const out = await deploy(d.config, projectOf(d), { extra });
@@ -302,7 +302,7 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
     const d = draft(id);
     const out = await publishGitBook({ ...d.config, siteUrl: siteOf(d) }, d.book.pages, { existing: d.book.gitbook || null });
     const book = { ...d.book, gitbook: { at: Date.now(), ...out } };
-    if (out.publishedUrl) d.config.docsUrl = out.publishedUrl;            // the site's GitBook button points at the coin's own book
+    // the site's Docs button stays on the coin's own domain (/docs/); the GitBook copy is a backup, never linked from the site
     db.prepare("UPDATE studio_drafts SET book = ?, config = ?, updated = ? WHERE id = ?").run(JSON.stringify(book), JSON.stringify(d.config), Date.now(), id);
     return out.publishedUrl ? `Published: ${out.publishedUrl}` : out.steps.join(" · ");
   }
@@ -505,15 +505,15 @@ async function makeKit(id) {
       case "/api/studio/deploy": {
         const d = draft(b.id);
         if (d.meta.builtin === "route") throw err(400, "Route already runs on this server at /route; it deploys with the repo.");
-        // the GitBook: written and published on its own the first time the site goes out (in the background; the site
-        // gets the GitBook button on the next deploy, which the Studio does by itself when the link arrives)
+        // the docs live on the coin's own domain (/docs/). A GitBook copy is published only when GITBOOK_AUTO=1, so coins
+        // are never tied together by a shared GitBook address
         let gitbookNote = null;
-        if (process.env.GITBOOK_TOKEN && !d.book?.gitbook?.publishedUrl && !jobRunning("gitbook", d.id) && !jobRunning("book", d.id) && !limited("studio:gitbook", 10, 36e5)) {
+        if (process.env.GITBOOK_TOKEN && process.env.GITBOOK_AUTO === "1" && !d.book?.gitbook?.publishedUrl && !jobRunning("gitbook", d.id) && !jobRunning("book", d.id) && !limited("studio:gitbook", 10, 36e5)) {
           runJob("gitbook", d.id, () => publishBook(d.id));
-          gitbookNote = "The GitBook is being written and published in the background; the site gets its GitBook button when it is done.";
+          gitbookNote = "A GitBook copy is being published in the background (the site keeps its own /docs/).";
         }
         const extra = d.app ? { "play.html": appFor(d) } : {};
-        extra["docs.html"] = bookHtml({ ...d.config, siteUrl: siteOf(d) }, bookOf(d));
+        extra["docs.html"] = bookHtml({ ...d.config, siteUrl: siteOf(d) }, bookOf(d)); extra["docs/index.html"] = extra["docs.html"].replace('href="./"', 'href="../"');
         extra["theme.css"] = d.theme?.css || "/* the default look */\n";
         if (d.theme?.svg) extra["mascot.svg"] = d.theme.svg;
         if (d.content?.files?.banner?.png) { try { extra["og.png"] = await readFileP(path.join(DATA, "content", String(d.id), "banner.png")); } catch { /* no preview image */ } }
