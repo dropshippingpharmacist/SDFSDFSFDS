@@ -12,7 +12,8 @@ async function v(fetchImpl, token, method, path, body) {
   const j = await r.json().catch(() => ({}));
   const raw = String(j?.error?.message || j?.message || `Vercel answered ${r.status}`);
   const phone = /E\.?164|phone/i.test(raw) ? "The phone number needs the country code, like +13868981854." : null;
-  const msg = phone || (raw.length > 240 ? raw.split(/\n|└─/).map(s => s.trim()).filter(Boolean).pop().slice(0, 240) : raw);
+  const addr = /address/i.test(raw) ? "Add your street address in the domain owner details, then press Save." : null;
+  const msg = phone || addr || (raw.length > 240 ? raw.split(/\n|└─/).map(s => s.trim()).filter(Boolean).pop().slice(0, 240) : raw);
   if (!r.ok) throw Object.assign(new Error(msg), { status: r.status >= 500 ? 502 : 400, code: j?.error?.code || j?.code });
   return j;
 }
@@ -67,11 +68,11 @@ export async function suggest(brand, ticker, o = {}) {
   return priced.sort((a, b) => a.price - b.price).slice(0, 12);
 }
 
-export const CONTACT_FIELDS = ["firstName", "lastName", "email", "phone", "city", "state", "zip", "country"];
+export const CONTACT_FIELDS = ["firstName", "lastName", "email", "phone", "address1", "city", "state", "zip", "country"];
 export function checkContact(c = {}) {
   const missing = CONTACT_FIELDS.filter(k => !String(c[k] || "").trim());
   if (missing.length) throw Object.assign(new Error("Fill in the domain owner details first: " + missing.join(", ") + "."), { status: 400 });
-  const out = Object.fromEntries([...CONTACT_FIELDS, "companyName"].filter(k => c[k]).map(k => [k, String(c[k]).trim().slice(0, 120)]));
+  const out = Object.fromEntries([...CONTACT_FIELDS, "address2", "companyName"].filter(k => c[k]).map(k => [k, String(c[k]).trim().slice(0, 120)]));
   out.country = out.country.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 2);
   out.phone = e164(out.phone, out.country);
   if (!/^\+[1-9]\d{6,14}$/.test(out.phone)) throw Object.assign(new Error("The phone number needs the country code, like +13868981854."), { status: 400 });

@@ -629,7 +629,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
   }
   setColors("wantColors", []);
   // ---- domains: owner details once, then price, confirm, buy, attach, ship
-  const OWNER = [["firstName", "First name"], ["lastName", "Last name"], ["email", "Email"], ["phone", "Phone with country code (+13868981854)"], ["city", "City"], ["state", "State / region"], ["zip", "ZIP / postcode"], ["country", "Country (2 letters, e.g. US)"], ["companyName", "Company (optional)"]];
+  const OWNER = [["firstName", "First name"], ["lastName", "Last name"], ["email", "Email"], ["phone", "Phone with country code (+13868981854)"], ["address1", "Street address"], ["address2", "Apt / suite (optional)"], ["city", "City"], ["state", "State / region"], ["zip", "ZIP / postcode"], ["country", "Country (2 letters, e.g. US)"], ["companyName", "Company (optional)"]];
   OWNER.forEach(([k, t]) => $("ownerForm").append(el("label", {}, t, el("input", { id: "own_" + k }))));
   call("/api/studio/owner", {}).then(r => { if (r.owner) { ownerSaved = true; OWNER.forEach(([k]) => { $("own_" + k).value = r.owner[k] || ""; }); $("ownerState").textContent = " Saved."; } else $("ownerBox").open = true; }).catch(() => {});
   $("ownerSave").addEventListener("click", async () => {
