@@ -16,8 +16,14 @@ function which(names) {
   for (const n of names) { try { const p = execSync(`command -v ${n}`, { stdio: ["ignore", "pipe", "ignore"] }).toString().trim(); if (p) return p; } catch { /* next */ } }
   return null;
 }
+const exists = p => { try { execSync(`test -x "${p}"`); return true; } catch { return false; } };
 export function chromiumPath() {
-  return process.env.CHROMIUM_PATH || process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ||
+  // an env value may be a bare name ("chromium"): resolve it on PATH; a path that does not exist is ignored
+  for (const v of [process.env.CHROMIUM_PATH, process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH].filter(Boolean)) {
+    if (v.includes("/") && exists(v)) return v;
+    if (!v.includes("/")) { const w = which([v]); if (w) return w; }
+  }
+  return
     which(["chromium", "chromium-browser", "google-chrome", "google-chrome-stable"]) ||
     (process.env.PLAYWRIGHT_BROWSERS_PATH && [path.join(process.env.PLAYWRIGHT_BROWSERS_PATH, "chromium")].find(p => { try { execSync(`test -x ${p}`); return true; } catch { return false; } })) || null;
 }

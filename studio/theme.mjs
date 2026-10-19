@@ -4,7 +4,7 @@
 // no scripts, no outside resources, no imports. Without a key, a layout is still picked from the brand so sites differ.
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
-import { parseBig } from "./llm.mjs";
+import { parseBig, why } from "./llm.mjs";
 
 const MODEL = "claude-opus-5-5";
 export const LAYOUTS = ["classic", "poster", "split", "terminal", "magazine"];
@@ -84,6 +84,6 @@ export async function makeTheme(cfg, { client = null } = {}) {
     const o = r.parsed;
     return { layout: LAYOUTS.includes(o.layout) ? o.layout : fallback.layout, css: cleanCss(o.css), svg: cleanSvg(o.mascot_svg), notes: String(o.notes || "").slice(0, 200), source: "claude" };
   } catch (e) {
-    return { ...fallback, notes: e instanceof Anthropic.APIError ? `Claude answered ${e.status}; the default look is used.` : "Claude could not be reached; the default look is used." };
+    return { ...fallback, notes: `${why(e)}; the default look is used.` };
   }
 }

@@ -9,6 +9,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import { withRetry, why } from "./llm.mjs";
 
 const MODEL = "claude-opus-5-5";
 const clean = (t, n = 300) => String(t || "").replace(/\s+/g, " ").trim().slice(0, n);
@@ -17,10 +18,9 @@ const dropClaims = t => clean(t, 1000).split(/(?<=[.!?])\s+/).filter(x => x && !
 
 export const SIZES = { pfp: [400, 400], banner: [1500, 500], launch: [1000, 1000], video: [1080, 1080] };
 export const VIDEOS = [
-  { key: "intro", title: "Intro", seconds: 20, purpose: "what this is, in 20 seconds: the mascot, the one-line pitch, the product, the ticker" },
-  { key: "product", title: "Follow-up 1: the product", seconds: 15, purpose: "the game / tool / launchpad itself: what you do, what it feels like, the holder perk" },
-  { key: "why", title: "Follow-up 2: why now", seconds: 15, purpose: "the lore and the moment: why this exists now, what is coming next, the call to the site" },
+  { key: "intro", title: "Intro", seconds: 25, purpose: "what this is, in 25 seconds: the mascot, the one-line pitch, the product, the ticker, the call to the site" },
 ];
+export const IMAGES = ["pfp", "banner"];
 
 const Plan = z.object({
   bio: z.string(), name_on_x: z.string(),
@@ -39,11 +39,13 @@ Rules you never break:
   Never add disclaimers, caveats or "no promised value" lines; never mention risk, rugs or scams.
 - Still no invented facts: no price targets or "100x", no guarantees, no partnerships, listings, charity, airdrops,
   staking or revenue share that do not exist. Hype the real thing: the product, the community, the launch.
-- Videos are for X: square, 15-20 seconds, 3-6 scenes, each scene a few seconds with a big headline (2-6 words) and
-  a short sub line (one sentence max). "visual" says what moves on screen (mascot, particles, chart-shaped joke, UI).
-  Hook in the first 2 seconds. End card: the site's call to action (never a price). Video keys: intro, product, why.
-- Posts: exactly 4, in order: 1 the intro video (launch day, before the token goes live), 2 the product video (a few
-  hours after, once the contract address exists), 3 the why video (next day), 4 a text-only community post (day 2-3).
+- ONE video, key "intro", for X: square, 20-25 seconds, 5-7 scenes, each a few seconds with a big headline (2-6
+  words) and a short sub line (one sentence max). "visual" says what moves on screen (mascot, particles, chart-shaped
+  joke, the product's UI). Hook in the first 2 seconds; the product and the ticker in the middle; end card: the site's
+  call to action (never a price).
+- Posts: exactly 4, in order: 1 the intro video (launch day, before the token goes live), 2 a product post with a
+  screenshot of the game / tool (a few hours after, once the contract address exists), 3 a "why now" post (next
+  day), 4 a text-only community post (day 2-3).
   Each post text under 260 characters, no hashtags spam (at most 2), no "$" tickers except the coin's own, written like a
   person, not a brand. "media" names which video or image goes with it.
 - pinned: the pinned post text (under 260 chars) with [CA] where the contract address will be pasted and [SITE] for the
@@ -56,12 +58,12 @@ export async function planContent(cfg, { client = null } = {}) {
   if (client || process.env.ANTHROPIC_API_KEY) {
     try {
       const c = client || new Anthropic();
-      const r = await c.messages.parse({ model: MODEL, max_tokens: 16000, output_config: { effort: "high", format: zodOutputFormat(Plan) }, system: SYSTEM,
+      const r = await withRetry(() => c.messages.parse({ model: MODEL, max_tokens: 16000, output_config: { effort: "high", format: zodOutputFormat(Plan) }, system: SYSTEM,
         messages: [{ role: "user", content: "The site:\n" + JSON.stringify({ brand: cfg.brand, ticker: cfg.coin?.ticker, emoji: cfg.emoji, tagline: cfg.tagline, about: cfg.about,
-          lore: cfg.lore, product: cfg.product, roadmap: cfg.roadmap, vibe: cfg.vibe }, null, 1).slice(0, 6000) + "\n\nWrite the content kit." }] });
+          lore: cfg.lore, product: cfg.product, roadmap: cfg.roadmap, vibe: cfg.vibe }, null, 1).slice(0, 6000) + "\n\nWrite the content kit." }] }));
       if (r.stop_reason === "refusal") note = "The model declined; the plain plan was used.";
       else if (r.parsed_output) { raw = r.parsed_output; source = "claude"; }
-    } catch (e) { note = e instanceof Anthropic.APIError ? `Claude answered ${e.status}; the plain plan was used.` : "Claude could not be reached; the plain plan was used."; }
+    } catch (e) { note = `${why(e)}; the plain plan was used.`; }
   }
   return { plan: honestPlan(raw || rulesPlan(cfg), cfg), source, note };
 }
@@ -88,8 +90,8 @@ export function rulesPlan(cfg) {
     ],
     posts: [
       { when: "Launch day, 1 hour before the token goes live", media: "intro video", text: `${b} ${cfg.emoji} is live. ${cfg.tagline} ${what.charAt(0).toUpperCase() + what.slice(1)}. Site in bio.` },
-      { when: "Launch day, a few hours after the contract address exists", media: "product video", text: `${p.name || b}: ${clean(p.mechanic || cfg.about, 150)} Free. On the site.` },
-      { when: "Day 2", media: "why video", text: `Why ${b} exists: ${clean((cfg.lore || [])[0] || cfg.about, 150)}` },
+      { when: "Launch day, a few hours after the contract address exists", media: "a screenshot of the product", text: `${p.name || b}: ${clean(p.mechanic || cfg.about, 150)} Free. On the site.` },
+      { when: "Day 2", media: "none", text: `Why ${b} exists: ${clean((cfg.lore || [])[0] || cfg.about, 150)}` },
       { when: "Day 2-3", media: "none", text: `Post your ${kind === "game" ? "best score" : "card"} from the ${b} site below. Top ones get pinned.` },
     ],
     pinned: `${b} ${cfg.emoji}\n${cfg.tagline}\nSite: [SITE]\nCA: [CA]`,
@@ -216,11 +218,11 @@ export async function makeVisual(kind, brief, cfg, { client = null, video = null
     `\nHere is a plain template that already works; make yours clearly better:\n\`\`\`html\n${fallback.slice(0, 9000)}\n\`\`\``;
   try {
     const c = client || new Anthropic();
-    const msg = await c.messages.stream({ model: MODEL, max_tokens: 32000, output_config: { effort: "high" }, system: VISUAL_SYSTEM, messages: [{ role: "user", content: ask }] }).finalMessage();
+    const msg = await withRetry(() => c.messages.stream({ model: MODEL, max_tokens: 32000, output_config: { effort: "high" }, system: VISUAL_SYSTEM, messages: [{ role: "user", content: ask }] }).finalMessage());
     const html = msg.stop_reason === "end_turn" ? extract(msg.content.filter(b => b.type === "text").map(b => b.text).join("")) : null;
     if (html && (!video || (/window\.render\s*=|function\s+render\s*\(/.test(html) && /id="c"/.test(html)))) return { html, source: "claude" };
     return { html: fallback, source: "template", note: "Claude's version failed the checks; the template was used." };
-  } catch (e) { return { html: fallback, source: "template", note: "Claude could not be reached; the template was used." }; }
+  } catch (e) { return { html: fallback, source: "template", note: `${why(e)}; the template was used.` }; }
 }
 
 // how to post it all, step by step (static: it is the same for every coin)

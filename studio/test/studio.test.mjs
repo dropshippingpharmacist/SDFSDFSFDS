@@ -470,9 +470,9 @@ test("content kit: the plan passes the honesty filter, the templates are complet
   assert.equal(plan.posts[0].text, "Frog Arcade is live. Site in bio.");
   const intro = plan.videos.find(v => v.key === "intro");
   assert.equal(intro.scenes.length, 1, "a scene whose headline is a promise is dropped; seconds are capped");
-  assert.ok(plan.videos.find(v => v.key === "product").scenes.length >= 2, "missing videos come from the plain plan");
+  assert.equal(plan.videos.length, 1, "one video: the intro");
   assert.ok(rulesPlan(cfg).posts.length === 4 && HOW_TO_POST.length >= 5);
-  for (const k of ["pfp", "banner", "launch"]) assert.match(templateImage(k, cfg), /<!doctype html>[\s\S]*🐸|<!doctype html>/);
+  for (const k of ["pfp", "banner"]) assert.match(templateImage(k, cfg), /<!doctype html>/);
   const v = templateVideo(intro, cfg);
   assert.match(v, /window\.render = function/); assert.match(v, /id="c" width="1080" height="1080"/); assert.match(v, /window\.DURATION = 7/);
   const bad = { messages: { stream: () => ({ finalMessage: async () => ({ stop_reason: "end_turn", content: [{ type: "text", text: "<!doctype html><html><body><img src=\"https://evil/x.png\"></body></html>" }] }) }) } };
@@ -516,7 +516,7 @@ test("content kit over HTTP: files land on the volume, are served to the owner o
       const mp4 = await fetch(base + `/studio/c/${g.id}/intro.mp4`, { headers: { cookie } });
       assert.equal(mp4.headers.get("content-type"), "video/mp4"); assert.ok((await mp4.arrayBuffer()).byteLength > 10000);
     }
-    assert.equal((await post("/api/studio/content/get", { id: g.id })).content.files.launch.html, "launch.html");
+    assert.deepEqual(Object.keys((await post("/api/studio/content/get", { id: g.id })).content.files).sort(), ["banner", "intro", "pfp"], "the X picture, the banner and one intro video");
   } finally { server.close(); delete process.env.STUDIO_PASSWORD; delete process.env.VIDEO_FPS; if (prevData) process.env.DATA_DIR = prevData; }
 });
 
