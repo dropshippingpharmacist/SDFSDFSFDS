@@ -209,7 +209,7 @@ export async function publishGitBook(cfg, pages, { token = process.env.GITBOOK_T
   // what is in it now (the empty default page of a new space, or last time's pages): all replaced
   const rev = await gb(fetchImpl, token, "GET", `/spaces/${space.id}/revisions/${space.revision}`).catch(() => ({ pages: [] }));
   const old = (rev.pages || []).map(p => p.id);
-  const cr = await gb(fetchImpl, token, "POST", `/spaces/${space.id}/change-requests`, { subject: `${cfg.brand} docs`, description: "Written by Launchpad Studio." });
+  const cr = await gb(fetchImpl, token, "POST", `/spaces/${space.id}/change-requests`, { subject: `${cfg.brand} docs` });
   const changes = [...old.map(id => ({ operation: "delete_page", page: id })), ...pages.map((p, i) => pageDoc(p, i, pages.length))];
   for (let i = 0; i < changes.length; i += 50) {           // GitBook takes up to 50 changes per batch
     await gb(fetchImpl, token, "POST", `/spaces/${space.id}/change-requests/${cr.id}/content?compat=false`, { changes: changes.slice(i, i + 50) });

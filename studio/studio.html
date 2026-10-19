@@ -148,6 +148,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
         <button class="btn alt small" id="checkBtn" type="button">Check availability</button>
         <p class="muted" id="tickerLine"></p>
         <div class="domains" id="tickers"></div>
+        <div class="row"><span class="muted" id="themeState"></span><button class="btn alt small" id="restyleBtn" type="button">Restyle</button></div>
         <div class="row" id="appRow"><button class="btn" id="appBtn" type="button">Make the game / tool</button><button class="btn alt" id="polishBtn" type="button" hidden>Polish it</button><span class="muted" id="appState"></span></div>
         <div><b>Launch fields</b> <span class="muted">· paste these wherever you launch the token</span></div>
         <div class="post" id="launchFields"></div>
@@ -364,6 +365,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     $("builtinNote").textContent = builtin ? "Route runs on this server at /route and deploys with the repo. Save the contract address and links here after you launch; /route updates on its own." : "";
     checklist();
     $("appState").textContent = "";
+    themeLine(r.theme); if (r.theme && r.theme.building) watchTheme(r.id);
     if (r.build && r.build.building) watchBuild(r.id);
     else if (r.build && r.build.error) $("appState").textContent = "The build failed: " + r.build.error + " Press the button to try again.";
     if (r.hasApp) $("appState").append("This site has its " + (c.product?.kind === "game" ? "game" : c.product?.kind === "combo" ? "three-in-one" : "tool") + ". ", el("a", { href: r.preview + "play.html", target: "_blank", rel: "noopener", textContent: "Open it full screen" }), ". Make it again to replace it.");
@@ -410,6 +412,28 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
   $("rateUp").addEventListener("click", () => rate(cur && cur.rating > 0 ? 0 : 1));
   $("rateDown").addEventListener("click", () => rate(cur && cur.rating < 0 ? 0 : -1));
   $("rateNote").addEventListener("change", () => { if (cur) rate(cur.rating || 0); });
+  function themeLine(t) {
+    if (!t) { $("themeState").textContent = ""; return; }
+    $("themeState").textContent = t.building ? "Claude is designing this site's own look (layout, stylesheet, mascot)…"
+      : "Look: " + t.layout + " layout" + (t.mascot ? " · its own mascot" : "") + (t.source === "claude" ? " · designed by Claude" : " · default look") + (t.notes ? " · " + t.notes : "");
+  }
+  let themeTimer = null;
+  function watchTheme(id) {
+    clearTimeout(themeTimer);
+    const tick = async () => {
+      if (!cur || cur.id !== id) return;
+      try { const r = await call("/api/studio/get", { id }); themeLine(r.theme);
+        if (!r.theme.building) { cur.config = r.config; $("preview").src = cur.preview + "?t=" + Date.now(); return; } } catch (e) { /* keep polling */ }
+      themeTimer = setTimeout(tick, 6000);
+    };
+    themeTimer = setTimeout(tick, 6000);
+  }
+  $("restyleBtn").addEventListener("click", async () => {
+    if (!cur) return;
+    $("restyleBtn").disabled = true; $("themeState").textContent = "Designing a new look… about a minute.";
+    try { const r = await call("/api/studio/restyle", { id: cur.id }); cur.config = r.config; themeLine(r.theme); $("preview").src = cur.preview + "?t=" + Date.now(); }
+    catch (e) { $("themeState").textContent = e.message; } finally { $("restyleBtn").disabled = false; }
+  });
   // the game / tool is being built in the background: poll until it lands, then show it
   let buildTimer = null;
   function watchBuild(id) {

@@ -65,7 +65,7 @@ file, same rules as before. Keep what works; make it tighter, juicier and more a
 ${String(html).slice(0, MAX_BYTES)}
 \`\`\``;
   try {
-    const stream = c.messages.stream({ model: MODEL, max_tokens: 64000, output_config: { effort: "high" }, system: SYSTEM, messages: [{ role: "user", content: ask }] });
+    const stream = c.messages.stream({ model: MODEL, max_tokens: 100000, output_config: { effort: "high" }, system: SYSTEM, messages: [{ role: "user", content: ask }] });
     const msg = await stream.finalMessage();
     if (msg.stop_reason !== "end_turn") return { error: msg.stop_reason === "refusal" ? "The model declined." : "The polished app came out too long. Try again." };
     const out = cleanHtml(msg.content.filter(b => b.type === "text").map(b => b.text).join(""));
@@ -91,11 +91,14 @@ export async function makeMiniApp(concept, cfg, { client = null } = {}) {
     concept.kind === "combo" ? "This is a three-in-one: Play / Tools / Launch tabs on one page. Ways to fuse them: " + COMBOS.map(c => c[0] + " (" + c[1] + ")").join("; ") : "",
   ].filter(Boolean).join("\n");
   try {
-    const stream = c.messages.stream({ model: MODEL, max_tokens: 64000, output_config: { effort: "high" }, system: SYSTEM,
-                                       messages: [{ role: "user", content: brief }] });
-    const msg = await stream.finalMessage();
+    let msg = await c.messages.stream({ model: MODEL, max_tokens: 100000, output_config: { effort: "high" }, system: SYSTEM,
+                                        messages: [{ role: "user", content: brief }] }).finalMessage();
+    if (msg.stop_reason === "max_tokens") {                                  // once more, tighter
+      msg = await c.messages.stream({ model: MODEL, max_tokens: 100000, output_config: { effort: "high" }, system: SYSTEM,
+        messages: [{ role: "user", content: brief + "\n\nKeep the whole file under 1,500 lines: fewer modes, same polish." }] }).finalMessage();
+    }
     if (msg.stop_reason === "refusal") return { error: "The model declined to build this one." };
-    if (msg.stop_reason === "max_tokens") return { error: "The app came out too long. Try again or simplify the idea." };
+    if (msg.stop_reason === "max_tokens") return { error: "The app came out too long twice. Simplify the mechanic and try again." };
     const text = msg.content.filter(b => b.type === "text").map(b => b.text).join("");
     const out = cleanHtml(text);
     return out.error ? { error: `Not used: ${out.error}. Try again.` } : out;

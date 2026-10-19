@@ -14,6 +14,7 @@ import { trends, coinStats, tickerTaken, registerLiveSource } from "../studio/tr
 import { makeIdeas, ideaPrompt } from "../studio/ideas.mjs";
 import { makeMiniApp, polishMiniApp } from "../studio/miniapp.mjs";
 import { createPumpLive } from "../studio/pumplive.mjs";
+import { makeTheme, rulesLayout } from "../studio/theme.mjs";
 import { planContent, makeVisual, templateImage, templateVideo, SIZES, VIDEOS, HOW_TO_POST } from "../studio/content.mjs";
 import { renderImage, renderVideo, renderStatus, saveHtml } from "../studio/render.mjs";
 import { docsMarkdown } from "../studio/docs.mjs";
@@ -46,7 +47,7 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
   db.exec(`CREATE TABLE IF NOT EXISTS studio_drafts (id INTEGER PRIMARY KEY, idea TEXT NOT NULL, config TEXT NOT NULL,
             meta TEXT NOT NULL, url TEXT, created INTEGER NOT NULL, updated INTEGER NOT NULL)`);
   // the Studio's memory: your rating and note on each site, its game / utility, and how its coin did once launched
-  for (const col of ["rating INTEGER NOT NULL DEFAULT 0", "note TEXT", "app TEXT", "stats TEXT", "stats_at INTEGER", "content TEXT", "book TEXT", "pub_token TEXT"]) {
+  for (const col of ["rating INTEGER NOT NULL DEFAULT 0", "note TEXT", "app TEXT", "stats TEXT", "stats_at INTEGER", "content TEXT", "book TEXT", "pub_token TEXT", "theme TEXT", "app_error TEXT"]) {
     try { db.exec(`ALTER TABLE studio_drafts ADD COLUMN ${col}`); } catch { /* already there */ }
   }
   // the Studio is the owner's tool: one password (STUDIO_PASSWORD), a cookie derived from it
@@ -59,7 +60,7 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
     const r = db.prepare("SELECT * FROM studio_drafts WHERE id = ?").get(Number(id));
     if (!r) throw err(404, "No such draft.");
     return { ...r, config: JSON.parse(r.config), meta: JSON.parse(r.meta), stats: r.stats ? JSON.parse(r.stats) : null, content: r.content ? JSON.parse(r.content) : null,
-             book: r.book ? JSON.parse(r.book) : null };
+             book: r.book ? JSON.parse(r.book) : null, theme: r.theme ? JSON.parse(r.theme) : null };
   };
   // the book's pages: Claude's when written, else built from the config on the spot
   const bookOf = d => (d.book?.pages?.length ? d.book.pages : rulesBook({ ...d.config, siteUrl: d.url }));
@@ -122,13 +123,27 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
       const d = draft(id), pr = d.config.product || {};
       const out = await makeMiniApp({ name: pr.name, kind: pr.kind === "launchpad" ? "launchpad" : pr.kind, pitch: d.config.tagline,
                                       mechanic: pr.mechanic || d.idea, holderPerk: pr.holderPerk }, d.config);
-      if (out.error) { building.set(id, { error: out.error }); setTimeout(() => building.delete(id), 60e3).unref?.(); return; }
+      if (out.error) { db.prepare("UPDATE studio_drafts SET app_error = ? WHERE id = ?").run(out.error, id); building.delete(id); return; }
       d.config.product = { ...pr, kind: pr.kind === "launchpad" ? "utility" : (pr.kind || "game"), app: true };
-      db.prepare("UPDATE studio_drafts SET app = ?, config = ?, updated = ? WHERE id = ?").run(out.html, JSON.stringify(d.config), Date.now(), id);
+      db.prepare("UPDATE studio_drafts SET app = ?, app_error = NULL, config = ?, updated = ? WHERE id = ?").run(out.html, JSON.stringify(d.config), Date.now(), id);
       building.delete(id);
-    } catch (e) { building.set(id, { error: e.message }); setTimeout(() => building.delete(id), 60e3).unref?.(); }
+    } catch (e) { db.prepare("UPDATE studio_drafts SET app_error = ? WHERE id = ?").run(e.message, id); building.delete(id); }
   }
-  const buildState = id => { const b = building.get(id); return !b ? null : typeof b === "number" ? { building: true, since: b } : { building: false, error: b.error }; };
+  // the look: a layout, the site's own stylesheet and its mascot, designed in the background right after the site
+  const styling = new Set();
+  async function buildTheme(id) {
+    if (styling.has(id)) return;
+    styling.add(id);
+    try {
+      const d = draft(id);
+      const th = await makeTheme(d.config);
+      d.config.layout = th.layout; d.config.mascot = !!th.svg;
+      db.prepare("UPDATE studio_drafts SET theme = ?, config = ?, updated = ? WHERE id = ?").run(JSON.stringify(th), JSON.stringify(d.config), Date.now(), id);
+    } catch (e) { console.error("[theme]", e.message); }
+    finally { styling.delete(id); }
+  }
+  const buildState = (id, d) => building.has(id) ? { building: true, since: building.get(id) } : d?.app_error ? { building: false, error: d.app_error } : null;
+  const themeState = (id, d) => ({ building: styling.has(id), layout: d?.config?.layout || "classic", mascot: !!d?.config?.mascot, source: d?.theme?.source || null, notes: d?.theme?.notes || "" });
   // what the generators learn from: liked, disliked, and launched (with DexScreener results)
   const memory = () => {
     const rows = db.prepare("SELECT * FROM studio_drafts ORDER BY updated DESC LIMIT 200").all().map(summary);
@@ -291,10 +306,14 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
         const r = db.prepare("INSERT INTO studio_drafts (idea, config, meta, created, updated) VALUES (?, ?, ?, ?, ?)")
           .run(g.idea, JSON.stringify(g.config), JSON.stringify(meta), t, t);
         const id = Number(r.lastInsertRowid);
+        // the look first (a layout right away, Claude's own stylesheet and mascot in the background), then the product
+        g.config.layout = rulesLayout(g.config);
+        db.prepare("UPDATE studio_drafts SET config = ? WHERE id = ?").run(JSON.stringify(g.config), id);
+        if (process.env.ANTHROPIC_API_KEY && b.auto !== false) buildTheme(id);
         // a game, a tool or a three-in-one: build it now, in the background, so the site is playable without another click
         const auto = !!process.env.ANTHROPIC_API_KEY && g.config.product?.kind !== "launchpad" && b.auto !== false && !limited("studio:app", 20, 36e5);
         if (auto) buildApp(id);
-        return send(res, 200, { id, config: g.config, ...meta, preview: `/studio/p/${id}/`, build: auto ? { building: true } : null });
+        return send(res, 200, { id, config: g.config, ...meta, preview: `/studio/p/${id}/`, build: auto ? { building: true } : null, theme: themeState(id, draft(id)) });
       }
       case "/api/studio/save": {
         const d = draft(b.id);
@@ -311,6 +330,7 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
         const tnIn = c.tokenomics || {};
         re.config.tokenomics = tokenomics({ kind: re.config.product.kind, allocation: tnIn.allocation, fee_source: tnIn.source, dev_buy_policy: tnIn.devBuyPolicy });
         re.config.product.app = !!d.app;
+        re.config.layout = d.config.layout; re.config.mascot = !!d.config.mascot;   // the look stays with the draft
         re.config.coin.ca = String(c.coin?.ca || "").trim().replace(/[^1-9A-HJ-NP-Za-km-z]/g, "").slice(0, 44);
         const pct = Number(c.coin?.devBuyPercent);
         re.config.coin.devBuyPercent = c.coin?.devBuyPercent === "" || c.coin?.devBuyPercent == null || !Number.isFinite(pct) ? null : Math.max(0, Math.min(100, pct));
@@ -339,6 +359,8 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
         }
         const extra = d.app ? { "play.html": d.app } : {};
         extra["docs.html"] = bookHtml({ ...d.config, siteUrl: d.url }, bookOf(d));
+        extra["theme.css"] = d.theme?.css || "/* the default look */\n";
+        if (d.theme?.svg) extra["mascot.svg"] = d.theme.svg;
         if (d.content?.files?.banner?.png) { try { extra["og.png"] = await readFileP(path.join(DATA, "content", String(d.id), "banner.png")); } catch { /* no preview image */ } }
         const out = await deploy(d.config, b.slug || d.config.brand, { extra });
         db.prepare("UPDATE studio_drafts SET url = ?, updated = ? WHERE id = ?").run(out.url, t, d.id);
@@ -349,7 +371,7 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
       case "/api/studio/get": {
         const d = draft(b.id);
         return send(res, 200, { id: d.id, idea: d.idea, config: d.config, url: d.url, rating: d.rating || 0, note: d.note || "",
-                                hasApp: !!d.app, stats: d.stats, ...d.meta, preview: d.meta.builtin === "route" ? "/route" : `/studio/p/${d.id}/`, build: buildState(d.id) });
+                                hasApp: !!d.app, stats: d.stats, ...d.meta, preview: d.meta.builtin === "route" ? "/route" : `/studio/p/${d.id}/`, build: buildState(d.id, d), theme: themeState(d.id, d) });
       }
       case "/api/studio/app": {
         // Claude writes the site's game or utility (play.html); it can take a minute or two
@@ -363,6 +385,15 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
         d.config.product = { ...pr, kind: pr.kind === "launchpad" ? "utility" : (pr.kind || "game"), app: true };
         db.prepare("UPDATE studio_drafts SET app = ?, config = ?, updated = ? WHERE id = ?").run(out.html, JSON.stringify(d.config), t, d.id);
         return send(res, 200, { ok: true, bytes: Buffer.byteLength(out.html), config: d.config });
+      }
+      case "/api/studio/restyle": {
+        // a new look for the site: another layout, stylesheet and mascot from Claude
+        const d = draft(b.id);
+        if (styling.has(d.id)) throw err(409, "The look is being designed right now. Give it a minute.");
+        if (limited("studio:theme", 30, 36e5)) throw err(429, "30 restyles an hour is the limit.");
+        await buildTheme(d.id);
+        const d2 = draft(d.id);
+        return send(res, 200, { ok: true, config: d2.config, theme: themeState(d2.id, d2) });
       }
       case "/api/studio/polish": {
         // a second pass by Claude over the built game or tool: bugs fixed, juice added
@@ -488,6 +519,8 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
                                "content-disposition": `attachment; filename="${slugify(d.config.brand)}-${rel}"` });
           return res.end(body);
         }
+        if (rel === "theme.css") { res.writeHead(200, { "content-type": "text/css; charset=utf-8", "cache-control": "no-store" }); return res.end(d.theme?.css || "/* the default look */\n"); }
+        if (rel === "mascot.svg") { if (!d.theme?.svg) { res.writeHead(404); return res.end(); } res.writeHead(200, { "content-type": "image/svg+xml", "cache-control": "no-store", "content-security-policy": "default-src 'none'; style-src 'unsafe-inline'" }); return res.end(d.theme.svg); }
         if (rel === "play.html") {
           if (!d.app) { res.writeHead(404); return res.end(); }
           res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store",

@@ -49,6 +49,11 @@ wallet" button: the page reads the wallet's balance of the coin on-chain and tel
 perk (a skin, a badge, a mode). The app itself never touches a wallet. Set `PUBLIC_RPC_URL` on the server to give
 deployed sites a better RPC than Solana's public one for that check (a key meant for the browser, or none).
 
+**Every site looks like its own.** Five structurally different layouts (classic, poster, split, terminal, magazine)
+are chosen per brand, and right after a site is written Claude designs its own stylesheet (backgrounds, shapes,
+motion, section treatments) and an original SVG mascot used in the hero, the floating scene and the launch pictures.
+**Restyle** asks for a new look. Everything is checked: no scripts, no outside resources, nothing covering the page.
+
 **The look.** Every site gets a living scene behind the hero (the brand's emoji and sparks drifting in depth, steered by
 the pointer or the phone's tilt), sections that rise in as you scroll, cards that tilt, a sheen on the contract
 address, and a **vibe** chosen per site: arcade, neon, candy, retro or clean. Everything respects "reduce motion".
