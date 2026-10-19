@@ -100,7 +100,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
       <section class="card">
         <div class="row" style="justify-content:space-between"><h2>Launch Intel</h2><button class="btn alt small" id="intelBtn" type="button">Read the market</button></div>
         <p class="muted">Every coin the feeds show (DexScreener, GeckoTerminal, pump.fun, DEXTools) is kept for good, plus what X is talking
-          about with <code>X_BEARER_TOKEN</code>. It refreshes itself every 30 minutes and every idea and site is written from it.</p>
+          about with <code>TWITTERAPI_IO_KEY</code> (twitterapi.io). It refreshes itself every 30 minutes and every idea and site is written from it.</p>
         <p class="err" id="intelErr" role="alert"></p>
         <div class="intel" id="intel" hidden></div>
       </section>
@@ -228,7 +228,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     show(true);
     $("aiPill").textContent = s.ai ? "AI writer: Claude" : "AI writer: off (plain writer)"; $("aiPill").className = "pill " + (s.ai ? "on" : "off");
     $("vcPill").textContent = s.vercel ? "Vercel: connected" : "Vercel: add VERCEL_TOKEN"; $("vcPill").className = "pill " + (s.vercel ? "on" : "off");
-    $("xPill").textContent = s.x ? "X: connected" : "X: add X_BEARER_TOKEN"; $("xPill").className = "pill " + (s.x ? "on" : "off");
+    $("xPill").textContent = s.x ? "X: " + s.x : "X: add TWITTERAPI_IO_KEY"; $("xPill").className = "pill " + (s.x ? "on" : "off");
     loadDrafts();
   }
 
@@ -255,7 +255,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
         box.append(line("X right now:", "the posts about Solana launches with the most traction" + (pb.x.themes.length ? " · themes: " + pb.x.themes.map(t => t.name).join(", ") : "")));
         r.x.posts.slice(0, 8).forEach(p => box.append(el("div", { className: "xpost" }, el("div", { textContent: p.text }),
           el("a", { href: p.url, target: "_blank", rel: "noopener", textContent: (p.author ? "@" + p.author + " · " : "") + p.likes + " likes · " + p.reposts + " reposts" + (p.views ? " · " + p.views.toLocaleString() + " views" : "") }))));
-      } else box.append(line("X:", r.x.reason === "no X_BEARER_TOKEN" ? "add X_BEARER_TOKEN on Railway to read X." : "could not read X (" + (r.x.reason || "no posts") + ")."));
+      } else box.append(line("X:", /^no /.test(r.x.reason || "") ? "add TWITTERAPI_IO_KEY (twitterapi.io) on Railway to read X." : "could not read X (" + (r.x.reason || "no posts") + ")."));
       const d = el("details", {}, el("summary", { textContent: "How pump.fun launches really work" }));
       pb.lessons.forEach(l => d.append(el("p", { className: "muted", textContent: "· " + l }))); box.append(d);
     } catch (e) { $("intelErr").textContent = e.message; }

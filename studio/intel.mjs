@@ -2,8 +2,9 @@
 //   record()    every coin the trend feeds show (DexScreener, GeckoTerminal, pump.fun, DEXTools) goes into one table on
 //               the Railway volume: first seen, last seen, how often, its links, its peak market cap. Over the weeks that
 //               becomes the Studio's own history of what launched, what stuck and what vanished.
-//   xPosts()    what X is talking about, with X_BEARER_TOKEN (an X API "Bearer token" from developer.x.com): the posts
-//               about pump.fun / Solana memecoins with the most engagement right now, plus a search for your own focus.
+//   xPosts()    what X is talking about: the posts about pump.fun / Solana memecoins with the most engagement right now,
+//               plus a search for your own focus. Two providers: TWITTERAPI_IO_KEY (twitterapi.io, an API key, cheap
+//               pay-as-you-go search) or X_BEARER_TOKEN (X's own API, developer.x.com, a paid plan for search).
 //   playbook()  the numbers and patterns from all of that: themes, kinds, which links winners have, name and ticker
 //               length, launch hours, survivors; and LESSONS, the fixed facts about launching on pump.fun.
 //   intelText() the compact version the idea maker and the site writer read.
@@ -82,38 +83,62 @@ export function record(db, items, now = Date.now()) {
   return n;
 }
 
-// ---- X: the posts with real traction about Solana memecoin launches (X API v2 recent search, needs X_BEARER_TOKEN)
+// ---- X: the posts with real traction about Solana memecoin launches
+// The searches (X's advanced-search syntax, which both providers take); min_faves keeps the firehose out.
 export const X_QUERIES = [
-  '("pump.fun" OR pumpfun OR "pump fun") -is:retweet -is:reply lang:en',
-  '(memecoin OR "meme coin") (solana OR sol) -is:retweet -is:reply lang:en',
-  '("just launched" OR "launching" OR "launch") (solana OR "pump.fun") (coin OR token) -is:retweet -is:reply lang:en',
+  '("pump.fun" OR pumpfun OR "pump fun") min_faves:20 -filter:retweets -filter:replies lang:en',
+  '(memecoin OR "meme coin") (solana OR sol) min_faves:50 -filter:retweets -filter:replies lang:en',
+  '("just launched" OR launching OR launch) (solana OR "pump.fun") (coin OR token OR CA) min_faves:20 -filter:retweets -filter:replies lang:en',
 ];
-export async function xPosts({ fetchImpl = fetch, token = process.env.X_BEARER_TOKEN, focus = "", force = false, now = Date.now() } = {}) {
-  if (!token) return { ok: false, reason: "no X_BEARER_TOKEN", posts: [] };
+const focusQuery = key => `(${key}) (coin OR token OR memecoin OR solana) min_faves:10 -filter:retweets -filter:replies lang:en`;
+const score = p => p.likes + 2 * p.reposts + p.replies + Math.round(p.views / 100);
+const post = (id, text, author, m, at) => {
+  const p = { id: String(id), text: clip(text, 280), author: author || null, url: author ? `https://x.com/${author}/status/${id}` : `https://x.com/i/status/${id}`,
+              likes: m.likes || 0, reposts: m.reposts || 0, replies: m.replies || 0, views: m.views || 0, theme: themeOf(text), postedAt: at ? Date.parse(at) || null : null };
+  p.score = score(p); return p;
+};
+
+export const X_PROVIDERS = {
+  // twitterapi.io: GET https://api.twitterapi.io/twitter/tweet/advanced_search, header X-API-Key, queryType Top | Latest
+  twitterapi: {
+    env: "TWITTERAPI_IO_KEY", label: "twitterapi.io",
+    url: q => `https://api.twitterapi.io/twitter/tweet/advanced_search?queryType=Top&query=${encodeURIComponent(q)}`,
+    headers: key => ({ "X-API-Key": key, accept: "application/json" }),
+    parse: j => (j.tweets || []).map(t => post(t.id, t.text, t.author?.userName, { likes: t.likeCount, reposts: t.retweetCount, replies: t.replyCount, views: t.viewCount }, t.createdAt)),
+  },
+  // X's own API v2: GET https://api.x.com/2/tweets/search/recent, Bearer token
+  x: {
+    env: "X_BEARER_TOKEN", label: "X API",
+    url: q => "https://api.x.com/2/tweets/search/recent?max_results=50&tweet.fields=public_metrics,created_at,author_id&expansions=author_id&user.fields=username" +
+      `&query=${encodeURIComponent(q.replace(/min_faves:\d+ ?/g, "").replace(/-filter:retweets/g, "-is:retweet").replace(/-filter:replies/g, "-is:reply"))}`,
+    headers: key => ({ authorization: `Bearer ${key}` }),
+    parse: j => {
+      const users = new Map((j.includes?.users || []).map(u => [u.id, u.username]));
+      return (j.data || []).map(t => { const m = t.public_metrics || {};
+        return post(t.id, t.text, users.get(t.author_id), { likes: m.like_count, reposts: m.retweet_count, replies: m.reply_count, views: m.impression_count }, t.created_at); });
+    },
+  },
+};
+export function xProvider(env = process.env) {
+  for (const [name, p] of Object.entries(X_PROVIDERS)) if (env[p.env]) return { name, key: env[p.env], ...p };
+  return null;
+}
+
+export async function xPosts({ fetchImpl = fetch, provider = xProvider(), focus = "", force = false, now = Date.now() } = {}) {
+  if (!provider) return { ok: false, reason: "no TWITTERAPI_IO_KEY or X_BEARER_TOKEN", posts: [] };
   const key = clip(focus, 80).toLowerCase();
   if (!force && xCache && xCache.key === key && now - xCache.at < TTL) return xCache.data;
-  const queries = [...X_QUERIES, ...(key ? [`(${key}) (coin OR token OR memecoin OR solana) -is:retweet -is:reply lang:en`] : [])];
+  const queries = [...X_QUERIES, ...(key ? [focusQuery(key)] : [])];
   const posts = new Map(); const failed = [];
   for (const q of queries) {
-    const u = "https://api.x.com/2/tweets/search/recent?max_results=50&tweet.fields=public_metrics,created_at,author_id&expansions=author_id&user.fields=username" +
-      `&query=${encodeURIComponent(q)}`;
     try {
-      const r = await fetchImpl(u, { headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(9000) });
-      if (!r.ok) { failed.push(`X ${r.status}`); if (r.status === 401 || r.status === 403 || r.status === 429) break; continue; }
-      const j = await r.json();
-      const users = new Map((j.includes?.users || []).map(u => [u.id, u.username]));
-      for (const t of j.data || []) {
-        const m = t.public_metrics || {};
-        const score = (m.like_count || 0) + 2 * (m.retweet_count || 0) + (m.reply_count || 0) + Math.round((m.impression_count || 0) / 100);
-        const author = users.get(t.author_id) || null;
-        posts.set(t.id, { id: t.id, text: clip(t.text, 280), author, url: author ? `https://x.com/${author}/status/${t.id}` : `https://x.com/i/status/${t.id}`,
-          likes: m.like_count || 0, reposts: m.retweet_count || 0, replies: m.reply_count || 0, views: m.impression_count || 0, score,
-          theme: themeOf(t.text), postedAt: t.created_at ? Date.parse(t.created_at) : null });
-      }
-    } catch (e) { failed.push("X unreachable"); }
+      const r = await fetchImpl(provider.url(q), { headers: provider.headers(provider.key), signal: AbortSignal.timeout(12000) });
+      if (!r.ok) { failed.push(`${provider.label} ${r.status}`); if (r.status === 401 || r.status === 402 || r.status === 403 || r.status === 429) break; continue; }
+      for (const p of provider.parse(await r.json())) if (!posts.has(p.id) || posts.get(p.id).score < p.score) posts.set(p.id, p);
+    } catch (e) { failed.push(`${provider.label} unreachable`); }
   }
   const list = [...posts.values()].sort((a, b) => b.score - a.score).slice(0, 60);
-  const data = { ok: list.length > 0, reason: failed.join(", ") || null, posts: list };
+  const data = { ok: list.length > 0, reason: failed.join(", ") || null, provider: provider.label, posts: list };
   xCache = { key, at: now, data };
   return data;
 }

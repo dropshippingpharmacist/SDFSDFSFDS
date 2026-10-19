@@ -210,7 +210,7 @@ test("the deploy ships play.html when the site has a game or tool", async () => 
 // ---- Launch Intel, X, ticker checks, Route as a draft, the launch hand-off (2026-10-19) ---------------------------
 import { DatabaseSync } from "node:sqlite";
 import { tickerTaken } from "../trends.mjs";
-import { record, playbook, intelText, xPosts, recordX, resetX, themeOf, kindOf, LESSONS } from "../intel.mjs";
+import { record, playbook, intelText, xPosts, xProvider, recordX, resetX, themeOf, kindOf, LESSONS } from "../intel.mjs";
 
 const PAIR = (addr, name, sym, mc, liq, extra = {}) => ({ chainId: "solana", dexId: "pumpswap", url: "https://dexscreener.com/solana/" + addr, pairCreatedAt: Date.UTC(2026, 9, 18, 21),
   baseToken: { address: addr, name, symbol: sym }, marketCap: mc, volume: { h24: mc / 2 }, liquidity: { usd: liq }, priceChange: { h24: 12 },
@@ -253,9 +253,30 @@ test("intel: launches are kept for good with peaks and first/last seen, and the 
   assert.equal(themeOf("Moo Deng the hippo"), "other animals"); assert.equal(kindOf("a sniper terminal"), "utility"); assert.ok(LESSONS.length >= 8);
 });
 
-test("X: posts ranked by traction with X_BEARER_TOKEN, remembered, and in the playbook; nothing without the token", async () => {
+test("X via twitterapi.io: the API key header, Top search, every traction field read; nothing without a key", async () => {
   resetX();
-  assert.deepEqual((await xPosts({ fetchImpl: async () => { throw new Error("must not call"); }, token: "" })).posts, []);
+  assert.equal(xProvider({}), null);
+  assert.equal(xProvider({ TWITTERAPI_IO_KEY: "k", X_BEARER_TOKEN: "b" }).label, "twitterapi.io", "twitterapi.io wins when both are set");
+  assert.deepEqual((await xPosts({ fetchImpl: async () => { throw new Error("must not call"); }, provider: null })).posts, []);
+  const calls = [];
+  const ft = async (u, init) => {
+    calls.push([String(u), init.headers["X-API-Key"]]);
+    return new Response(JSON.stringify({ tweets: [
+      { id: "77", url: "https://x.com/frogdev/status/77", text: "FROGPAD just launched on pump.fun, a fair launch pad for frogs", createdAt: "Sun Oct 19 10:00:00 +0000 2026",
+        likeCount: 120, retweetCount: 30, replyCount: 10, viewCount: 50000, author: { userName: "frogdev", name: "Frog Dev" } }], has_next_page: false }), { status: 200 });
+  };
+  const r = await xPosts({ fetchImpl: ft, provider: xProvider({ TWITTERAPI_IO_KEY: "k1" }), force: true });
+  assert.equal(calls.length, 3); assert.ok(calls.every(c => c[1] === "k1" && /api\.twitterapi\.io\/twitter\/tweet\/advanced_search\?queryType=Top/.test(c[0])));
+  assert.ok(calls.every(c => /min_faves/.test(decodeURIComponent(c[0]))), "traction floor in the query");
+  assert.equal(r.provider, "twitterapi.io"); assert.equal(r.posts.length, 1, "the same post from three searches counts once");
+  assert.deepEqual([r.posts[0].author, r.posts[0].likes, r.posts[0].views, r.posts[0].theme, r.posts[0].score], ["frogdev", 120, 50000, "launchpads", 120 + 60 + 10 + 500]);
+  assert.equal(r.posts[0].postedAt, Date.UTC(2026, 9, 19, 10));
+  const broke = await xPosts({ fetchImpl: async () => new Response("{}", { status: 402 }), provider: xProvider({ TWITTERAPI_IO_KEY: "k" }), force: true });
+  assert.equal(broke.ok, false); assert.match(broke.reason, /twitterapi.io 402/);
+});
+
+test("X via X's own API: posts ranked by traction with X_BEARER_TOKEN, remembered, and in the playbook", async () => {
+  resetX();
   const calls = [];
   const fx = async (u, init) => {
     calls.push([String(u), init.headers.authorization]);
@@ -264,15 +285,16 @@ test("X: posts ranked by traction with X_BEARER_TOKEN, remembered, and in the pl
       { id: "1002", text: "memecoin szn is dead", author_id: "u2", public_metrics: { like_count: 3, retweet_count: 0, reply_count: 1 } },
     ], includes: { users: [{ id: "u1", username: "catdev" }] } }), { status: 200 });
   };
-  const r = await xPosts({ fetchImpl: fx, token: "tok", focus: "cats", force: true });
+  const r = await xPosts({ fetchImpl: fx, provider: xProvider({ X_BEARER_TOKEN: "tok" }), focus: "cats", force: true });
   assert.ok(calls.length === 4 && calls.every(c => c[1] === "Bearer tok") && calls.some(c => /cats/.test(decodeURIComponent(c[0]))), "3 standing searches + the focus");
+  assert.ok(calls.every(c => /-is:retweet/.test(decodeURIComponent(c[0])) && !/min_faves/.test(c[0])), "the queries are translated to X's v2 syntax");
   assert.equal(r.posts[0].id, "1001"); assert.equal(r.posts[0].url, "https://x.com/catdev/status/1001"); assert.equal(r.posts[0].score, 400 + 100 + 30 + 900);
   const db = new DatabaseSync(":memory:");
   recordX(db, r.posts);
   const pb = playbook(db);
   assert.equal(pb.x.total, 2); assert.equal(pb.x.posts[0].author, "catdev"); assert.equal(pb.x.themes[0].name, "cats");
   assert.match(intelText(pb), /X right now.*CATBANK/);
-  const denied = await xPosts({ fetchImpl: async () => new Response("{}", { status: 401 }), token: "bad", force: true });
+  const denied = await xPosts({ fetchImpl: async () => new Response("{}", { status: 401 }), provider: xProvider({ X_BEARER_TOKEN: "bad" }), force: true });
   assert.equal(denied.ok, false); assert.match(denied.reason, /401/);
 });
 
@@ -318,9 +340,9 @@ test("Route is a draft under Your sites, its CA edits reach /route, the launchpa
     assert.equal((await post("/api/studio/launched", { id: n.id, ca: "So1anaMintAddr3ss2222222222222222222pump" }, "")).status, 401, "the owner's cookie is required");
     assert.equal((await post("/api/studio/launched", { id: n.id, ca: "So1anaMintAddr3ss2222222222222222222pump" })).status, 200);
     assert.equal((await post("/api/studio/get", { id: n.id })).config.coin.ca, "So1anaMintAddr3ss2222222222222222222pump");
-    const st = await post("/api/studio/status"); assert.equal(st.x, false);
+    const st = await post("/api/studio/status"); assert.equal(st.x, null);
     const intel = await post("/api/studio/intel", {});
-    assert.equal(intel.status, 200); assert.ok(Array.isArray(intel.playbook.lessons) && intel.x.reason === "no X_BEARER_TOKEN");
+    assert.equal(intel.status, 200); assert.ok(Array.isArray(intel.playbook.lessons) && /^no /.test(intel.x.reason));
     const tk = await post("/api/studio/ticker", { tickers: ["frogs"] });
     assert.equal(tk.status, 200); assert.equal(tk.tickers[0].ticker, "FROGS");
     const launch = await (await fetch(base + "/launch/?draft=" + n.id + "&name=Frogs")).text();
