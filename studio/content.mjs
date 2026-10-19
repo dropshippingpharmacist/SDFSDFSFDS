@@ -179,7 +179,7 @@ const ease = t => t < 0 ? 0 : t > 1 ? 1 : 1 - Math.pow(1 - t, 3);
 function elastic(t) { t = Math.max(0, Math.min(1, t)); return 1 - Math.pow(2, -8 * t) * Math.cos(t * 10) * (1 - t); }
 const hash = n => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };   // deterministic scatter
 const parts = Array.from({ length: 70 }, (_, i) => ({ x: hash(i), y: hash(i + 100), z: 0.3 + hash(i + 200) * 0.7, s: 0.5 + hash(i + 300), e: i % 5 === 0 }));
-function wrap(text, maxW, size) { x.font = "800 " + size + "px Figtree, \"DejaVu Sans\", system-ui"; const words = String(text).split(" "), lines = []; let l = "";
+function wrap(text, maxW, size) { x.font = "800 " + size + "px Figtree, 'DejaVu Sans', system-ui"; const words = String(text).split(" "), lines = []; let l = "";
   for (const wd of words) { const t = l ? l + " " + wd : wd; if (x.measureText(t).width > maxW && l) { lines.push(l); l = wd; } else l = t; } if (l) lines.push(l); return lines; }
 function scene(t) { let a = 0; for (const s of D.scenes) { if (t < a + s.seconds) return { s, local: t - a }; a += s.seconds; } return { s: null, local: t - a }; }
 window.render = function (t) {
@@ -206,12 +206,12 @@ window.render = function (t) {
     x.fillStyle = D.light; x.beginPath(); x.roundRect(-420, -300, 840, 600, 48); x.fill();
     x.fillStyle = D.ink; x.font = "200px system-ui"; x.fillText(D.emoji, 0, -120);
     x.font = '400 ' + fit(D.brand, 760, 96) + 'px "' + D.display + '", "Arial Black", "DejaVu Sans", sans-serif'; x.fillText(D.brand, 0, 60);
-    x.font = "800 44px Figtree, \"DejaVu Sans\", system-ui"; x.fillText(D.end, 0, 170); x.restore();
+    x.font = "800 44px Figtree, 'DejaVu Sans', system-ui"; x.fillText(D.end, 0, 170); x.restore();
     chip(t, k);
   }
 };
 function chip(t, a) { x.save(); x.globalAlpha = a; x.translate(W / 2, H - 110); x.fillStyle = D.ink; x.beginPath(); x.roundRect(-190, -42, 380, 84, 42); x.fill();
-  x.fillStyle = D.light; x.font = "800 40px Figtree, \"DejaVu Sans\", system-ui"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(D.ticker, 0, 2); x.restore(); }
+  x.fillStyle = D.light; x.font = "800 40px Figtree, 'DejaVu Sans', system-ui"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(D.ticker, 0, 2); x.restore(); }
 function fit(text, maxW, size) { for (let s = size; s > 40; s -= 4) { x.font = '400 ' + s + 'px "' + D.display + '", "DejaVu Sans", sans-serif'; if (x.measureText(text).width <= maxW) return s; } return 40; }
 function shade(hex, k) { const n = parseInt(hex.slice(1), 16); const f = v => Math.max(0, Math.min(255, Math.round(v * (1 + k)))); return "rgb(" + f(n >> 16) + "," + f((n >> 8) & 255) + "," + f(n & 255) + ")"; }
 </script></body></html>`;
