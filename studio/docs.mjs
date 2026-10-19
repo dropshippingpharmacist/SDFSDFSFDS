@@ -9,7 +9,7 @@ export function docSections(cfg) {
   const live = /^https?:/.test(cfg.siteUrl || "") ? cfg.siteUrl : "";
   const S = [];
   S.push({ id: "overview", title: "Overview", body: [cfg.tagline, cfg.about].filter(Boolean), list: [
-    `Coin: ${cfg.brand} (${tk})`, coin.ca ? `Contract address: ${coin.ca}` : "Contract address: announced at launch, on the site and the pinned post only",
+    `Coin: ${cfg.brand} (${tk})`, coin.ca ? `Contract address: ${coin.ca}` : "Contract address: announced at launch, on the site and the pinned post on X",
     live ? `Site: ${live}` : "", coin.x ? `X: ${coin.x}` : "", coin.telegram ? `Telegram: ${coin.telegram}` : ""].filter(Boolean) });
   if (cfg.lore?.length) S.push({ id: "lore", title: "The lore", body: cfg.lore });
   if (pr.kind && pr.kind !== "launchpad" || pr.mechanic) S.push({ id: "product", title: pr.name || kindName(pr.kind), body: [pr.mechanic].filter(Boolean),
@@ -23,7 +23,6 @@ export function docSections(cfg) {
     table: (tn.allocation || []).map(a => [`${a.pct}%`, a.name, a.what]) });
   if (cfg.roadmap?.length) S.push({ id: "roadmap", title: "Roadmap", groups: cfg.roadmap.map(ph => ({ title: ph.title || ph.status, items: ph.items })) });
   if (cfg.faq?.length) S.push({ id: "faq", title: "FAQ", qa: cfg.faq });
-  S.push({ id: "brand", title: "Brand", list: [`Name: ${cfg.brand}`, `Ticker: ${tk}`, `Emoji: ${cfg.emoji}`, `Accent color: ${cfg.colors?.accent}`, `Font: ${cfg.display}`, `Vibe: ${cfg.vibe || "candy"}`] });
   return S;
 }
 

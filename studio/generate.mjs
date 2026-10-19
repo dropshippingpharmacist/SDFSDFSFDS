@@ -104,6 +104,7 @@ export function honest(raw, idea, opts = {}) {
     // coin's home and its product; the owner launches the token wherever they launch
     launchDesk: opts.launchDesk != null ? !!opts.launchDesk : false,
     tokenomics: tokenomics(raw, keep),
+    docsUrl: /^https:\/\//.test(opts.docsUrl || "") ? clean(opts.docsUrl, 300) : "",
     roadmap: [
       { status: "live", title: `${brand}, the launchpad`, items: LIVE },
       { status: "next", title: "Building next", items: (raw.next || []).map(t => keep(t, 90)).filter(Boolean).slice(0, 4) },

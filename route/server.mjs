@@ -63,12 +63,7 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
   };
   // the book's pages: Claude's when written, else built from the config on the spot
   const bookOf = d => (d.book?.pages?.length ? d.book.pages : rulesBook({ ...d.config, siteUrl: d.url }));
-  // an unguessable public link to a draft's book, for GitBook's importer only
-  const pubToken = d => {
-    if (d.pub_token) return d.pub_token;
-    const tkn = crypto.randomBytes(18).toString("base64url");
-    db.prepare("UPDATE studio_drafts SET pub_token = ? WHERE id = ?").run(tkn, d.id);
-    return tkn;
+  const _unused = () => {
   };
   const summary = r => {
     const c = JSON.parse(r.config), m = JSON.parse(r.meta);
@@ -118,6 +113,22 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
     const tick = () => refreshIntel().catch(e => console.error("[intel]", e.message));
     setTimeout(tick, 5000).unref(); setInterval(tick, 30 * 60 * 1000).unref();
   }
+  // the game / tool / three-in-one is built right after the site, in the background; the Studio polls until it is there
+  const building = new Map();                         // draft id -> started at
+  async function buildApp(id) {
+    if (building.has(id)) return;
+    building.set(id, Date.now());
+    try {
+      const d = draft(id), pr = d.config.product || {};
+      const out = await makeMiniApp({ name: pr.name, kind: pr.kind === "launchpad" ? "launchpad" : pr.kind, pitch: d.config.tagline,
+                                      mechanic: pr.mechanic || d.idea, holderPerk: pr.holderPerk }, d.config);
+      if (out.error) { building.set(id, { error: out.error }); setTimeout(() => building.delete(id), 60e3).unref?.(); return; }
+      d.config.product = { ...pr, kind: pr.kind === "launchpad" ? "utility" : (pr.kind || "game"), app: true };
+      db.prepare("UPDATE studio_drafts SET app = ?, config = ?, updated = ? WHERE id = ?").run(out.html, JSON.stringify(d.config), Date.now(), id);
+      building.delete(id);
+    } catch (e) { building.set(id, { error: e.message }); setTimeout(() => building.delete(id), 60e3).unref?.(); }
+  }
+  const buildState = id => { const b = building.get(id); return !b ? null : typeof b === "number" ? { building: true, since: b } : { building: false, error: b.error }; };
   // what the generators learn from: liked, disliked, and launched (with DexScreener results)
   const memory = () => {
     const rows = db.prepare("SELECT * FROM studio_drafts ORDER BY updated DESC LIMIT 200").all().map(summary);
@@ -229,18 +240,20 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
       }
       case "/api/studio/gitbook": {
         const d = draft(b.id);
+        if (!process.env.GITBOOK_TOKEN) throw err(400, "Set GITBOOK_TOKEN on the server (gitbook.com → account → Developer settings → personal access token).");
         if (limited("studio:gitbook", 10, 36e5)) throw err(429, "10 GitBook publishes an hour is the limit.");
-        const origin = String(b.origin || "").replace(/\/$/, "");
-        if (!/^https:\/\/[a-z0-9.-]+$/i.test(origin)) throw err(400, "GitBook needs a public https address for this server to fetch the pages from.");
-        const tkn = pubToken(d);
-        const out = await publishGitBook({ ...d.config, siteUrl: d.url }, bookOf(d), { publicZipUrl: `${origin}/public/book/${tkn}.zip`, publicMdUrl: `${origin}/public/book/${tkn}.md` });
-        const book = { ...(d.book || { pages: bookOf(d), source: "rules" }), gitbook: { at: t, ...out } };
-        db.prepare("UPDATE studio_drafts SET book = ?, updated = ? WHERE id = ?").run(JSON.stringify(book), t, d.id);
-        return send(res, 200, out);
+        // no book yet: Claude writes it first, so what goes to GitBook is the deep version
+        let book = d.book;
+        if (!book?.pages?.length) { const w = await makeBook({ ...d.config, siteUrl: d.url }); book = { at: t, source: w.source, note: w.note, pages: w.pages }; }
+        const out = await publishGitBook({ ...d.config, siteUrl: d.url }, book.pages, { existing: book.gitbook || null });
+        book = { ...book, gitbook: { at: t, ...out } };
+        if (out.publishedUrl) d.config.docsUrl = out.publishedUrl;     // the site's GitBook button points at the coin's own book
+        db.prepare("UPDATE studio_drafts SET book = ?, config = ?, updated = ? WHERE id = ?").run(JSON.stringify(book), JSON.stringify(d.config), t, d.id);
+        return send(res, 200, { ...out, config: d.config });
       }
       case "/api/studio/book/get": {
         const d = draft(b.id);
-        return send(res, 200, { book: d.book ? { at: d.book.at, source: d.book.source, note: d.book.note, gitbook: d.book.gitbook || null, pages: d.book.pages.map(p => ({ title: p.title, slug: p.slug })) } : null });
+        return send(res, 200, { book: d.book ? { at: d.book.at, source: d.book.source, note: d.book.note, gitbook: d.book.gitbook || null, pages: d.book.pages.map(p => ({ title: p.title, slug: p.slug, words: p.markdown.split(/\s+/).length })) } : null });
       }
       case "/api/studio/intel": {
         // everything the Studio knows: refresh the feeds and X (cached 10 minutes), then the playbook
@@ -277,7 +290,11 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
         const meta = { domains: g.domains, tickerBackups: g.tickerBackups, source: g.source, note: g.note, removed: g.removed };
         const r = db.prepare("INSERT INTO studio_drafts (idea, config, meta, created, updated) VALUES (?, ?, ?, ?, ?)")
           .run(g.idea, JSON.stringify(g.config), JSON.stringify(meta), t, t);
-        return send(res, 200, { id: Number(r.lastInsertRowid), config: g.config, ...meta, preview: `/studio/p/${Number(r.lastInsertRowid)}/` });
+        const id = Number(r.lastInsertRowid);
+        // a game, a tool or a three-in-one: build it now, in the background, so the site is playable without another click
+        const auto = !!process.env.ANTHROPIC_API_KEY && g.config.product?.kind !== "launchpad" && b.auto !== false && !limited("studio:app", 20, 36e5);
+        if (auto) buildApp(id);
+        return send(res, 200, { id, config: g.config, ...meta, preview: `/studio/p/${id}/`, build: auto ? { building: true } : null });
       }
       case "/api/studio/save": {
         const d = draft(b.id);
@@ -289,7 +306,7 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
           next: (c.roadmap || []).find(x => x.status === "next")?.items, ideas: (c.roadmap || []).find(x => x.status === "idea")?.items,
           faq: (c.faq || []).filter(f => !/^Do I need \$|^Is this financial advice/.test(f.q || "")),
           kind: c.product?.kind, product_name: c.product?.name, mechanic: c.product?.mechanic, holder_perk: c.product?.holderPerk }, d.idea,
-          { x: c.coin?.x, telegram: c.coin?.telegram, launchDesk: c.launchDesk, buyUrl: c.coin?.buyUrl, launchedOn: c.coin?.launchedOn });
+          { x: c.coin?.x, telegram: c.coin?.telegram, launchDesk: c.launchDesk, buyUrl: c.coin?.buyUrl, launchedOn: c.coin?.launchedOn, docsUrl: c.docsUrl });
         // the owner's own split, when it adds up; otherwise the writer's / the kind's default stays
         const tnIn = c.tokenomics || {};
         re.config.tokenomics = tokenomics({ kind: re.config.product.kind, allocation: tnIn.allocation, fee_source: tnIn.source, dev_buy_policy: tnIn.devBuyPolicy });
@@ -307,23 +324,37 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
       case "/api/studio/deploy": {
         const d = draft(b.id);
         if (d.meta.builtin === "route") throw err(400, "Route already runs on this server at /route; it deploys with the repo.");
+        // the GitBook: written and published on its own the first time the site goes out, so the site ships with the link
+        let gitbookNote = null;
+        if (process.env.GITBOOK_TOKEN && !d.book?.gitbook?.publishedUrl && !limited("studio:gitbook", 10, 36e5)) {
+          try {
+            let book = d.book;
+            if (!book?.pages?.length) { const w = await makeBook({ ...d.config, siteUrl: d.url }); book = { at: t, source: w.source, note: w.note, pages: w.pages }; }
+            const out = await publishGitBook({ ...d.config, siteUrl: d.url }, book.pages, { existing: book.gitbook || null });
+            book = { ...book, gitbook: { at: t, ...out } };
+            if (out.publishedUrl) d.config.docsUrl = out.publishedUrl;
+            db.prepare("UPDATE studio_drafts SET book = ?, config = ? WHERE id = ?").run(JSON.stringify(book), JSON.stringify(d.config), d.id);
+            gitbookNote = out.publishedUrl ? `GitBook published: ${out.publishedUrl}` : "GitBook: " + out.steps.join(" · ");
+          } catch (e) { gitbookNote = `GitBook skipped: ${e.message}`; }
+        }
         const extra = d.app ? { "play.html": d.app } : {};
         extra["docs.html"] = bookHtml({ ...d.config, siteUrl: d.url }, bookOf(d));
         if (d.content?.files?.banner?.png) { try { extra["og.png"] = await readFileP(path.join(DATA, "content", String(d.id), "banner.png")); } catch { /* no preview image */ } }
         const out = await deploy(d.config, b.slug || d.config.brand, { extra });
         db.prepare("UPDATE studio_drafts SET url = ?, updated = ? WHERE id = ?").run(out.url, t, d.id);
-        return send(res, 200, out);
+        return send(res, 200, { ...out, gitbook: gitbookNote, config: d.config });
       }
       case "/api/studio/list":
         return send(res, 200, { drafts: db.prepare("SELECT * FROM studio_drafts ORDER BY updated DESC LIMIT 50").all().map(summary) });
       case "/api/studio/get": {
         const d = draft(b.id);
         return send(res, 200, { id: d.id, idea: d.idea, config: d.config, url: d.url, rating: d.rating || 0, note: d.note || "",
-                                hasApp: !!d.app, stats: d.stats, ...d.meta, preview: d.meta.builtin === "route" ? "/route" : `/studio/p/${d.id}/` });
+                                hasApp: !!d.app, stats: d.stats, ...d.meta, preview: d.meta.builtin === "route" ? "/route" : `/studio/p/${d.id}/`, build: buildState(d.id) });
       }
       case "/api/studio/app": {
         // Claude writes the site's game or utility (play.html); it can take a minute or two
         const d = draft(b.id);
+        if (building.get(d.id) && typeof building.get(d.id) === "number") throw err(409, "It is already being built. Give it a minute.");
         if (limited("studio:app", 20, 36e5)) throw err(429, "20 apps an hour is the limit. Try again later.");
         const pr = d.config.product || {};
         const out = await makeMiniApp({ name: pr.name, kind: pr.kind === "launchpad" ? "launchpad" : pr.kind, pitch: d.config.tagline,
@@ -435,15 +466,6 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
         const cfg = { ticker: c.ticker || "ROUTE", ca: c.ca || "", devBuyPercent: c.devBuyPercent ?? null, x: c.x || "", telegram: c.telegram || "", appUrl: "/app", launchUrl: "/launch/" };
         res.writeHead(200, { "content-type": "text/javascript; charset=utf-8", "cache-control": "no-store" });
         return res.end("window.ROUTE = " + JSON.stringify(cfg) + ";\n");
-      }
-      // the book at an unguessable link, so GitBook's importer can fetch it (nothing else is public)
-      const pb = /^\/public\/book\/([A-Za-z0-9_-]{20,40})\.(zip|md)$/.exec(p);
-      if (pb) {
-        const r = db.prepare("SELECT * FROM studio_drafts WHERE pub_token = ?").get(pb[1]);
-        if (!r) { res.writeHead(404); return res.end(); }
-        const d = draft(r.id), cfgDocs = { ...d.config, siteUrl: d.url }, pages = bookOf(d);
-        res.writeHead(200, { "content-type": pb[2] === "zip" ? "application/zip" : "text/markdown; charset=utf-8", "cache-control": "no-store" });
-        return res.end(pb[2] === "zip" ? zip(bookFiles(cfgDocs, pages)) : docsMarkdown(cfgDocs));
       }
       const sc = /^\/studio\/c\/(\d+)\/([a-z]+\.(?:png|mp4|html))$/.exec(p);
       if (sc) {
