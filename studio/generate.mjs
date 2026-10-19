@@ -6,6 +6,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import { memoryText } from "./ideas.mjs";
 
 export const FONTS = ["Bagel Fat One", "Unbounded", "Fredoka", "Bungee", "Rubik", "Lilita One", "Chakra Petch"];
 const MODEL = "claude-opus-5-5";
@@ -23,6 +24,7 @@ const Site = z.object({
   how: z.array(z.object({ title: z.string(), text: z.string() })),
   next: z.array(z.string()), ideas: z.array(z.string()),
   faq: z.array(z.object({ q: z.string(), a: z.string() })),
+  kind: z.enum(["launchpad", "game", "utility"]), product_name: z.string(), mechanic: z.string(), holder_perk: z.string(),
 });
 
 const SYSTEM = `You write the brand and website copy for a memecoin launchpad: a website where anyone launches a coin on
@@ -40,7 +42,11 @@ Rules you never break:
 - accent: one hex color that fits the theme, readable with dark text on it. display: the font that fits best.
 - how: 3 or 4 steps of using the launchpad, each with a short title and one sentence.
 - faq: 4 to 6 questions a first-time visitor would ask, answered truthfully from the rules above.
-- emoji: one emoji for the brand.`;
+- emoji: one emoji for the brand.
+- kind: "game" or "utility" when the idea is a game or tool, else "launchpad". product_name: the game's or tool's
+  name. mechanic: two or three sentences on what a visitor does in it. holder_perk: one perk for HOLDING the coin
+  (badge, cosmetic, leaderboard spot, early access) — never payouts, airdrops, staking or price talk; may be "".
+  The site keeps its working pump.fun launch form either way; the product is the extra reason to visit.`;
 
 const BANNED = /\b(donat\w*|charit\w*|non-?profit|proceeds|partner(ed|ship|s)?|guarantee\w*|risk[- ]free|100x|1000x|to the moon|moon(ing)?|passive income|returns?|profit\w*|audited|airdrop\w*|staking|yield|apy)\b/i;
 const clean = (t, max = 400) => String(t || "").replace(/\s+/g, " ").trim().slice(0, max);
@@ -69,6 +75,13 @@ export function honest(raw, idea, opts = {}) {
       { status: "next", title: "Building next", items: (raw.next || []).map(t => keep(t, 90)).filter(Boolean).slice(0, 4) },
       { status: "idea", title: "Further out", items: (raw.ideas || []).map(t => keep(t, 90)).filter(Boolean).slice(0, 4) },
     ].filter(p => p.items.length),
+    product: {
+      kind: ["launchpad", "game", "utility"].includes(raw.kind) ? raw.kind : "launchpad",
+      name: keep(raw.product_name, 40) || brand,
+      mechanic: keep(raw.mechanic, 500),
+      holderPerk: keep(raw.holder_perk, 200),
+      app: false,
+    },
     faq: [
       ...(raw.faq || []).map(f => ({ q: keep(f.q, 120), a: keep(f.a, 400) })).filter(f => f.q && f.a).slice(0, 5),
       { q: `Do I need $${ticker} to use ${brand}?`, a: `No. The launchpad works for anyone with a Solana wallet.` },
@@ -113,6 +126,8 @@ export function rules(idea) {
     lore: [`Every corner of the internet has its ${theme} people. They kept asking for one place to launch their coins.`,
            `${brand} is that place: pick a name, drop a picture, launch on pump.fun from your own wallet, and let the ${theme} crowd find it.`],
     how: HOW(brand), next: ["A page of the newest launches", "Share cards for X"], ideas: ["Themed launch weeks"],
+    kind: /\b(game|play|runner|arcade|quiz|puzzle)\b/i.test(idea) ? "game" : /\b(tool|utility|tracker|generator|calculator|bot)\b/i.test(idea) ? "utility" : "launchpad",
+    product_name: brand, mechanic: "", holder_perk: "",
     faq: [{ q: `What is ${brand}?`, a: `A website for launching coins on pump.fun from your own wallet, themed around ${theme}.` },
           { q: "Does it hold my SOL or keys?", a: "No. Every launch is signed in your own wallet." }],
   };
@@ -131,8 +146,9 @@ export async function generate(idea, opts = {}, client = null) {
         max_tokens: 16000,
         output_config: { effort: "medium", format: zodOutputFormat(Site) },
         system: SYSTEM,
-        messages: [{ role: "user", content: `The launchpad idea:\n${text}` +
-          (opts.ticker ? `\nThe owner wants the ticker $${opts.ticker}.` : "") }],
+        messages: [{ role: "user", content: `The idea:\n${text}` +
+          (opts.ticker ? `\nThe owner wants the ticker $${opts.ticker}.` : "") +
+          (memoryText(opts.mem) ? `\n\nWhat this builder liked, disliked and launched before (lean toward what worked):\n${memoryText(opts.mem)}` : "") }],
       });
       if (response.stop_reason === "refusal") note = "The model declined this idea; the plain writer was used.";
       else if (response.parsed_output) { raw = response.parsed_output; source = "claude"; }

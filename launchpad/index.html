@@ -120,6 +120,8 @@ nav.links-top a { color: var(--muted); text-decoration: none; } nav.links-top a:
 details { background: var(--card); border: 3px solid var(--line); border-radius: 14px; padding: 12px 16px; max-width: 760px; }
 details + details { margin-top: 10px; } summary { font-weight: 800; cursor: pointer; } details p { color: var(--muted); margin: 8px 0 0; }
 .socials { display: flex; gap: 10px; flex-wrap: wrap; }
+.playframe { width: 100%; height: min(78vh, 640px); border: 3px solid var(--line); border-radius: 16px; background: var(--card); display: block; }
+.perk { display: inline-block; font-size: 14px; border: 2px dashed var(--line); border-radius: 12px; padding: 8px 12px; color: var(--muted); }
 @media (max-width: 820px) { .desk { grid-template-columns: minmax(0, 1fr); } .preview { position: static; } .kv { grid-template-columns: minmax(0, 1fr); } .kv > div:nth-child(odd) { border-bottom: 0; padding-bottom: 0; } }
 @media (max-width: 520px) { .row { grid-template-columns: minmax(0, 1fr); } }
 @media (prefers-reduced-motion: reduce) { .btn:hover:not(:disabled) { transform: none; } }
@@ -145,6 +147,7 @@ details + details { margin-top: 10px; } summary { font-weight: 800; cursor: poin
         <a class="btn ghost" id="siteChart" target="_blank" rel="noopener">Chart</a>
         <a class="btn ghost" id="siteX" target="_blank" rel="noopener">X</a>
         <a class="btn ghost" id="siteTg" target="_blank" rel="noopener">Telegram</a>
+        <a class="btn ghost" id="sitePlay" href="#product" hidden>Play</a>
         <a class="btn ghost" href="#launch">Launch a coin</a>
       </div>
     </div>
@@ -269,6 +272,24 @@ details + details { margin-top: 10px; } summary { font-weight: 800; cursor: poin
 
     const site = $("site"), nav = $("siteNav"), secs = [];
     const section = (id, title, ...kids) => { const s = mk("section", { id }, mk("h2", { textContent: title }), ...kids); site.append(s); secs.push([id, title]); };
+    const pr = C.product;
+    if (pr && pr.kind !== "launchpad" && (pr.mechanic || pr.app)) {
+      // the product: the game or utility this coin is about. play.html runs in a sandbox (scripts only, no same-origin)
+      // under its own no-network policy, so it can never reach the wallet connection on this page
+      const kids = [];
+      if (pr.mechanic) kids.push(mk("p", { textContent: pr.mechanic }));
+      if (pr.holderPerk) kids.push(mk("p", {}, mk("span", { className: "perk", textContent: "Holder perk (planned): " + pr.holderPerk })));
+      if (pr.app) {
+        const fr = document.createElement("iframe");
+        fr.setAttribute("sandbox", "allow-scripts");               // set before src: the sandbox applies from the first load
+        fr.setAttribute("referrerpolicy", "no-referrer");
+        Object.assign(fr, { className: "playframe", title: pr.name || "Play", loading: "lazy" });
+        fr.src = "play.html";
+        kids.push(fr);
+      }
+      section("product", pr.name || (pr.kind === "game" ? "The game" : "The tool"), ...kids);
+      if (pr.app) { $("sitePlay").hidden = false; $("sitePlay").textContent = pr.kind === "game" ? "Play" : "Try it"; }
+    }
     if ((C.lore || []).length) section("lore", "The lore", ...C.lore.map(t => mk("p", { textContent: t })));
     if ((C.how || []).length) section("how", "How " + (C.brand || "it") + " works",
       mk("div", { className: "cards" }, ...C.how.map(c => mk("div", {}, mk("b", { textContent: c.title }), mk("span", { textContent: c.text })))));

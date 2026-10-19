@@ -110,7 +110,7 @@ test("a block removes the friendship, hides both ways, and looks like 'no such u
 });
 
 test("the site, the app and the launchpad are served", async () => {
-  for (const p of ["/", "/app", "/launch/", "/launch/config.js"]) {
+  for (const p of ["/", "/route", "/app", "/launch/", "/launch/config.js"]) {
     const r = await fetch(base + p);
     assert.equal(r.status, 200, p);
   }

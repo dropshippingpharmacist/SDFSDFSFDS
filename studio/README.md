@@ -1,8 +1,40 @@
 # Launchpad Studio
 
-Type a launchpad idea. Get a branded, working pump.fun launchpad site, live on Vercel.
+Type any idea (a narrative, a launchpad, a game, a tool, a ticker). Get a branded, working pump.fun launchpad site,
+live on Vercel. Out of ideas? The Idea Maker invents them from what is launching right now.
 
-It runs inside the Route server at **`/studio`** (see `route/README.md` to deploy that).
+It is the home page of the Railway server: **`/`** (also `/studio`). See `route/README.md` to deploy that.
+
+## Idea Maker
+
+Press **Find ideas** (optionally steer it: "cats", "AI agents", "sports"). It reads:
+- **DexScreener:** the newest token profiles and the most boosted tokens;
+- **GeckoTerminal:** trending Solana pools;
+- **pump.fun:** the coins currently on its front page (when pump.fun answers);
+- **DEXTools:** hot pools, with `DEXTOOLS_API_KEY`;
+- **your own history:** sites you rated 👍 or 👎 (with your notes), and how your launched coins did on DexScreener.
+
+From that, Claude invents 6 original launchpads, games and utilities, each with a ticker, a mechanic, a holder perk
+and "why now". It doesn't copy what is trending. **Build this** fills the idea form. Without `ANTHROPIC_API_KEY`, a
+plain idea maker still gives you ideas built from the trend list.
+
+## Games and utilities
+
+When an idea is a game or tool, the site gets a product section. After generating, press **Make the game / tool**:
+Claude writes it as one self-contained page (`play.html`), shown on the site and deployed with it. It runs sandboxed:
+- no network (its Content-Security-Policy blocks every request);
+- no wallet access;
+- no cookies.
+
+Any app that tries to use the network or a wallet is rejected. Holder perks are badges, cosmetics, leaderboard spots or
+early access, labeled "planned". They are never payouts, airdrops or staking.
+
+## Getting better over time
+
+- Rate every site 👍 or 👎 and leave a note.
+- After launching, add the contract address. **Refresh results** pulls each coin's volume, liquidity and price change
+  from DexScreener, at most hourly.
+- New ideas and new sites lean toward what you liked and what traded, and away from what you didn't.
 
 ## What you get for each idea
 
@@ -20,7 +52,8 @@ It runs inside the Route server at **`/studio`** (see `route/README.md` to deplo
 | variable | needed for | where to get it |
 |---|---|---|
 | `STUDIO_PASSWORD` | turning the Studio on | pick a long password; `/studio` asks for it |
-| `ANTHROPIC_API_KEY` | AI-written brands and copy (Claude Opus 5.5) | console.anthropic.com; without it a plain rule-based writer is used |
+| `ANTHROPIC_API_KEY` | AI ideas, brands and copy, and the games/utilities | console.anthropic.com; without it a plain rule-based writer is used and there are no games |
+| `DEXTOOLS_API_KEY` | optional: DEXTools hot pools in the Idea Maker | developer.dextools.io |
 | `VERCEL_TOKEN` | the Deploy button | vercel.com/account/tokens |
 | `VERCEL_TEAM_ID` | deploying into a Vercel team | your team's settings page |
 
@@ -44,4 +77,5 @@ Buy, Chart and Copy buttons switch on.
 - the writer and the honesty filter;
 - the exact Vercel payload, checked against a mock Vercel;
 - domain checks;
+- the trend feeds, Idea Maker and mini-app sandbox rules, with mocks;
 - the Studio's login → generate → edit → preview → deploy flow.
