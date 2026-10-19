@@ -527,8 +527,8 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     const copyBtn = text => el("button", { className: "btn alt small", type: "button", textContent: "Copy", onclick: e => { navigator.clipboard.writeText(text).then(() => { e.target.textContent = "Copied"; setTimeout(() => { e.target.textContent = "Copy"; }, 1500); }); } });
     const post = (title, text) => el("div", { className: "post" }, el("b", { textContent: title }), el("pre", { textContent: text }), el("div", {}, copyBtn(text)));
     box.append(el("h3", { textContent: "Profile" }), post("Display name", P.nameOnX || ""), post("Bio (paste the site link at [SITE])", P.bio || ""), post("Pinned post ([SITE], [CA])", P.pinned || ""), post("First reply under the intro, with the address", P.replyWithCa || ""));
-    box.append(el("h3", { textContent: "Posts, in order" }));
-    (P.posts || []).forEach((p, i) => box.append(post((i + 1) + ". " + p.when + " · media: " + p.media, p.text)));
+    box.append(el("h3", { textContent: "Your 3 tweets: copy, attach, post" }));
+    (P.posts || []).forEach((p, i) => box.append(post("Tweet " + (i + 1) + " · when: " + p.when + " · attach: " + p.media, p.text)));
     const d = el("details", {}, el("summary", { textContent: "How to post it, step by step" }));
     (k.howToPost || []).forEach(l => d.append(el("p", { className: "muted", textContent: "· " + l }))); box.append(d);
     const sc = el("details", {}, el("summary", { textContent: "The video scripts" }));
