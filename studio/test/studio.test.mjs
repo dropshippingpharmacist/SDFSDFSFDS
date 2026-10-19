@@ -434,7 +434,7 @@ test("the trend feeds take live sources, and the server exposes the switch, the 
     assert.equal((await post("/api/studio/app", { id: g.id })).status, 400, "no key: the build needs Claude");
     assert.equal((await post("/api/studio/restyle", { id: g.id })).status, 400);
     const js = await post("/api/studio/jobs", { id: g.id });
-    assert.deepEqual(Object.keys(js.jobs).sort(), ["app", "book", "content", "gitbook", "polish", "theme"]); assert.equal(js.hasApp, false);
+    assert.deepEqual(Object.keys(js.jobs).sort(), ["app", "book", "content", "domain", "gitbook", "links", "polish", "theme"]); assert.equal(js.hasApp, false);
     const ideas = await post("/api/studio/ideas", { mix: "combo" });
     assert.ok(ideas.ideas.length && ideas.ideas.every(i => i.kind === "combo"), "the Idea Maker can be told: three-in-one only");
     const st = await post("/api/studio/status"); assert.equal(st.pump, null, "no live feed in tests");
@@ -849,4 +849,40 @@ test("economy by default: Haiku for words, Sonnet for code, no effort on Haiku; 
     assert.deepEqual(tier("game", "high"), { model: "claude-sonnet-5-5", output_config: { effort: "medium" } });
     assert.equal(tier("kit", "high", { format: 1 }).output_config.format, 1);
   } finally { process.env.STUDIO_QUALITY = "1"; }
+});
+
+// ---- domains through Vercel, links into the docs for free (2026-10-19) ----------------------------------------------
+import { quote as dQuote, buy as dBuy, attach as dAttach, checkContact } from "../domains.mjs";
+import { refreshLinks } from "../gitbook.mjs";
+test("domains: price, buy with the confirmed price and the owner's details, wait for the order, attach with www", async () => {
+  const calls = [];
+  const api = async (u, init) => { const p = String(u).replace("https://api.vercel.com", ""); calls.push([init.method, p, init.body ? JSON.parse(init.body) : null]);
+    const j = o => new Response(JSON.stringify(o), { status: 200 });
+    if (p.includes("/availability")) return j({ available: !p.includes("taken") });
+    if (p.includes("/price")) return j({ years: 1, purchasePrice: 4.99, renewalPrice: 29.99, transferPrice: 29.99 });
+    if (p.endsWith("/buy?teamId=t1")) return j({ orderId: "o1", links: {} });
+    if (p.startsWith("/v1/registrar/orders/o1")) return j({ orderId: "o1", status: calls.filter(c => c[1].startsWith("/v1/registrar/orders")).length > 1 ? "completed" : "purchasing" });
+    if (p.startsWith("/v10/projects/vendo/domains")) return init.body.includes("www.") ? new Response(JSON.stringify({ error: { message: "already in use by this project" } }), { status: 409 }) : j({ name: "vendo.fun", verified: true });
+    return new Response("{}", { status: 404 });
+  };
+  const o = { fetchImpl: api, token: "tok", team: "t1", wait: 1 };
+  assert.deepEqual(await dQuote("https://www.Vendo.fun/", o), { domain: "vendo.fun", available: true, years: 1, price: 4.99, renewal: 29.99 });
+  assert.equal((await dQuote("taken.fun", o)).available, false);
+  await assert.rejects(() => dQuote("not a domain", o), /not a domain/);
+  assert.throws(() => checkContact({ firstName: "A" }), /lastName, email/);
+  const owner = { firstName: "A", lastName: "B", email: "a@b.co", phone: "+1.5555551234", city: "X", state: "CA", zip: "90001", country: "US" };
+  assert.deepEqual(await dBuy("vendo.fun", 4.99, owner, o), { domain: "vendo.fun", orderId: "o1" });
+  const order = calls.find(c => c[1].endsWith("/buy?teamId=t1"));
+  assert.deepEqual([order[2].expectedPrice, order[2].years, order[2].autoRenew, order[2].contactInformation.country], [4.99, 1, true, "US"], "the confirmed price, one year, auto-renew");
+  assert.deepEqual(await dAttach("vendo", "vendo.fun", o), { domain: "vendo.fun", verified: true, already: false });
+  assert.ok(calls.some(c => c[2]?.name === "www.vendo.fun" && c[2].redirect === "vendo.fun"), "www redirects to the domain");
+  await assert.rejects(() => dQuote("vendo.fun", { token: "" }), /VERCEL_TOKEN/);
+});
+test("docs links refresh for free: Official links rebuilt, the old address swapped everywhere", () => {
+  const cfg = { ...honest(rules("Vendo, a snack machine game"), "x").config, siteUrl: "https://vendo.fun" };
+  cfg.coin.x = "https://x.com/vendo";
+  const pages = [{ title: "Welcome", slug: "welcome", markdown: "Play at https://vendo-crypto.vercel.app today." }, { title: "Official links", slug: "official-links", markdown: "old" }];
+  const out = refreshLinks(pages, cfg, "https://vendo-crypto.vercel.app");
+  assert.equal(out[0].markdown, "Play at https://vendo.fun today.");
+  assert.match(out[1].markdown, /Site: https:\/\/vendo\.fun/); assert.match(out[1].markdown, /X: https:\/\/x\.com\/vendo/);
 });

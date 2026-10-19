@@ -15,11 +15,12 @@ import { makeIdeas, ideaPrompt } from "../studio/ideas.mjs";
 import { makeMiniApp, polishMiniApp, designMiniApp } from "../studio/miniapp.mjs";
 import { createPumpLive } from "../studio/pumplive.mjs";
 import { appFor } from "../studio/recolor.mjs";
+import { quote as domainQuote, buy as domainBuy, attach as domainAttach, checkContact, cleanDomain } from "../studio/domains.mjs";
 import { makeTheme, rulesLayout } from "../studio/theme.mjs";
 import { planContent, makeVisual, templateImage, templateVideo, SIZES, VIDEOS, IMAGES, HOW_TO_POST } from "../studio/content.mjs";
 import { renderImage, renderVideo, renderStatus, saveHtml, fontCheck } from "../studio/render.mjs";
 import { docsMarkdown } from "../studio/docs.mjs";
-import { makeBook, rulesBook, bookHtml, bookFiles, zip, publishGitBook } from "../studio/gitbook.mjs";
+import { makeBook, rulesBook, bookHtml, bookFiles, zip, publishGitBook, refreshLinks } from "../studio/gitbook.mjs";
 import { mkdir, writeFile, readFile as readFileP } from "node:fs/promises";
 import { ensureIntel, record, xPosts, xProvider, recordX, playbook, intelText } from "../studio/intel.mjs";
 
@@ -55,6 +56,12 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
   const studioToken = () => process.env.STUDIO_PASSWORD
     ? crypto.createHmac("sha256", process.env.STUDIO_PASSWORD).update("launchpad-studio").digest("base64url") : null;
   const studioOk = req => { const t = studioToken(); return !!t && cookies(req).studio_s === t; };
+  db.exec("CREATE TABLE IF NOT EXISTS studio_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)");
+  const setting = (k, v) => v === undefined ? JSON.parse(db.prepare("SELECT value FROM studio_settings WHERE key = ?").get(k)?.value || "null")
+                                            : db.prepare("INSERT INTO studio_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(k, JSON.stringify(v));
+  // the site's public address: the custom domain once attached, else the vercel.app one
+  const siteOf = d => d.config.domain ? "https://" + d.config.domain : d.url;
+  const projectOf = d => d.config.project || slugify(d.config.brand);
   const clean24 = s => String(s || "").replace(/\s+/g, " ").trim().slice(0, 24).replace(/[^\p{L}\p{N} .'-]/gu, "");
   const tick = s => String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
   const draft = id => {
@@ -64,7 +71,7 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
              book: r.book ? JSON.parse(r.book) : null, theme: r.theme ? JSON.parse(r.theme) : null };
   };
   // the book's pages: Claude's when written, else built from the config on the spot
-  const bookOf = d => (d.book?.pages?.length ? d.book.pages : rulesBook({ ...d.config, siteUrl: d.url }));
+  const bookOf = d => (d.book?.pages?.length ? d.book.pages : rulesBook({ ...d.config, siteUrl: siteOf(d) }));
   const _unused = () => {
   };
   const summary = r => {
@@ -128,7 +135,7 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
         .catch(e => { console.error(`[job ${k}]`, e.message); jobs.set(k, { state: "error", at: Date.now(), error: e.status ? e.message : (e.message || "failed") }); });
     return true;
   }
-  const jobStates = id => Object.fromEntries(["app", "polish", "theme", "content", "book", "gitbook"].map(k => [k, jobs.get(jobKey(k, id)) || null]));
+  const jobStates = id => Object.fromEntries(["app", "polish", "theme", "content", "book", "gitbook", "links", "domain"].map(k => [k, jobs.get(jobKey(k, id)) || null]));
   // the game / tool / three-in-one is built right after the site, in the background; the Studio polls until it is there
   const building = new Map();                         // draft id -> started at
   async function buildApp(id) {
@@ -249,9 +256,43 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
   }
 
   // the docs: written by Claude, kept with the draft; published to GitBook with the link put on the site
+  // the links changed: rebuild "Official links" and swap the old address in the existing book, republish; no AI
+  async function syncLinks(id, oldSite) {
+    const d = draft(id);
+    if (!d.book?.pages?.length) return "No book yet.";
+    const pages = refreshLinks(d.book.pages, { ...d.config, siteUrl: siteOf(d) }, oldSite);
+    let book = { ...d.book, pages };
+    if (process.env.GITBOOK_TOKEN && d.book.gitbook) {
+      const out = await publishGitBook({ ...d.config, siteUrl: siteOf(d) }, pages, { existing: d.book.gitbook });
+      book = { ...book, gitbook: { at: Date.now(), ...out } };
+    }
+    db.prepare("UPDATE studio_drafts SET book = ? WHERE id = ?").run(JSON.stringify(book), id);
+    return "Links updated in the docs" + (d.book.gitbook ? " and on GitBook" : "") + ".";
+  }
+  // a domain onto the coin's project, then everywhere: the site config, a redeploy, the docs and GitBook
+  async function attachAndShip(id, domain) {
+    const d = draft(id);
+    const at = await domainAttach(projectOf(d), domain);
+    const old = siteOf(d);
+    d.config.domain = at.domain;
+    db.prepare("UPDATE studio_drafts SET config = ?, updated = ? WHERE id = ?").run(JSON.stringify(d.config), Date.now(), id);
+    try { await shipSite(id); } catch (e) { console.error("[domain redeploy]", e.message); }
+    if (d.book?.pages?.length) await syncLinks(id, old).catch(() => null);
+    return `${at.domain} is attached` + (at.verified ? "" : " (Vercel is still verifying it; give it a few minutes)") + ". The site, the launch fields and the docs now use it.";
+  }
+  async function shipSite(id) {
+    const d = draft(id);
+    const extra = d.app ? { "play.html": appFor(d) } : {};
+    extra["docs.html"] = bookHtml({ ...d.config, siteUrl: siteOf(d) }, bookOf(d));
+    extra["theme.css"] = d.theme?.css || "/* the default look */\n";
+    if (d.theme?.svg) extra["mascot.svg"] = d.theme.svg;
+    const out = await deploy(d.config, projectOf(d), { extra });
+    db.prepare("UPDATE studio_drafts SET url = ? WHERE id = ?").run(out.url, id);
+    return out;
+  }
   async function writeBook(id) {
     const d = draft(id);
-    const w = await makeBook({ ...d.config, siteUrl: d.url });
+    const w = await makeBook({ ...d.config, siteUrl: siteOf(d) });
     const book = { ...(d.book || {}), at: Date.now(), source: w.source, note: w.note, pages: w.pages };
     db.prepare("UPDATE studio_drafts SET book = ?, updated = ? WHERE id = ?").run(JSON.stringify(book), Date.now(), id);
     return `${w.pages.length} pages written` + (w.note ? ` (${w.note})` : "");
@@ -259,7 +300,7 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
   async function publishBook(id) {
     await writeBook(id);                                                   // always from the site as it is right now
     const d = draft(id);
-    const out = await publishGitBook({ ...d.config, siteUrl: d.url }, d.book.pages, { existing: d.book.gitbook || null });
+    const out = await publishGitBook({ ...d.config, siteUrl: siteOf(d) }, d.book.pages, { existing: d.book.gitbook || null });
     const book = { ...d.book, gitbook: { at: Date.now(), ...out } };
     if (out.publishedUrl) d.config.docsUrl = out.publishedUrl;            // the site's GitBook button points at the coin's own book
     db.prepare("UPDATE studio_drafts SET book = ?, config = ?, updated = ? WHERE id = ?").run(JSON.stringify(book), JSON.stringify(d.config), Date.now(), id);
@@ -335,7 +376,7 @@ async function makeKit(id) {
       }
       case "/api/studio/jobs": {
         const d = draft(b.id);
-        return send(res, 200, { jobs: jobStates(d.id), hasApp: !!d.app, appError: d.app_error || null, theme: themeState(d.id, d), config: d.config, url: d.url,
+        return send(res, 200, { jobs: jobStates(d.id), hasApp: !!d.app, site: siteOf(d) || "", appError: d.app_error || null, theme: themeState(d.id, d), config: d.config, url: d.url,
                                 docsUrl: d.config.docsUrl || "", gitbook: d.book?.gitbook || null, content: !!d.content });
       }
       case "/api/studio/book/get": {
@@ -408,12 +449,46 @@ async function makeKit(id) {
         re.config.coin.ca = String(c.coin?.ca || "").trim().replace(/[^1-9A-HJ-NP-Za-km-z]/g, "").slice(0, 44);
         const pct = Number(c.coin?.devBuyPercent);
         re.config.coin.devBuyPercent = c.coin?.devBuyPercent === "" || c.coin?.devBuyPercent == null || !Number.isFinite(pct) ? null : Math.max(0, Math.min(100, pct));
+        re.config.domain = d.config.domain || ""; re.config.project = d.config.project || "";
         db.prepare("UPDATE studio_drafts SET config = ?, updated = ? WHERE id = ?").run(JSON.stringify(re.config), t, d.id);
+        // X, Telegram or the address changed: the docs and the GitBook follow, for free
+        const linkKey = c => [c.coin?.x, c.coin?.telegram, c.coin?.ca, c.domain].join("|");
+        if (linkKey(d.config) !== linkKey(re.config) && d.book?.pages?.length && !jobRunning("gitbook", d.id) && !jobRunning("book", d.id))
+          runJob("links", d.id, () => syncLinks(d.id, siteOf(d)));
         return send(res, 200, { config: re.config, removed: re.removed });
       }
       case "/api/studio/domains": {
         const names = (Array.isArray(b.domains) ? b.domains : []).slice(0, 8);
         return send(res, 200, { domains: await Promise.all(names.map(n => checkDomain(n))) });
+      }
+      case "/api/studio/owner": {
+        // the domain owner's details (every registrar needs them), kept on this server only
+        if (b.contact) { setting("owner", checkContact(b.contact)); }
+        return send(res, 200, { owner: setting("owner") || null });
+      }
+      case "/api/studio/domain/quote": {
+        if (limited("studio:quote", 60, 36e5)) throw err(429, "Too many price checks. Try again later.");
+        return send(res, 200, await domainQuote(b.domain));
+      }
+      case "/api/studio/domain/buy": {
+        // spends money: only with the price the owner saw and confirmed; Vercel refuses if it changed
+        const d = draft(b.id);
+        if (!d.url) throw err(400, "Deploy the site to Vercel first, so the domain has a project to attach to.");
+        if (!Number.isFinite(Number(b.price)) || Number(b.price) <= 0) throw err(400, "Confirm the price first.");
+        if (jobRunning("domain", d.id)) throw err(409, "A domain is being set up right now.");
+        if (limited("studio:buy", 5, 36e5)) throw err(429, "5 domain purchases an hour is the limit.");
+        const owner = setting("owner"); if (!owner) throw err(400, "Fill in the domain owner details first.");
+        const dom = cleanDomain(b.domain);
+        runJob("domain", d.id, async () => { await domainBuy(dom, Number(b.price), owner); return await attachAndShip(d.id, dom); });
+        return send(res, 200, { ok: true, started: true });
+      }
+      case "/api/studio/domain/attach": {
+        // a domain already owned (bought here earlier, or elsewhere and pointed at Vercel)
+        const d = draft(b.id);
+        if (!d.url) throw err(400, "Deploy the site to Vercel first.");
+        if (jobRunning("domain", d.id)) throw err(409, "A domain is being set up right now.");
+        runJob("domain", d.id, () => attachAndShip(d.id, cleanDomain(b.domain)));
+        return send(res, 200, { ok: true, started: true });
       }
       case "/api/studio/deploy": {
         const d = draft(b.id);
@@ -426,12 +501,13 @@ async function makeKit(id) {
           gitbookNote = "The GitBook is being written and published in the background; the site gets its GitBook button when it is done.";
         }
         const extra = d.app ? { "play.html": appFor(d) } : {};
-        extra["docs.html"] = bookHtml({ ...d.config, siteUrl: d.url }, bookOf(d));
+        extra["docs.html"] = bookHtml({ ...d.config, siteUrl: siteOf(d) }, bookOf(d));
         extra["theme.css"] = d.theme?.css || "/* the default look */\n";
         if (d.theme?.svg) extra["mascot.svg"] = d.theme.svg;
         if (d.content?.files?.banner?.png) { try { extra["og.png"] = await readFileP(path.join(DATA, "content", String(d.id), "banner.png")); } catch { /* no preview image */ } }
-        const out = await deploy(d.config, b.slug || d.config.brand, { extra });
-        db.prepare("UPDATE studio_drafts SET url = ?, updated = ? WHERE id = ?").run(out.url, t, d.id);
+        if (!d.config.project || b.slug) d.config.project = slugify(b.slug || d.config.project || d.config.brand);   // remembered, so the domain stays attached
+        const out = await deploy(d.config, d.config.project, { extra });
+        db.prepare("UPDATE studio_drafts SET url = ?, config = ?, updated = ? WHERE id = ?").run(out.url, JSON.stringify(d.config), t, d.id);
         return send(res, 200, { ...out, gitbook: gitbookNote, config: d.config });
       }
       case "/api/studio/list":
@@ -556,7 +632,7 @@ async function makeKit(id) {
         if (sa) return await launchApi(req, res, sa[1]);
         if (rel === "config.js") { res.writeHead(200, { "content-type": "text/javascript; charset=utf-8", "cache-control": "no-store" }); return res.end(configJs(d.config)); }
         if (rel === "docs.html" || rel === "docs.md" || rel === "docs.zip") {
-          const cfgDocs = { ...d.config, siteUrl: d.url }, pages = bookOf(d);
+          const cfgDocs = { ...d.config, siteUrl: siteOf(d) }, pages = bookOf(d);
           if (rel === "docs.html") { res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" }); return res.end(bookHtml(cfgDocs, pages)); }
           const body = rel === "docs.zip" ? zip(bookFiles(cfgDocs, pages)) : docsMarkdown(cfgDocs);
           res.writeHead(200, { "content-type": rel === "docs.zip" ? "application/zip" : "text/markdown; charset=utf-8", "cache-control": "no-store",

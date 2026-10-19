@@ -153,6 +153,11 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
         <div><b>Domains</b> <span class="muted">· checked against the registries</span></div>
         <div class="domains" id="domains"></div>
         <button class="btn alt small" id="checkBtn" type="button">Check availability</button>
+        <div class="row"><input id="ownDomain" placeholder="Any domain: vendo.fun" style="flex:1;min-width:160px" aria-label="A domain">
+          <button class="btn alt small" id="quoteBtn" type="button">Price it</button><button class="btn alt small" id="attachBtn" type="button">Attach one I own</button></div>
+        <p class="muted" id="domainState">Buy through Vercel right here: it is registered, attached to this site and used everywhere (launch fields, docs, GitBook) in one go. Deploy the site once first.</p>
+        <details id="ownerBox"><summary>Domain owner details (needed once for any domain purchase; kept on this server only)</summary>
+          <div class="grid2" id="ownerForm"></div><button class="btn alt small" id="ownerSave" type="button">Save owner details</button><span class="muted" id="ownerState"></span></details>
         <p class="muted" id="tickerLine"></p>
         <div class="domains" id="tickers"></div>
         <div class="row"><span class="muted" id="themeState"></span><button class="btn alt small" id="restyleBtn" type="button">Restyle</button></div>
@@ -462,6 +467,11 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
           if (cur.url && /^https:/.test(cur.url) && !$("deployRow").hidden) $("deployBtn").click();
         }
       }
+      if (J.domain && changed("domain")) {
+        $("domainState").textContent = J.domain.state === "running" ? "Buying / attaching and redeploying…" : J.domain.state === "error" ? "Domain: " + J.domain.error : J.domain.note;
+        if (J.domain.state === "done") { cur.config = r.config; cur.url = r.url; fill(r.config); checklist(); if (r.site) setLive(r.site); }
+      }
+      if (J.links && changed("links") && J.links.state !== "running") $("bookState").textContent = J.links.state === "error" ? "Docs links: " + J.links.error : J.links.note;
       if (Object.values(J).some(j => j && j.state === "running")) jobTimer = setTimeout(tick, 6000);
     };
     jobTimer = setTimeout(tick, 1500);
@@ -616,6 +626,32 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     box.append(el("button", { type: "button", className: "preset", textContent: "🎲 Random", onclick: () => { const [c, f] = randomPalette(); setColors(colorsId, c); $(finishId).value = f; after && after(); } }));
   }
   setColors("wantColors", []);
+  // ---- domains: owner details once, then price, confirm, buy, attach, ship
+  const OWNER = [["firstName", "First name"], ["lastName", "Last name"], ["email", "Email"], ["phone", "Phone (+1.5555551234)"], ["city", "City"], ["state", "State / region"], ["zip", "ZIP / postcode"], ["country", "Country (2 letters, e.g. US)"], ["companyName", "Company (optional)"]];
+  OWNER.forEach(([k, t]) => $("ownerForm").append(el("label", {}, t, el("input", { id: "own_" + k }))));
+  call("/api/studio/owner", {}).then(r => { if (r.owner) { OWNER.forEach(([k]) => { $("own_" + k).value = r.owner[k] || ""; }); $("ownerState").textContent = " Saved."; } }).catch(() => {});
+  $("ownerSave").addEventListener("click", async () => {
+    const contact = Object.fromEntries(OWNER.map(([k]) => [k, $("own_" + k).value.trim()]));
+    try { await call("/api/studio/owner", { contact }); $("ownerState").textContent = " Saved."; } catch (e) { $("ownerState").textContent = " " + e.message; }
+  });
+  async function priceAndBuy(domain) {
+    if (!cur) return;
+    $("domainState").textContent = "Checking " + domain + " with Vercel…";
+    try {
+      const q = await call("/api/studio/domain/quote", { domain });
+      if (!q.available) { $("domainState").textContent = q.domain + " is taken. Try another."; return; }
+      const msg = "Buy " + q.domain + " through Vercel for $" + q.price.toFixed(2) + " (" + q.years + " year" + (q.years > 1 ? "s" : "") + ", renews at $" + q.renewal.toFixed(2) + "/yr, auto-renew on)?\n\nIt is charged to your Vercel account, attached to this site and used everywhere.";
+      if (!confirm(msg)) { $("domainState").textContent = "Not bought."; return; }
+      await call("/api/studio/domain/buy", { id: cur.id, domain: q.domain, price: q.price });
+      $("domainState").textContent = "Buying " + q.domain + ", attaching it and redeploying… about a minute."; watchJobs(cur.id);
+    } catch (e) { $("domainState").textContent = e.message; if (/owner details/.test(e.message)) $("ownerBox").open = true; }
+  }
+  $("quoteBtn").addEventListener("click", () => { const d = $("ownDomain").value.trim(); if (d) priceAndBuy(d); });
+  $("attachBtn").addEventListener("click", async () => {
+    const d = $("ownDomain").value.trim(); if (!cur || !d) return;
+    try { await call("/api/studio/domain/attach", { id: cur.id, domain: d }); $("domainState").textContent = "Attaching " + d + " and redeploying…"; watchJobs(cur.id); }
+    catch (e) { $("domainState").textContent = e.message; }
+  });
   presets("wantPresets", "wantColors", "wantFinish");
   // the editor's colors save themselves (debounced) so the preview shows the new look right away
   let colorTimer = null;
@@ -630,7 +666,8 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
   function launchFields(c) {
     const box = $("launchFields"); box.textContent = "";
     const desc = ((c.tagline || "") + " " + (c.about || "")).trim().slice(0, 500);
-    const rows = [["Name", c.brand], ["Ticker", c.coin.ticker], ["Description", desc], ["Website", cur && cur.url && /^https?:/.test(cur.url) ? cur.url : "(deploy the site first)"], ["X", c.coin.x || ""], ["Telegram", c.coin.telegram || ""]];
+    const site = c.domain ? "https://" + c.domain : (cur && cur.url && /^https?:/.test(cur.url) ? cur.url : "");
+    const rows = [["Name", c.brand], ["Ticker", c.coin.ticker], ["Description", desc], ["Website", site || "(deploy the site first)"], ["X", c.coin.x || ""], ["Telegram", c.coin.telegram || ""]];
     rows.forEach(([k, v]) => box.append(el("div", { className: "row" }, el("b", { textContent: k }), el("span", { textContent: v, style: "flex:1;min-width:120px;overflow-wrap:anywhere" }),
       v && !/^\(/.test(v) ? el("button", { className: "btn alt small", type: "button", textContent: "Copy", onclick: e => navigator.clipboard.writeText(v).then(() => { e.target.textContent = "Copied"; setTimeout(() => { e.target.textContent = "Copy"; }, 1200); }) }) : "")));
     box.append(el("p", { className: "muted", textContent: "The launch picture is in the content kit below (1000×1000 PNG)." }));
@@ -671,7 +708,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
       cur.config = r.config; cur.removed = r.removed; fill(r.config);
       $("resRemoved").hidden = !r.removed.length; $("resRemoved").textContent = r.removed.length ? "Removed " + r.removed.length + " sentence(s) that promised donations, partners or profits." : "";
       $("resBrand").textContent = (r.config.emoji || "") + " " + r.config.brand + "  ·  $" + r.config.coin.ticker;
-      $("preview").src = cur.preview + "?t=" + Date.now(); checklist();
+      $("preview").src = cur.preview + "?t=" + Date.now(); checklist(); watchJobs(cur.id);
       if (r.config.coin.ticker !== tickerWas) checkTickers([r.config.coin.ticker, ...(cur.tickerBackups || [])]);
       // the address just arrived and the site is live: push it out, so Buy / Chart / Copy switch on without another click
       if (r.config.coin.ca && r.config.coin.ca !== caWas && cur.url && /^https:/.test(cur.url) && !$("deployRow").hidden) $("deployBtn").click();
@@ -687,7 +724,8 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
         const s = $("st-" + d.domain); if (!s) return;
         s.textContent = { available: "available", taken: "taken", unknown: "couldn't check", invalid: "not a domain" }[d.status];
         s.className = "st " + d.status;
-        if (d.status === "available" && !s.nextSibling) s.after(el("a", { className: "btn alt small", textContent: "Buy", target: "_blank", rel: "noopener",
+        if (d.status === "available" && !s.nextSibling) s.after(el("button", { className: "btn small", type: "button", textContent: "Buy", onclick: () => priceAndBuy(d.domain) }));
+        if (false) s.after(el("a", { className: "btn alt small", textContent: "Buy", target: "_blank", rel: "noopener",
           href: "https://porkbun.com/checkout/search?q=" + encodeURIComponent(d.domain) }));
       });
     } catch (e) { $("genErr").textContent = e.message; } finally { $("checkBtn").disabled = false; }
