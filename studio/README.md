@@ -12,8 +12,8 @@ Press **Read the market**. The Studio keeps every coin the feeds show, for good,
 - **GeckoTerminal:** trending pools and brand-new pools;
 - **pump.fun:** the biggest coins, the king of the hill and the latest trades (when pump.fun answers);
 - **DEXTools:** hot pools and gainers, with `DEXTOOLS_API_KEY`;
-- **X:** the posts about pump.fun and Solana memecoin launches with the most traction, plus a search for your own focus,
-  with `X_BEARER_TOKEN`.
+- **X:** the posts about pump.fun and Solana memecoin launches with the most traction (likes, reposts, replies and
+  views), plus a search for your own focus, with `TWITTERAPI_IO_KEY` (or `X_BEARER_TOKEN`).
 
 It refreshes itself every 30 minutes. From the history it builds a playbook: themes right now and among the $1M+ coins,
 kinds (meme, game, utility, launchpad), how many winners have a website / X / Telegram, name and ticker length, the
@@ -80,7 +80,8 @@ early access, labeled "planned". They are never payouts, airdrops or staking.
 | `STUDIO_PASSWORD` | turning the Studio on | pick a long password; `/studio` asks for it |
 | `ANTHROPIC_API_KEY` | AI ideas, brands and copy, and the games/utilities | console.anthropic.com; without it a plain rule-based writer is used and there are no games |
 | `DEXTOOLS_API_KEY` | optional: DEXTools hot pools and gainers in Launch Intel | developer.dextools.io |
-| `X_BEARER_TOKEN` | optional: what X is saying, in Launch Intel and every idea | developer.x.com → your project → Keys and tokens → **Bearer Token** (the long `AAAA…` string; a paid Basic plan or higher is needed for search) |
+| `TWITTERAPI_IO_KEY` | what X is saying, in Launch Intel and every idea | twitterapi.io → dashboard → **API key**. Pay as you go (roughly $0.15 per 1,000 posts read; the Studio reads about 3-4 searches every 30 minutes) |
+| `X_BEARER_TOKEN` | the same, through X's own API instead | developer.x.com → your project → Keys and tokens → Bearer Token (search needs a paid plan). Only used when `TWITTERAPI_IO_KEY` is not set |
 | `VERCEL_TOKEN` | the Deploy button | vercel.com/account/tokens |
 | `VERCEL_TEAM_ID` | deploying into a Vercel team | your team's settings page |
 

@@ -39,7 +39,7 @@ Points are in-app only. They are not tokens and pay nothing; holding $ROUTE earn
 4. Optional variables:
    - `RPC_URL` (a free Helius RPC URL) makes the launchpad's sends more reliable than Solana's public node;
    - `NOMINATIM_URL` points place search somewhere other than OpenStreetMap's public server;
-   - the Studio's own settings (`STUDIO_PASSWORD`, `ANTHROPIC_API_KEY`, `VERCEL_TOKEN`, `DEXTOOLS_API_KEY`, `X_BEARER_TOKEN`…) are listed
+   - the Studio's own settings (`STUDIO_PASSWORD`, `ANTHROPIC_API_KEY`, `VERCEL_TOKEN`, `DEXTOOLS_API_KEY`, `TWITTERAPI_IO_KEY`…) are listed
      in `studio/README.md`.
 
 After you launch the coin, open Route under "Your sites" in the Studio and save its contract address, dev buy %, X and

@@ -13,7 +13,7 @@ import { deploy, checkDomain, configJs, slugify } from "../studio/deploy.mjs";
 import { trends, coinStats, tickerTaken } from "../studio/trends.mjs";
 import { makeIdeas, ideaPrompt } from "../studio/ideas.mjs";
 import { makeMiniApp } from "../studio/miniapp.mjs";
-import { ensureIntel, record, xPosts, recordX, playbook, intelText } from "../studio/intel.mjs";
+import { ensureIntel, record, xPosts, xProvider, recordX, playbook, intelText } from "../studio/intel.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(HERE, "public");
@@ -194,7 +194,7 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
     const t = Date.now();
     switch (p) {
       case "/api/studio/status":
-        return send(res, 200, { ai: !!process.env.ANTHROPIC_API_KEY, vercel: !!process.env.VERCEL_TOKEN, dextools: !!process.env.DEXTOOLS_API_KEY, x: !!process.env.X_BEARER_TOKEN });
+        return send(res, 200, { ai: !!process.env.ANTHROPIC_API_KEY, vercel: !!process.env.VERCEL_TOKEN, dextools: !!process.env.DEXTOOLS_API_KEY, x: xProvider()?.label || null });
       case "/api/studio/intel": {
         // everything the Studio knows: refresh the feeds and X (cached 10 minutes), then the playbook
         const got = await refreshIntel(String(b.focus || ""), !!b.refresh);
