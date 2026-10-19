@@ -485,6 +485,10 @@ test("content kit: the plan passes the honesty filter, the templates are complet
   const good = { messages: { stream: () => ({ finalMessage: async () => ({ stop_reason: "end_turn", content: [{ type: "text", text: "```html\n<!doctype html><html><body><canvas id=\"c\"></canvas><script>window.DURATION=5;window.render=t=>{}</script></body></html>\n```" }] }) }) } };
   assert.equal((await makeVisual("video", "", cfg, { client: good, video: intro })).source, "claude");
   assert.equal(typeof renderStatus().videos, "boolean"); assert.deepEqual(SIZES.banner, [1500, 500]);
+  const { withFonts } = await import("../render.mjs");
+  const page = await withFonts("<!doctype html><html><head><title>x</title></head><body>hi</body></html>");
+  assert.match(page, /<head><style>@font-face\{font-family:"DejaVu Sans";font-weight:400;src:url\(data:font\/ttf;base64,/, "the shipped font rides in every rendered page");
+  assert.ok(page.length > 500000, "the font bytes are really there");
 });
 
 test("content kit over HTTP: files land on the volume, are served to the owner only, and the kit is remembered", async () => {

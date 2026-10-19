@@ -6,8 +6,27 @@
 // Needs a Chromium (CHROMIUM_PATH, or one found on the machine) and ffmpeg (FFMPEG_PATH or on PATH). Without them the
 // Studio still writes the HTML files and says what is missing.
 import { spawn, execSync } from "node:child_process";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile, readFile } from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+// the fonts the repo ships (render/fonts): embedded into every page the renderer opens, so text is drawn even on a
+// machine with no system fonts at all; the page's Google Fonts still win when they arrive
+const FONT_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "render", "fonts");
+let fontCss = null;
+async function embeddedFonts() {
+  if (fontCss !== null) return fontCss;
+  try {
+    const face = async (file, weight) => `@font-face{font-family:"DejaVu Sans";font-weight:${weight};src:url(data:font/ttf;base64,${(await readFile(path.join(FONT_DIR, file))).toString("base64")}) format("truetype")}`;
+    fontCss = `<style>${await face("DejaVuSans.ttf", 400)}${await face("DejaVuSans-Bold.ttf", 700)}</style>`;
+  } catch { fontCss = ""; }
+  return fontCss;
+}
+export async function withFonts(html) {
+  const css = await embeddedFonts();
+  if (!css) return html;
+  return /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, m => m + css) : css + html;
+}
 
 let pw = null;
 async function playwright() { if (!pw) pw = await import("playwright-core"); return pw; }
@@ -61,7 +80,7 @@ async function withPage(w, h, fn) {
 
 export async function renderImage(html, { width, height }) {
   return withPage(width, height, async page => {
-    await page.setContent(html, { waitUntil: "load" });
+    await page.setContent(await withFonts(html), { waitUntil: "load" });
     await fontsReady(page);
     return page.screenshot({ type: "png", clip: { x: 0, y: 0, width, height } });
   });
@@ -75,7 +94,7 @@ export async function renderVideo(html, { width = 1080, height = 1080, fps = 30,
   if (!ff) throw Object.assign(new Error("No ffmpeg on the server (set FFMPEG_PATH, or add ffmpeg to the build)."), { status: 503 });
   await mkdir(path.dirname(out), { recursive: true });
   return withPage(width, height, async page => {
-    await page.setContent(html, { waitUntil: "load" });
+    await page.setContent(await withFonts(html), { waitUntil: "load" });
     await fontsReady(page);
     const ok = await page.evaluate(() => typeof window.render === "function" && !!document.getElementById("c"));
     if (!ok) throw Object.assign(new Error("The video page has no render(t) or no <canvas id=\"c\">."), { status: 400 });
