@@ -51,7 +51,13 @@ Rules you never break:
 - pinned: the pinned post text (under 260 chars) with [CA] where the contract address will be pasted and [SITE] for the
   site link. reply_with_ca: the first reply under the intro post, with [CA].
 - bio: under 160 characters, with [SITE]. name_on_x: the display name (brand + emoji, no ticker).
-- Briefs describe a clean, bold graphic in the brand's accent color with its emoji as the mascot, legible at a glance.`;
+- pfp_brief: a LOGO MARK like the best coin avatars: ONE bold, simple symbol in a single light color on a flat
+  ground of one palette color, filling about 60% of the square. The symbol is abstract and only loosely about the
+  coin (a thick rising zigzag for a chart, a single curved stroke for a broom sweep, a slot, a coil, a bolt, a
+  check, a crescent, a wave), drawn with thick rounded strokes. No emoji, no scene, no gradient, no text (a single
+  custom letterform is allowed if it IS the symbol). Describe the exact shape in one sentence.
+- banner_brief: the same mark small on the left, the name in the display font, the tagline, a field of the brand's
+  shapes or pattern on the right; the left 60% stays clear of the avatar overlap at the bottom-left.`;
 
 export async function planContent(cfg, { client = null } = {}) {
   let raw = null, source = "rules", note = null;
@@ -73,7 +79,7 @@ export function rulesPlan(cfg) {
   const what = kind === "game" ? "a game you can play right now" : kind === "utility" ? "a tool you can use right now" : kind === "combo" ? "a game, a tool and a launchpad on one page" : "a launchpad";
   return {
     bio: `${cfg.tagline} ${what}. [SITE]`, name_on_x: `${b} ${cfg.emoji}`,
-    pfp_brief: `${cfg.emoji} big and centered on a ${cfg.colors?.accent} circle with a thick dark ring.`,
+    pfp_brief: `One bold white symbol on a flat ${cfg.colors?.accent} square: ${MARKS[markIndex(cfg)][0]}.`,
     banner_brief: `${b} in the display font on the left, the tagline under it, a field of small ${cfg.emoji} fading to the right.`,
     launch_image_brief: `${cfg.emoji} huge, ${tk} under it in the display font, accent background, dark border.`,
     videos: [
@@ -115,23 +121,46 @@ function honestPlan(raw, cfg) {
   };
 }
 
+// ---- the logo marks the template can draw itself: thick rounded strokes, one per launch (picked from the brand)
+export const MARKS = [
+  ["a thick rising zigzag arrow", "M40 130 L85 85 L110 110 L160 60", "M130 60 L160 60 L160 90"],
+  ["a thick upward chevron", "M45 125 L100 65 L155 125", ""],
+  ["a single sweeping curve", "M45 140 C70 60 130 60 155 140", ""],
+  ["a lightning bolt", "M115 40 L70 110 L105 110 L85 160 L135 90 L100 90 Z", ""],
+  ["a bold check mark", "M45 105 L85 145 L160 60", ""],
+  ["a ring with a gap", "M150 70 A55 55 0 1 1 150 130", ""],
+  ["a play triangle", "M70 50 L150 100 L70 150 Z", ""],
+  ["three rising bars", "M55 140 L55 110 M100 140 L100 85 M145 140 L145 60", ""],
+  ["a wave", "M35 100 C60 60 85 60 100 100 S140 140 165 100", ""],
+  ["a slash through a dot", "M60 140 L140 60 M100 100 m-12 0 a12 12 0 1 0 24 0 a12 12 0 1 0 -24 0", ""],
+];
+export const markIndex = cfg => { let h = 0; for (const ch of String(cfg.brand || "") + String(cfg.coin?.ticker || "")) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h % MARKS.length; };
+export function markSvg(cfg, { size = 200, color = "#ffffff", ground = null } = {}) {
+  const [, d1, d2] = MARKS[markIndex(cfg)];
+  const filled = /Z$/.test(d1);
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="${size}" height="${size}">` + (ground ? `<rect width="200" height="200" fill="${ground}"/>` : "") +
+    `<path d="${d1}" fill="${filled ? color : "none"}" stroke="${color}" stroke-width="${filled ? 8 : 26}" stroke-linecap="round" stroke-linejoin="round"/>` +
+    (d2 ? `<path d="${d2}" fill="none" stroke="${color}" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>` : "") + `</svg>`;
+}
+
 // ---- the visuals: HTML pages. Templates first (always work), then Claude's own version if it passes the checks.
 const esc = s => String(s || "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const font = cfg => `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(cfg.display || "Bagel Fat One").replace(/%20/g, "+")}&family=Figtree:wght@600;800&display=swap">`;
 const base = (cfg, w, h, body, css = "") => `<!doctype html><html><head><meta charset="utf-8">${font(cfg)}<style>
-html,body{margin:0;width:${w}px;height:${h}px;overflow:hidden;background:${cfg.colors?.accent || "#ff6a2b"};color:${cfg.colors?.dark || "#140f22"};font-family:Figtree,system-ui,sans-serif}
+html{margin:0;background:#15121c;min-height:100%}body{margin:0;width:${w}px;height:${h}px;overflow:hidden;position:relative;background:${cfg.colors?.accent || "#ff6a2b"};color:${cfg.colors?.dark || "#140f22"};font-family:Figtree,system-ui,sans-serif;box-shadow:0 0 0 1px #000}
 .d{font-family:"${esc(cfg.display || "Bagel Fat One")}","Arial Black",sans-serif}${css}</style></head><body>${body}</body></html>`;
 
 export function templateImage(kind, cfg) {
   const [w, h] = SIZES[kind], ink = cfg.colors?.dark || "#140f22", acc = cfg.colors?.accent || "#ff6a2b", light = cfg.colors?.light || "#fff8f1";
   const em = esc(cfg.emoji || "🚀"), tk = "$" + esc(cfg.coin?.ticker || "COIN");
-  if (kind === "pfp") return base(cfg, w, h, `<div style="position:absolute;inset:18px;border-radius:50%;background:${light};border:14px solid ${ink};display:grid;place-items:center;font-size:210px;line-height:1">${em}</div>`);
+  const a2 = cfg.colors?.accent2 || acc, letter = esc(String(cfg.brand || "X").trim()[0] || "X").toUpperCase();
+  if (kind === "pfp") return base(cfg, w, h, `<div style="position:absolute;inset:0;background:${acc};display:grid;place-items:center">${markSvg(cfg, { size: 300, color: light })}</div>`);
   if (kind === "launch") return base(cfg, w, h, `<div style="position:absolute;inset:40px;border-radius:80px;background:${light};border:22px solid ${ink};display:grid;place-items:center;align-content:center;gap:10px">
     <div style="font-size:430px;line-height:1">${em}</div><div class="d" style="font-size:120px;letter-spacing:.02em">${tk}</div></div>`);
   const dots = Array.from({ length: 60 }, (_, i) => `<span style="position:absolute;left:${55 + ((i * 37) % 45)}%;top:${((i * 53) % 100)}%;font-size:${26 + (i % 5) * 10}px;opacity:${.15 + (i % 4) * .15};transform:rotate(${(i * 29) % 60 - 30}deg)">${em}</span>`).join("");
   return base(cfg, w, h, `<div style="position:absolute;inset:0;background:linear-gradient(100deg,${acc} 48%,transparent 90%)"></div>${dots}
     <div style="position:absolute;left:70px;top:0;height:100%;display:grid;align-content:center;gap:14px;max-width:60%">
-      <div class="d" style="font-size:112px;line-height:1">${em} ${esc(cfg.brand)}</div><div style="font-size:40px;font-weight:800;color:${ink}">${esc(cfg.tagline)}</div>
+      <div class="d" style="font-size:112px;line-height:1;display:flex;gap:24px;align-items:center"><span style="display:grid;place-items:center;width:120px;height:120px;border-radius:28px;background:${ink}">${markSvg(cfg, { size: 92, color: light })}</span>${esc(cfg.brand)}</div><div style="font-size:40px;font-weight:800;color:${ink}">${esc(cfg.tagline)}</div>
       <div style="font-size:28px;font-weight:800;opacity:.75">${tk}</div></div>`);
 }
 
@@ -191,7 +220,8 @@ const VISUAL_SYSTEM = `You design launch graphics and motion for memecoins as si
 - Exactly the size given; nothing outside it; no scrollbars; html and body sized to it with overflow hidden.
 - Inline CSS and inline JavaScript only. Google Fonts stylesheets are the only external resource; no images from the web:
   draw with CSS, SVG, canvas and emoji. No network requests, no eval.
-- Bold and legible at a glance: big type, the brand's accent, its emoji as the mascot, high contrast. No fake UI of real
+- Bold and legible at a glance: big type, the brand's palette, high contrast. A logo mark is geometric and minimal
+  (think of the best coin avatars: one shape, one letter, two colors), never an emoji. No fake UI of real
   companies, no real people, no logos you do not own.
 - For a VIDEO page: one <canvas id="c"> at the given size, window.DURATION = total seconds, and window.render(t) that
   draws the complete frame for time t (seconds) from scratch, deterministic, no timers, no requestAnimationFrame, no
@@ -213,7 +243,7 @@ export async function makeVisual(kind, brief, cfg, { client = null, video = null
   const ask = (video
     ? `A ${w}x${h} VIDEO page, ${video.scenes.reduce((n, s) => n + s.seconds, 0) + 3} seconds: "${video.title}" for ${cfg.brand} ($${cfg.coin?.ticker}). Hook: ${video.hook}.\nScenes:\n` +
       video.scenes.map((s, i) => `${i + 1}. ${s.seconds}s — headline "${s.headline}" — sub "${s.sub}" — visual: ${s.visual}`).join("\n") + `\nEnd card (3s): "${video.endCard}" with the brand and emoji.`
-    : `A ${w}x${h} ${kind === "pfp" ? "X profile picture (shown as a circle)" : kind === "banner" ? "X banner (the left 60% stays clear of the profile picture overlap at the bottom-left)" : "coin launch picture (square, shown small in lists: one big mascot, the ticker)"} for ${cfg.brand}.\nBrief: ${brief}`) +
+    : `A ${w}x${h} ${kind === "pfp" ? "X profile picture (shown as a circle): a LOGO MARK, one bold simple symbol in one light color on one flat palette color, thick rounded strokes, filling ~60% of the square; no emoji, no scene, no gradient, no text" : kind === "banner" ? "X banner (the left 60% stays clear of the profile picture overlap at the bottom-left)" : "coin launch picture (square, shown small in lists: one big mascot, the ticker)"} for ${cfg.brand}.\nBrief: ${brief}`) +
     `\nBrand: ${cfg.brand}, ticker $${cfg.coin?.ticker}, emoji ${cfg.emoji}, accent ${cfg.colors?.accent}, light ${cfg.colors?.light}, dark ${cfg.colors?.dark}, display font "${cfg.display}", vibe ${cfg.vibe || "candy"}.` +
     `\nHere is a plain template that already works; make yours clearly better:\n\`\`\`html\n${fallback.slice(0, 9000)}\n\`\`\``;
   try {

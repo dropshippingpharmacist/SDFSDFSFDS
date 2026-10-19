@@ -16,7 +16,7 @@ import { makeMiniApp, polishMiniApp, designMiniApp } from "../studio/miniapp.mjs
 import { createPumpLive } from "../studio/pumplive.mjs";
 import { makeTheme, rulesLayout } from "../studio/theme.mjs";
 import { planContent, makeVisual, templateImage, templateVideo, SIZES, VIDEOS, IMAGES, HOW_TO_POST } from "../studio/content.mjs";
-import { renderImage, renderVideo, renderStatus, saveHtml } from "../studio/render.mjs";
+import { renderImage, renderVideo, renderStatus, saveHtml, fontCheck } from "../studio/render.mjs";
 import { docsMarkdown } from "../studio/docs.mjs";
 import { makeBook, rulesBook, bookHtml, bookFiles, zip, publishGitBook } from "../studio/gitbook.mjs";
 import { mkdir, writeFile, readFile as readFileP } from "node:fs/promises";
@@ -269,6 +269,7 @@ async function makeKit(id) {
       await mkdir(dir, { recursive: true });
       const { plan, source, note } = await planContent(d.config);
       const kit = { at: t, source, note, plan, files: {}, notes: [], howToPost: HOW_TO_POST, render: renderStatus() };
+    if (kit.render.images && !(await fontCheck())) kit.notes.push("This server has no fonts, so rendered text comes out blank: the build needs the font packages from nixpacks.toml (redeploy after pulling the latest main).");
       const put = (k, v) => { kit.files[k] = v; db.prepare("UPDATE studio_drafts SET content = ?, updated = ? WHERE id = ?").run(JSON.stringify(kit), Date.now(), d.id); };
       for (const kind of IMAGES) {
         const v = await makeVisual(kind, plan.briefs[kind], d.config);

@@ -473,6 +473,11 @@ test("content kit: the plan passes the honesty filter, the templates are complet
   assert.equal(plan.videos.length, 1, "one video: the intro");
   assert.ok(rulesPlan(cfg).posts.length === 4 && HOW_TO_POST.length >= 5);
   for (const k of ["pfp", "banner"]) assert.match(templateImage(k, cfg), /<!doctype html>/);
+  assert.match(templateImage("pfp", cfg), /<svg[^>]*><path d="M/, "the profile picture is a drawn mark, not the emoji");
+  assert.ok(!templateImage("pfp", cfg).includes("🐸"));
+  const { markIndex, MARKS } = await import("../content.mjs");
+  assert.ok(new Set(["Vendo", "Dustpaw", "Founderbot", "Route", "Catpad", "Frog Arcade", "Moonpad"].map(b => markIndex({ brand: b, coin: { ticker: b.toUpperCase() } }))).size >= 4, "different launches, different marks");
+  assert.ok(MARKS.length >= 8);
   const v = templateVideo(intro, cfg);
   assert.match(v, /window\.render = function/); assert.match(v, /id="c" width="1080" height="1080"/); assert.match(v, /window\.DURATION = 7/);
   const bad = { messages: { stream: () => ({ finalMessage: async () => ({ stop_reason: "end_turn", content: [{ type: "text", text: "<!doctype html><html><body><img src=\"https://evil/x.png\"></body></html>" }] }) }) } };

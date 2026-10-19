@@ -33,6 +33,21 @@ export function renderStatus() {
   return { images: !!c, videos: !!c && !!f, chromium: !!c, ffmpeg: !!f };
 }
 
+// web fonts (Google Fonts in the page) get up to 8 seconds to arrive; the system fonts are the fallback either way
+async function fontsReady(page) {
+  await Promise.race([page.evaluate(() => document.fonts && document.fonts.ready).catch(() => {}), new Promise(r => setTimeout(r, 8000))]);
+  await page.waitForTimeout(250);
+}
+export async function fontCheck() {
+  // does this machine draw text at all? (a container without fonts renders words as nothing)
+  try {
+    return await withPage(200, 60, async page => {
+      await page.setContent("<body style='margin:0'><div style='font:40px sans-serif'>Wg</div></body>");
+      return page.evaluate(() => { const c = document.createElement("canvas"); c.width = 100; c.height = 50; const x = c.getContext("2d"); x.font = "40px sans-serif"; x.fillText("Wg", 2, 40);
+        return x.getImageData(0, 0, 100, 50).data.some((v, i) => i % 4 === 3 && v > 0); });
+    });
+  } catch { return false; }
+}
 async function withPage(w, h, fn) {
   const exe = chromiumPath();
   if (!exe) throw Object.assign(new Error("No browser on the server to render with (set CHROMIUM_PATH, or add chromium to the build)."), { status: 503 });
@@ -47,8 +62,7 @@ async function withPage(w, h, fn) {
 export async function renderImage(html, { width, height }) {
   return withPage(width, height, async page => {
     await page.setContent(html, { waitUntil: "load" });
-    await page.evaluate(() => document.fonts && document.fonts.ready).catch(() => {});
-    await page.waitForTimeout(300);
+    await fontsReady(page);
     return page.screenshot({ type: "png", clip: { x: 0, y: 0, width, height } });
   });
 }
@@ -62,7 +76,7 @@ export async function renderVideo(html, { width = 1080, height = 1080, fps = 30,
   await mkdir(path.dirname(out), { recursive: true });
   return withPage(width, height, async page => {
     await page.setContent(html, { waitUntil: "load" });
-    await page.evaluate(() => document.fonts && document.fonts.ready).catch(() => {});
+    await fontsReady(page);
     const ok = await page.evaluate(() => typeof window.render === "function" && !!document.getElementById("c"));
     if (!ok) throw Object.assign(new Error("The video page has no render(t) or no <canvas id=\"c\">."), { status: 400 });
     const dur = Math.min(60, Math.max(3, Number(await page.evaluate(() => window.DURATION)) || seconds));
