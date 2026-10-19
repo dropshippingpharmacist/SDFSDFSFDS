@@ -283,6 +283,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     $("vcPill").textContent = s.vercel ? "Vercel: connected" : "Vercel: add VERCEL_TOKEN"; $("vcPill").className = "pill " + (s.vercel ? "on" : "off");
     $("xPill").textContent = s.x ? "X: " + s.x : "X: add TWITTERAPI_IO_KEY"; $("xPill").className = "pill " + (s.x ? "on" : "off");
     pumpPill(s.pump);
+    $("vcPill").textContent += " · Studio " + (s.version || "old");
     $("gitbookBtn").textContent = s.gitbook ? "Publish to GitBook" : "Publish to GitBook (add GITBOOK_TOKEN)";
     loadDrafts();
   }

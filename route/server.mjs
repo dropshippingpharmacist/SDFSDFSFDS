@@ -365,7 +365,7 @@ async function makeKit(id) {
     const t = Date.now();
     switch (p) {
       case "/api/studio/status":
-        return send(res, 200, { ai: !!process.env.ANTHROPIC_API_KEY, vercel: !!process.env.VERCEL_TOKEN, dextools: !!process.env.DEXTOOLS_API_KEY, x: xProvider()?.label || null, pump: pumpLive ? pumpLive.status() : null, render: renderStatus(), gitbook: !!process.env.GITBOOK_TOKEN, economy: process.env.STUDIO_QUALITY !== "1" });
+        return send(res, 200, { ai: !!process.env.ANTHROPIC_API_KEY, vercel: !!process.env.VERCEL_TOKEN, dextools: !!process.env.DEXTOOLS_API_KEY, x: xProvider()?.label || null, pump: pumpLive ? pumpLive.status() : null, render: renderStatus(), version: "docs-3 · " + String(process.env.RAILWAY_GIT_COMMIT_SHA || "local").slice(0, 7), gitbook: !!process.env.GITBOOK_TOKEN, economy: process.env.STUDIO_QUALITY !== "1" });
       case "/api/studio/book": {
         // Claude writes the launch's docs (8-11 pages); kept with the draft, shipped as docs.html, importable into GitBook
         const d = draft(b.id);
