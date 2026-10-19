@@ -14,6 +14,7 @@ import { trends, coinStats, tickerTaken, registerLiveSource } from "../studio/tr
 import { makeIdeas, ideaPrompt } from "../studio/ideas.mjs";
 import { makeMiniApp, polishMiniApp, designMiniApp } from "../studio/miniapp.mjs";
 import { createPumpLive } from "../studio/pumplive.mjs";
+import { appFor } from "../studio/recolor.mjs";
 import { makeTheme, rulesLayout } from "../studio/theme.mjs";
 import { planContent, makeVisual, templateImage, templateVideo, SIZES, VIDEOS, IMAGES, HOW_TO_POST } from "../studio/content.mjs";
 import { renderImage, renderVideo, renderStatus, saveHtml, fontCheck } from "../studio/render.mjs";
@@ -139,7 +140,9 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
       // design -> build -> polish: three passes, so the game has modes, progression and content, not just a loop
       const design = await designMiniApp(concept, d.config);
       let out = await makeMiniApp(concept, d.config, { design });
-      if (!out.error) { const better = await polishMiniApp(out.html, concept, d.config); if (!better.error) out = better; }
+      // economy mode (STUDIO_ECONOMY=1) skips the polish pass: about half the cost of a game
+      if (!out.error && process.env.STUDIO_QUALITY === "1") { const better = await polishMiniApp(out.html, concept, d.config); if (!better.error) out = better; }
+      d.config.appPalette = [d.config.colors?.accent, d.config.colors?.accent2, d.config.colors?.accent3];   // so later color changes can follow
       if (out.error) { db.prepare("UPDATE studio_drafts SET app_error = ? WHERE id = ?").run(out.error, id); building.delete(id); throw Object.assign(new Error(out.error), { status: 502 }); }
       d.config.product = { ...pr, kind: pr.kind === "launchpad" ? "utility" : (pr.kind || "game"), app: true };
       db.prepare("UPDATE studio_drafts SET app = ?, app_error = NULL, config = ?, updated = ? WHERE id = ?").run(out.html, JSON.stringify(d.config), Date.now(), id);
@@ -313,7 +316,7 @@ async function makeKit(id) {
     const t = Date.now();
     switch (p) {
       case "/api/studio/status":
-        return send(res, 200, { ai: !!process.env.ANTHROPIC_API_KEY, vercel: !!process.env.VERCEL_TOKEN, dextools: !!process.env.DEXTOOLS_API_KEY, x: xProvider()?.label || null, pump: pumpLive ? pumpLive.status() : null, render: renderStatus(), gitbook: !!process.env.GITBOOK_TOKEN });
+        return send(res, 200, { ai: !!process.env.ANTHROPIC_API_KEY, vercel: !!process.env.VERCEL_TOKEN, dextools: !!process.env.DEXTOOLS_API_KEY, x: xProvider()?.label || null, pump: pumpLive ? pumpLive.status() : null, render: renderStatus(), gitbook: !!process.env.GITBOOK_TOKEN, economy: process.env.STUDIO_QUALITY !== "1" });
       case "/api/studio/book": {
         // Claude writes the launch's docs (8-11 pages); kept with the draft, shipped as docs.html, importable into GitBook
         const d = draft(b.id);
@@ -378,7 +381,8 @@ async function makeKit(id) {
         // the look first (a layout right away, Claude's own stylesheet and mascot in the background), then the product
         g.config.layout = rulesLayout(g.config);
         db.prepare("UPDATE studio_drafts SET config = ? WHERE id = ?").run(JSON.stringify(g.config), id);
-        if (process.env.ANTHROPIC_API_KEY && b.auto !== false) runJob("theme", id, () => buildTheme(id));
+        // the AI look is on demand (Restyle) in economy mode: the free finishes and presets cover it
+        if (process.env.ANTHROPIC_API_KEY && b.auto !== false && process.env.STUDIO_QUALITY === "1") runJob("theme", id, () => buildTheme(id));
         // a game, a tool or a three-in-one: build it now, in the background, so the site is playable without another click
         const auto = !!process.env.ANTHROPIC_API_KEY && g.config.product?.kind !== "launchpad" && b.auto !== false && !limited("studio:app", 20, 36e5);
         if (auto) startApp(id);
@@ -400,6 +404,7 @@ async function makeKit(id) {
         re.config.tokenomics = tokenomics({ kind: re.config.product.kind, allocation: tnIn.allocation, fee_source: tnIn.source, dev_buy_policy: tnIn.devBuyPolicy });
         re.config.product.app = !!d.app;
         re.config.layout = d.config.layout; re.config.mascot = !!d.config.mascot;   // the look stays with the draft
+        if (d.config.appPalette) re.config.appPalette = d.config.appPalette;
         re.config.coin.ca = String(c.coin?.ca || "").trim().replace(/[^1-9A-HJ-NP-Za-km-z]/g, "").slice(0, 44);
         const pct = Number(c.coin?.devBuyPercent);
         re.config.coin.devBuyPercent = c.coin?.devBuyPercent === "" || c.coin?.devBuyPercent == null || !Number.isFinite(pct) ? null : Math.max(0, Math.min(100, pct));
@@ -420,7 +425,7 @@ async function makeKit(id) {
           runJob("gitbook", d.id, () => publishBook(d.id));
           gitbookNote = "The GitBook is being written and published in the background; the site gets its GitBook button when it is done.";
         }
-        const extra = d.app ? { "play.html": d.app } : {};
+        const extra = d.app ? { "play.html": appFor(d) } : {};
         extra["docs.html"] = bookHtml({ ...d.config, siteUrl: d.url }, bookOf(d));
         extra["theme.css"] = d.theme?.css || "/* the default look */\n";
         if (d.theme?.svg) extra["mascot.svg"] = d.theme.svg;
@@ -564,7 +569,7 @@ async function makeKit(id) {
           if (!d.app) { res.writeHead(404); return res.end(); }
           res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store",
             "content-security-policy": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data: blob:; media-src data: blob:; connect-src 'none'; sandbox allow-scripts" });
-          return res.end(d.app);
+          return res.end(appFor(d));
         }
         if (rel.startsWith("api/") || rel === "dev.mjs" || rel === "package.json") { res.writeHead(404); return res.end(); }
         return await serveFile(res, path.join(LAUNCH, rel), LAUNCH);

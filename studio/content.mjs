@@ -9,9 +9,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
-import { withRetry, why } from "./llm.mjs";
+import { withRetry, why, tier, economy } from "./llm.mjs";
 
-const MODEL = "claude-opus-5-5";
 const clean = (t, n = 300) => String(t || "").replace(/\s+/g, " ").trim().slice(0, n);
 const BANNED = /\b(donat\w*|charit\w*|partner(ed|ship|s)?|guarantee\w*|risk[- ]free|100x|1000x|to the moon|passive income|profit\w*|dividend\w*|revenue share|airdrop\w*|staking|yield|apy|financial advice|not a scam)\b/i;
 const dropClaims = t => clean(t, 1000).split(/(?<=[.!?])\s+/).filter(x => x && !BANNED.test(x)).join(" ");
@@ -66,7 +65,7 @@ export async function planContent(cfg, { client = null } = {}) {
   if (client || process.env.ANTHROPIC_API_KEY) {
     try {
       const c = client || new Anthropic();
-      const r = await withRetry(() => c.messages.parse({ model: MODEL, max_tokens: 16000, output_config: { effort: "high", format: zodOutputFormat(Plan) }, system: SYSTEM,
+      const r = await withRetry(() => c.messages.parse({ ...tier("kit", "high", { format: zodOutputFormat(Plan) }), max_tokens: 16000, system: SYSTEM,
         messages: [{ role: "user", content: "The site:\n" + JSON.stringify({ brand: cfg.brand, ticker: cfg.coin?.ticker, emoji: cfg.emoji, tagline: cfg.tagline, about: cfg.about,
           lore: cfg.lore, product: cfg.product, roadmap: cfg.roadmap, vibe: cfg.vibe }, null, 1).slice(0, 6000) + "\n\nWrite the content kit." }] }));
       if (r.stop_reason === "refusal") note = "The model declined; the plain plan was used.";
@@ -310,6 +309,7 @@ function extract(raw) {
 export async function makeVisual(kind, brief, cfg, { client = null, video = null } = {}) {
   const fallback = video ? templateVideo(video, cfg) : templateImage(kind, cfg);
   if (!client && !process.env.ANTHROPIC_API_KEY) return { html: fallback, source: "template" };
+  if (!client && economy()) return { html: fallback, source: "template" };      // economy: the free templates (logo mark, beat video)
   const [w, h] = SIZES[video ? "video" : kind];
   const ask = (video
     ? `A ${w}x${h} VIDEO page, ${video.scenes.reduce((n, s) => n + s.seconds, 0) + 3} seconds: "${video.title}" for ${cfg.brand} ($${cfg.coin?.ticker}). Hook: ${video.hook}.\nScenes:\n` +
@@ -319,7 +319,7 @@ export async function makeVisual(kind, brief, cfg, { client = null, video = null
     `\nHere is a plain template that already works; make yours clearly better:\n\`\`\`html\n${fallback.slice(0, 9000)}\n\`\`\``;
   try {
     const c = client || new Anthropic();
-    const req = { model: MODEL, max_tokens: 32000, output_config: { effort: "high" }, system: VISUAL_SYSTEM, messages: [{ role: "user", content: ask }] };
+    const req = { ...tier("visual", "high"), max_tokens: 32000, system: VISUAL_SYSTEM, messages: [{ role: "user", content: ask }] };
     let msg;
     try { msg = await withRetry(() => c.messages.stream(req).finalMessage()); }
     catch (e) {
