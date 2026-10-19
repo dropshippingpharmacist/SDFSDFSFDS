@@ -124,10 +124,56 @@ details + details { margin-top: 10px; } summary { font-weight: 800; cursor: poin
 .perk { display: inline-block; font-size: 14px; border: 2px dashed var(--line); border-radius: 12px; padding: 8px 12px; color: var(--muted); }
 @media (max-width: 820px) { .desk { grid-template-columns: minmax(0, 1fr); } .preview { position: static; } .kv { grid-template-columns: minmax(0, 1fr); } .kv > div:nth-child(odd) { border-bottom: 0; padding-bottom: 0; } }
 @media (max-width: 520px) { .row { grid-template-columns: minmax(0, 1fr); } }
-@media (prefers-reduced-motion: reduce) { .btn:hover:not(:disabled) { transform: none; } }
+/* the scene: a canvas of the brand's emoji and sparks floating in depth behind the hero, steered by the pointer / tilt */
+#scene { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; opacity: .9; }
+body::before { content: ""; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background: radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 60%),
+              radial-gradient(900px 500px at 110% 20%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%); }
+.hero h1 { animation: rise .7s cubic-bezier(.2,.9,.2,1.2) both; } .hero p { animation: rise .7s .08s cubic-bezier(.2,.9,.2,1.2) both; }
+.hero .cabar, .hero .tickchip { animation: rise .7s .16s cubic-bezier(.2,.9,.2,1.2) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: none; } }
+.tickchip { animation: rise .7s both, wiggle 3s 1s ease-in-out infinite; }
+@keyframes wiggle { 0%, 100% { rotate: 0deg; } 25% { rotate: -2deg; } 75% { rotate: 2deg; } }
+.cabar .carow { position: relative; overflow: hidden; }
+.cabar .carow::after { content: ""; position: absolute; inset: -40% -60%; background: linear-gradient(115deg, transparent 40%, color-mix(in srgb, var(--accent) 35%, transparent) 50%, transparent 60%);
+  animation: sheen 4s 2s ease-in-out infinite; pointer-events: none; }
+@keyframes sheen { 0%, 70% { transform: translateX(-60%); } 100% { transform: translateX(60%); } }
+.site > section { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s cubic-bezier(.2,.9,.2,1); }
+.site > section.in { opacity: 1; transform: none; }
+.cards > div, .panel, .phase { transition: transform .25s ease, box-shadow .25s ease; transform-style: preserve-3d; }
+.cards > div:hover { transform: perspective(700px) rotateX(var(--rx, 0)) rotateY(var(--ry, 0)) translateY(-4px); box-shadow: 6px 10px 0 var(--line); }
+.brand span:first-child { display: inline-block; animation: bob 2.6s ease-in-out infinite; }
+@keyframes bob { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-6px) rotate(6deg); } }
+.btn { transition: transform .15s ease, box-shadow .15s ease; }
+.btn:active:not(:disabled) { transform: translate(1px, 1px) scale(.98); box-shadow: none; }
+/* vibes: the mood of the whole page, chosen per site */
+[data-vibe="arcade"] { --line: #120a2a; } [data-vibe="arcade"] .btn, [data-vibe="arcade"] .panel, [data-vibe="arcade"] .cards > div { border-radius: 6px; box-shadow: 4px 4px 0 var(--line); }
+[data-vibe="arcade"] .hero h1 { text-shadow: 4px 4px 0 var(--accent); }
+[data-vibe="neon"] { --card: color-mix(in srgb, var(--bg) 70%, #000); --line: var(--accent); }
+[data-vibe="neon"] .btn, [data-vibe="neon"] .panel, [data-vibe="neon"] .cards > div, [data-vibe="neon"] .cabar .carow { box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 55%, transparent), inset 0 0 12px color-mix(in srgb, var(--accent) 15%, transparent); }
+[data-vibe="neon"] .hero h1 { text-shadow: 0 0 24px color-mix(in srgb, var(--accent) 80%, transparent); }
+[data-vibe="candy"] .btn, [data-vibe="candy"] .panel, [data-vibe="candy"] .cards > div, [data-vibe="candy"] .cabar .carow { border-radius: 28px; border-width: 4px; }
+[data-vibe="candy"] .hero h1 { background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 40%, #ff5ad0)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+[data-vibe="retro"] { --card: color-mix(in srgb, var(--bg) 85%, #c9b27a); } [data-vibe="retro"] .btn, [data-vibe="retro"] .panel, [data-vibe="retro"] .cards > div { border-radius: 2px; border-width: 4px; box-shadow: 6px 6px 0 var(--line); }
+[data-vibe="retro"] body::before, [data-vibe="retro"] #scene { filter: contrast(1.1) sepia(.15); }
+[data-vibe="clean"] #scene { opacity: .35; } [data-vibe="clean"] .btn, [data-vibe="clean"] .panel, [data-vibe="clean"] .cards > div { border-width: 2px; box-shadow: none; }
+.stats { font: 600 14px var(--mono); color: var(--muted); }
+.alloc { display: grid; gap: 10px; max-width: 680px; margin-top: 8px; } .site h3 { font: 400 24px/1.1 var(--display); margin: 22px 0 6px; }
+.abar { position: relative; background: var(--card); border: 3px solid var(--line); border-radius: 12px; padding: 10px 14px; overflow: hidden; }
+.abar span { position: absolute; left: 0; top: 0; bottom: 0; background: color-mix(in srgb, var(--accent) 28%, transparent); transition: width .8s cubic-bezier(.2,.9,.2,1); }
+.abar b, .abar small { position: relative; display: block; } .abar small { color: var(--muted); }
+.perkbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 10px 0 14px; }
+.perkbar .status { color: var(--muted); font-size: 14px; }
+.perkbar .status.on { color: var(--ok); font-weight: 700; }
+@media (prefers-reduced-motion: reduce) {
+  .btn:hover:not(:disabled) { transform: none; } #scene { display: none; }
+  .hero h1, .hero p, .hero .cabar, .tickchip, .brand span:first-child, .cabar .carow::after { animation: none; }
+  .site > section { opacity: 1; transform: none; transition: none; } .cards > div:hover { transform: none; }
+}
 </style>
 </head>
 <body>
+<canvas id="scene" aria-hidden="true"></canvas>
 <div class="wrap">
   <header class="bar">
     <div class="brand"><span id="brandEmoji" aria-hidden="true"></span><span id="brandName"></span></div>
@@ -148,7 +194,7 @@ details + details { margin-top: 10px; } summary { font-weight: 800; cursor: poin
         <a class="btn ghost" id="siteX" target="_blank" rel="noopener">X</a>
         <a class="btn ghost" id="siteTg" target="_blank" rel="noopener">Telegram</a>
         <a class="btn ghost" id="sitePlay" href="#product" hidden>Play</a>
-        <a class="btn ghost" href="#launch">Launch a coin</a>
+        <a class="btn ghost" href="#launch" id="siteLaunchLink">Launch a coin</a>
       </div>
     </div>
   </section>
@@ -216,8 +262,8 @@ details + details { margin-top: 10px; } summary { font-weight: 800; cursor: poin
   </section>
 
   <footer>
-    <p>Coins launch on pump.fun's bonding curve. Anyone can launch anything: check a coin's address on pump.fun before buying.</p>
-    <p>Memecoins have no promised value and can go to zero in minutes. Not financial advice.</p>
+    <p class="fine">Coins launch on pump.fun's bonding curve. Anyone can launch anything: check a coin's address on pump.fun before buying.</p>
+    <p class="fine">Memecoins have no promised value and can go to zero in minutes. Not financial advice.</p>
   </footer>
 </div>
 
@@ -236,6 +282,9 @@ details + details { margin-top: 10px; } summary { font-weight: 800; cursor: poin
   if (col.light) root.setProperty("--bg", col.light);
   if (col.dark) root.setProperty("--bg-dark", col.dark);
   document.title = C.brand || "Launchpad";
+  if (C.vibe) document.documentElement.dataset.vibe = C.vibe;
+  if (C.emoji && !document.querySelector("link[rel=icon]")) { const l = document.createElement("link"); l.rel = "icon";
+    l.href = "data:image/svg+xml," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>" + [...C.emoji][0] + "</text></svg>"); document.head.append(l); }
   set("brandName", C.brand || "Launchpad"); set("brandEmoji", C.emoji || "");
   set("tagline", C.tagline || "Launch a coin."); set("about", C.about || "");
   const maxBuy = Number(C.maxDevBuySol ?? 5);
@@ -269,8 +318,22 @@ details + details { margin-top: 10px; } summary { font-weight: 800; cursor: poin
     const ca = String(coin.ca || "").trim();
     if (ca) {
       set("siteCa", ca);
-      $("siteBuy").href = "https://pump.fun/coin/" + encodeURIComponent(ca);
+      // the buy link: the owner's, else the pump.fun page when this site launches coins itself, else a universal Solana swap
+      $("siteBuy").href = coin.buyUrl || (C.launchDesk === false ? "https://jup.ag/swap/SOL-" + encodeURIComponent(ca) : "https://pump.fun/coin/" + encodeURIComponent(ca));
+      $("siteBuy").textContent = "Buy " + tk;
       $("siteChart").href = "https://dexscreener.com/solana/" + encodeURIComponent(ca);
+      // live numbers from DexScreener (open to browsers), refreshed every minute
+      const stats = mk("div", { className: "stats", id: "siteStats" }); $("caBar").append(stats);
+      const refresh = async () => {
+        try {
+          const r = await fetch("https://api.dexscreener.com/latest/dex/tokens/" + encodeURIComponent(ca));
+          const p = ((await r.json()).pairs || []).filter(x => x.chainId === "solana").sort((a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0))[0];
+          if (!p) { stats.textContent = "Chart appears once trading starts."; return; }
+          const usd = n => "$" + Math.round(n || 0).toLocaleString();
+          stats.textContent = "Market cap " + usd(p.marketCap || p.fdv) + " · 24h volume " + usd(p.volume?.h24) + (p.priceChange?.h24 != null ? " · 24h " + (p.priceChange.h24 > 0 ? "+" : "") + p.priceChange.h24 + "%" : "");
+        } catch (e) { /* the chart button still works */ }
+      };
+      refresh(); setInterval(refresh, 60000);
     } else { $("siteCopy").disabled = true; off($("siteBuy")); off($("siteChart")); $("siteBuy").textContent = "Buy at launch"; }
     if (coin.x) $("siteX").href = coin.x; else $("siteX").hidden = true;
     if (coin.telegram) $("siteTg").href = coin.telegram; else $("siteTg").hidden = true;
@@ -280,23 +343,52 @@ details + details { margin-top: 10px; } summary { font-weight: 800; cursor: poin
 
     const site = $("site"), nav = $("siteNav"), secs = [];
     const section = (id, title, ...kids) => { const s = mk("section", { id }, mk("h2", { textContent: title }), ...kids); site.append(s); secs.push([id, title]); };
+    // launchDesk false = this site is the coin's home and its product; the token was launched elsewhere
+    if (C.launchDesk === false) { $("launch").hidden = true; $("siteLaunchLink").hidden = true; $("connectBtn").hidden = true; document.querySelector(".mine").hidden = true;
+      document.querySelectorAll(".fine").forEach(e => { e.hidden = true; }); }
     const pr = C.product;
     if (pr && pr.kind !== "launchpad" && (pr.mechanic || pr.app)) {
       // the product: the game or utility this coin is about. play.html runs in a sandbox (scripts only, no same-origin)
       // under its own no-network policy, so it can never reach the wallet connection on this page
       const kids = [];
       if (pr.mechanic) kids.push(mk("p", { textContent: pr.mechanic }));
-      if (pr.holderPerk) kids.push(mk("p", {}, mk("span", { className: "perk", textContent: "Holder perk (planned): " + pr.holderPerk })));
+      if (pr.holderPerk) kids.push(mk("p", {}, mk("span", { className: "perk", textContent: "Holder perk: " + pr.holderPerk })));
+      let frame = null;
+      if (pr.holderPerk && coin.ca) {
+        // holders unlock the perk: connect a wallet, the page reads the $TICKER balance on-chain and tells the app (the app
+        // itself has no wallet or network access; it only receives this message)
+        const stat = mk("span", { className: "status", textContent: "Connect your wallet to unlock it with " + tk + "." });
+        const btn = mk("button", { className: "btn ghost", type: "button", textContent: "Connect wallet" });
+        btn.addEventListener("click", async () => {
+          btn.disabled = true;
+          try {
+            const who = owner || await connect(); if (!who) return;
+            stat.textContent = "Checking your " + tk + " balance…";
+            const conn = new web3.Connection(C.rpcUrl || "https://api.mainnet-beta.solana.com", "confirmed");
+            const accts = await conn.getParsedTokenAccountsByOwner(new web3.PublicKey(who), { mint: new web3.PublicKey(coin.ca) });
+            const bal = accts.value.reduce((n, a) => n + (a.account.data.parsed.info.tokenAmount.uiAmount || 0), 0);
+            holder = { holder: bal > 0, balance: bal, ticker: tk, wallet: who.slice(0, 4) + "…" + who.slice(-4) };
+            stat.textContent = bal > 0 ? "Holder: " + bal.toLocaleString() + " " + tk + " · perk unlocked" : "No " + tk + " in this wallet yet.";
+            stat.className = "status" + (bal > 0 ? " on" : "");
+            tellApp();
+          } catch (e) { stat.textContent = "Could not read the balance: " + (e.message || "RPC error") + "."; }
+          finally { btn.disabled = false; }
+        });
+        kids.push(mk("div", { className: "perkbar" }, btn, stat));
+      }
       if (pr.app) {
-        const fr = document.createElement("iframe");
+        const fr = frame = document.createElement("iframe");
         fr.setAttribute("sandbox", "allow-scripts");               // set before src: the sandbox applies from the first load
         fr.setAttribute("referrerpolicy", "no-referrer");
         Object.assign(fr, { className: "playframe", title: pr.name || "Play", loading: "lazy" });
         fr.src = "play.html";
+        fr.addEventListener("load", tellApp);
         kids.push(fr);
       }
-      section("product", pr.name || (pr.kind === "game" ? "The game" : "The tool"), ...kids);
-      if (pr.app) { $("sitePlay").hidden = false; $("sitePlay").textContent = pr.kind === "game" ? "Play" : "Try it"; }
+      var holder = null;
+      function tellApp() { if (frame && frame.contentWindow) frame.contentWindow.postMessage({ type: "holder", ...(holder || { holder: false, balance: 0, ticker: tk }) }, "*"); }
+      section("product", pr.name || (pr.kind === "game" ? "The game" : pr.kind === "combo" ? "Play · Tools · Launch" : "The tool"), ...kids);
+      if (pr.app) { $("sitePlay").hidden = false; $("sitePlay").textContent = pr.kind === "game" ? "Play" : pr.kind === "combo" ? "Play" : "Try it"; }
     }
     if ((C.lore || []).length) section("lore", "The lore", ...C.lore.map(t => mk("p", { textContent: t })));
     if ((C.how || []).length) section("how", "How " + (C.brand || "it") + " works",
@@ -304,13 +396,20 @@ details + details { margin-top: 10px; } summary { font-weight: 800; cursor: poin
     section("buy", "How to buy " + tk, mk("div", { className: "cards" },
       mk("div", {}, mk("b", { textContent: "1. Get a Solana wallet" }), mk("span", { textContent: "Phantom or Solflare, on your phone or as a browser extension." })),
       mk("div", {}, mk("b", { textContent: "2. Add SOL" }), mk("span", { textContent: "Buy SOL in the wallet app or send it from an exchange." })),
-      mk("div", {}, mk("b", { textContent: "3. Swap on pump.fun" }), mk("span", { textContent: "Use the Buy button at the top. Check the contract address matches this page first." }))));
+      mk("div", {}, mk("b", { textContent: "3. Buy " + tk }), mk("span", { textContent: "Use the Buy button at the top. Check the contract address matches this page first." }))));
     // tokenomics are FACTS about a pump.fun launch, never generated text
-    const kv = [["Total supply", "1,000,000,000"], ["Launched on", "pump.fun, bonding curve"],
+    const launchedOn = coin.launchedOn || (C.launchDesk === false ? "Solana, bonding-curve launch" : "pump.fun, bonding curve");
+    const kv = [["Total supply", "1,000,000,000"], ["Launched on", launchedOn],
       ["Team allocation", coin.devBuyPercent != null ? `None held back. The dev bought ${coin.devBuyPercent}% at launch, public on-chain.` : "None held back. The dev's launch buy is public on-chain."],
-      ["Tax", "0% buy, 0% sell"], ["Liquidity", "Moves to PumpSwap automatically if the bonding curve completes"],
-      ["Utility", tk + " is the community coin of " + (C.brand || "this launchpad") + ". The launchpad works without it."]];
-    section("tokenomics", "Tokenomics", mk("div", { className: "kv" }, ...kv.flatMap(([k, v]) => [mk("div", { textContent: k }), mk("div", { textContent: v })])));
+      ["Tax", "0% buy, 0% sell"], ["Liquidity", /pump\.fun/i.test(launchedOn) ? "Moves to PumpSwap automatically if the bonding curve completes" : "Locked by the launch platform"],
+      ["Utility", tk + " is the community coin of " + (C.brand || "this site") + ". " + (C.launchDesk === false ? "The " + (pr && pr.kind === "game" ? "game" : pr && pr.kind === "combo" ? "site" : "tool") + " works without it." : "The launchpad works without it.")]];
+    const tn = C.tokenomics || {};
+    const alloc = (tn.allocation || []).length ? [mk("h3", { textContent: "Where the money goes" }),
+      mk("p", { textContent: (tn.source || "Creator fees") + " are split like this:" }),
+      mk("div", { className: "alloc" }, ...tn.allocation.map(a => mk("div", { className: "abar" }, mk("span", { style: "width:" + Math.max(0, Math.min(100, a.pct)) + "%" }),
+        mk("b", { textContent: a.pct + "% · " + a.name }), mk("small", { textContent: a.what })))),
+      tn.devBuyPolicy ? mk("p", { className: "muted", textContent: "Dev buy: " + tn.devBuyPolicy }) : ""] : [];
+    section("tokenomics", "Tokenomics", mk("div", { className: "kv" }, ...kv.flatMap(([k, v]) => [mk("div", { textContent: k }), mk("div", { textContent: v })])), ...alloc);
     if ((C.roadmap || []).length) section("roadmap", "Roadmap", ...C.roadmap.map(ph => mk("div", { className: "phase " + (ph.status || "") },
       mk("span", { className: "st", textContent: { live: "Live now", next: "Building next", idea: "Ideas, not promises" }[ph.status] || ph.status }),
       mk("h3", { textContent: ph.title }), mk("ul", {}, ...(ph.items || []).map(i => mk("li", { textContent: i }))))));
@@ -318,7 +417,9 @@ details + details { margin-top: 10px; } summary { font-weight: 800; cursor: poin
     const so = [["X", coin.x], ["Telegram", coin.telegram], ["Chart", ca && "https://dexscreener.com/solana/" + ca], ["pump.fun", ca && "https://pump.fun/coin/" + ca]].filter(x => x[1]);
     if (so.length) section("socials", "Socials", mk("div", { className: "socials" }, ...so.map(([t, h]) => mk("a", { className: "btn ghost", textContent: t, href: h, target: "_blank", rel: "noopener" }))));
     site.hidden = false;
-    nav.append(mk("a", { href: "#launch", textContent: "Launch" }), ...secs.map(([id, t]) => mk("a", { href: "#" + id, textContent: t.replace(/^How to buy .*/, "Buy").replace(/^How .* works$/, "How it works") })));
+    if (C.launchDesk !== false) nav.append(mk("a", { href: "#launch", textContent: "Launch" }));
+    nav.append(...secs.map(([id, t]) => mk("a", { href: "#" + id, textContent: t.replace(/^How to buy .*/, "Buy").replace(/^How .* works$/, "How it works") })));
+    if (C.docs !== false) nav.append(mk("a", { href: "docs.html", textContent: "Docs" }));
     nav.hidden = false;
   })();
 
@@ -381,6 +482,45 @@ details + details { margin-top: 10px; } summary { font-weight: 800; cursor: poin
   const b64ToBytes = b => Uint8Array.from(atob(b), c => c.charCodeAt(0));
   function bytesToB64(u8) { let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }
   const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  // ---- the scene behind the page: the brand's emoji and sparks in depth, drifting, steered by the pointer
+  (function scene() {
+    const cv = $("scene"); if (!cv || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const ctx = cv.getContext("2d"); let w, h, dpr, px = 0, py = 0, hidden = false;
+    const glyph = C.emoji || "🚀", accent = col.accent || "#ff6a2b";
+    const N = 42, dots = Array.from({ length: N }, (_, i) => ({ x: Math.random(), y: Math.random(), z: .25 + Math.random() * .75, r: Math.random() * 6.28, s: .2 + Math.random() * .8, e: i % 4 === 0 }));
+    const size = () => { dpr = Math.min(2, devicePixelRatio || 1); w = cv.width = innerWidth * dpr; h = cv.height = innerHeight * dpr; };
+    size(); addEventListener("resize", size);
+    addEventListener("pointermove", e => { px = (e.clientX / innerWidth - .5) * 2; py = (e.clientY / innerHeight - .5) * 2; }, { passive: true });
+    addEventListener("deviceorientation", e => { if (e.gamma != null) { px = Math.max(-1, Math.min(1, e.gamma / 30)); py = Math.max(-1, Math.min(1, (e.beta - 40) / 30)); } }, { passive: true });
+    document.addEventListener("visibilitychange", () => { hidden = document.hidden; if (!hidden) requestAnimationFrame(draw); });
+    let last = 0;
+    function draw(t) {
+      if (hidden) return;
+      const dt = Math.min(50, t - last) / 1000; last = t;
+      ctx.clearRect(0, 0, w, h);
+      const sy = (scrollY / Math.max(1, innerHeight)) * .4;
+      for (const d of dots) {
+        d.y -= dt * .02 * d.s * d.z; d.r += dt * .4 * d.s; if (d.y < -.1) { d.y = 1.1; d.x = Math.random(); }
+        const X = ((d.x + px * .04 * d.z) * w), Y = ((d.y - sy * d.z + py * .04 * d.z) * h);
+        const sc = d.z * dpr;
+        ctx.save(); ctx.translate(X, Y); ctx.rotate(Math.sin(d.r) * .4); ctx.globalAlpha = .18 + d.z * .5;
+        if (d.e) { ctx.font = `${Math.round(22 * sc)}px system-ui`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(glyph, 0, 0); }
+        else { ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(0, 0, 2.2 * sc, 0, 6.28); ctx.fill(); }
+        ctx.restore();
+      }
+      requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw);
+  })();
+  // sections reveal as they scroll in; cards tilt toward the pointer
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: .12 });
+  const watch = () => document.querySelectorAll(".site > section:not(.in)").forEach(s => io.observe(s));
+  watch(); new MutationObserver(watch).observe($("site"), { childList: true });
+  document.addEventListener("pointermove", e => {
+    const c = e.target.closest(".cards > div"); if (!c) return;
+    const r = c.getBoundingClientRect(); c.style.setProperty("--ry", ((e.clientX - r.left) / r.width - .5) * 10 + "deg"); c.style.setProperty("--rx", (.5 - (e.clientY - r.top) / r.height) * 10 + "deg");
+  }, { passive: true });
 
   // ---- launch
   $("launchForm").addEventListener("submit", async ev => {

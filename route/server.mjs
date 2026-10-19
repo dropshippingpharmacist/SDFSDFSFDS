@@ -8,11 +8,17 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import crypto from "node:crypto";
 import { openDb, makeApi, err } from "./db.mjs";
-import { generate, honest } from "../studio/generate.mjs";
+import { generate, honest, rename, tokenomics } from "../studio/generate.mjs";
 import { deploy, checkDomain, configJs, slugify } from "../studio/deploy.mjs";
-import { trends, coinStats, tickerTaken } from "../studio/trends.mjs";
+import { trends, coinStats, tickerTaken, registerLiveSource } from "../studio/trends.mjs";
 import { makeIdeas, ideaPrompt } from "../studio/ideas.mjs";
-import { makeMiniApp } from "../studio/miniapp.mjs";
+import { makeMiniApp, polishMiniApp } from "../studio/miniapp.mjs";
+import { createPumpLive } from "../studio/pumplive.mjs";
+import { planContent, makeVisual, templateImage, templateVideo, SIZES, VIDEOS, HOW_TO_POST } from "../studio/content.mjs";
+import { renderImage, renderVideo, renderStatus, saveHtml } from "../studio/render.mjs";
+import { docsMarkdown } from "../studio/docs.mjs";
+import { makeBook, rulesBook, bookHtml, bookFiles, zip, publishGitBook } from "../studio/gitbook.mjs";
+import { mkdir, writeFile, readFile as readFileP } from "node:fs/promises";
 import { ensureIntel, record, xPosts, xProvider, recordX, playbook, intelText } from "../studio/intel.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -24,7 +30,7 @@ const COOKIE = "route_s";
 const STUDIO = path.join(HERE, "..", "studio");
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".mjs": "text/javascript",
                 ".css": "text/css", ".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml",
-                ".json": "application/json", ".ico": "image/x-icon", ".webp": "image/webp" };
+                ".json": "application/json", ".ico": "image/x-icon", ".webp": "image/webp", ".mp4": "video/mp4" };
 
 export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, background = !process.env.NODE_TEST_CONTEXT } = {}) {
   const db = openDb(dbFile);
@@ -40,17 +46,29 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
   db.exec(`CREATE TABLE IF NOT EXISTS studio_drafts (id INTEGER PRIMARY KEY, idea TEXT NOT NULL, config TEXT NOT NULL,
             meta TEXT NOT NULL, url TEXT, created INTEGER NOT NULL, updated INTEGER NOT NULL)`);
   // the Studio's memory: your rating and note on each site, its game / utility, and how its coin did once launched
-  for (const col of ["rating INTEGER NOT NULL DEFAULT 0", "note TEXT", "app TEXT", "stats TEXT", "stats_at INTEGER"]) {
+  for (const col of ["rating INTEGER NOT NULL DEFAULT 0", "note TEXT", "app TEXT", "stats TEXT", "stats_at INTEGER", "content TEXT", "book TEXT", "pub_token TEXT"]) {
     try { db.exec(`ALTER TABLE studio_drafts ADD COLUMN ${col}`); } catch { /* already there */ }
   }
   // the Studio is the owner's tool: one password (STUDIO_PASSWORD), a cookie derived from it
   const studioToken = () => process.env.STUDIO_PASSWORD
     ? crypto.createHmac("sha256", process.env.STUDIO_PASSWORD).update("launchpad-studio").digest("base64url") : null;
   const studioOk = req => { const t = studioToken(); return !!t && cookies(req).studio_s === t; };
+  const clean24 = s => String(s || "").replace(/\s+/g, " ").trim().slice(0, 24).replace(/[^\p{L}\p{N} .'-]/gu, "");
+  const tick = s => String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
   const draft = id => {
     const r = db.prepare("SELECT * FROM studio_drafts WHERE id = ?").get(Number(id));
     if (!r) throw err(404, "No such draft.");
-    return { ...r, config: JSON.parse(r.config), meta: JSON.parse(r.meta), stats: r.stats ? JSON.parse(r.stats) : null };
+    return { ...r, config: JSON.parse(r.config), meta: JSON.parse(r.meta), stats: r.stats ? JSON.parse(r.stats) : null, content: r.content ? JSON.parse(r.content) : null,
+             book: r.book ? JSON.parse(r.book) : null };
+  };
+  // the book's pages: Claude's when written, else built from the config on the spot
+  const bookOf = d => (d.book?.pages?.length ? d.book.pages : rulesBook({ ...d.config, siteUrl: d.url }));
+  // an unguessable public link to a draft's book, for GitBook's importer only
+  const pubToken = d => {
+    if (d.pub_token) return d.pub_token;
+    const tkn = crypto.randomBytes(18).toString("base64url");
+    db.prepare("UPDATE studio_drafts SET pub_token = ? WHERE id = ?").run(tkn, d.id);
+    return tkn;
   };
   const summary = r => {
     const c = JSON.parse(r.config), m = JSON.parse(r.meta);
@@ -91,7 +109,12 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
     const xp = await xPosts({ focus, force }); if (xp.posts.length) recordX(db, xp.posts);
     return { trends: tr, x: xp };
   };
+  // pump.fun, live: every new coin and graduation from PumpPortal's public stream (pump.fun's own API blocks servers)
+  let pumpLive = null;
   if (background) {
+    pumpLive = createPumpLive({ log: m => console.error("[pump]", m) });
+    pumpLive.connect();
+    registerLiveSource("pumpfun live", () => pumpLive.snapshot());
     const tick = () => refreshIntel().catch(e => console.error("[intel]", e.message));
     setTimeout(tick, 5000).unref(); setInterval(tick, 30 * 60 * 1000).unref();
   }
@@ -194,7 +217,31 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
     const t = Date.now();
     switch (p) {
       case "/api/studio/status":
-        return send(res, 200, { ai: !!process.env.ANTHROPIC_API_KEY, vercel: !!process.env.VERCEL_TOKEN, dextools: !!process.env.DEXTOOLS_API_KEY, x: xProvider()?.label || null });
+        return send(res, 200, { ai: !!process.env.ANTHROPIC_API_KEY, vercel: !!process.env.VERCEL_TOKEN, dextools: !!process.env.DEXTOOLS_API_KEY, x: xProvider()?.label || null, pump: pumpLive ? pumpLive.status() : null, render: renderStatus(), gitbook: !!process.env.GITBOOK_TOKEN });
+      case "/api/studio/book": {
+        // Claude writes the launch's docs (8-11 pages); kept with the draft, shipped as docs.html, importable into GitBook
+        const d = draft(b.id);
+        if (limited("studio:book", 20, 36e5)) throw err(429, "20 books an hour is the limit. Try again later.");
+        const out = await makeBook({ ...d.config, siteUrl: d.url });
+        const book = { at: t, source: out.source, note: out.note, pages: out.pages };
+        db.prepare("UPDATE studio_drafts SET book = ?, updated = ? WHERE id = ?").run(JSON.stringify(book), t, d.id);
+        return send(res, 200, { ok: true, source: out.source, note: out.note, pages: out.pages.map(p => ({ title: p.title, slug: p.slug, words: p.markdown.split(/\s+/).length })) });
+      }
+      case "/api/studio/gitbook": {
+        const d = draft(b.id);
+        if (limited("studio:gitbook", 10, 36e5)) throw err(429, "10 GitBook publishes an hour is the limit.");
+        const origin = String(b.origin || "").replace(/\/$/, "");
+        if (!/^https:\/\/[a-z0-9.-]+$/i.test(origin)) throw err(400, "GitBook needs a public https address for this server to fetch the pages from.");
+        const tkn = pubToken(d);
+        const out = await publishGitBook({ ...d.config, siteUrl: d.url }, bookOf(d), { publicZipUrl: `${origin}/public/book/${tkn}.zip`, publicMdUrl: `${origin}/public/book/${tkn}.md` });
+        const book = { ...(d.book || { pages: bookOf(d), source: "rules" }), gitbook: { at: t, ...out } };
+        db.prepare("UPDATE studio_drafts SET book = ?, updated = ? WHERE id = ?").run(JSON.stringify(book), t, d.id);
+        return send(res, 200, out);
+      }
+      case "/api/studio/book/get": {
+        const d = draft(b.id);
+        return send(res, 200, { book: d.book ? { at: d.book.at, source: d.book.source, note: d.book.note, gitbook: d.book.gitbook || null, pages: d.book.pages.map(p => ({ title: p.title, slug: p.slug })) } : null });
+      }
       case "/api/studio/intel": {
         // everything the Studio knows: refresh the feeds and X (cached 10 minutes), then the playbook
         const got = await refreshIntel(String(b.focus || ""), !!b.refresh);
@@ -221,7 +268,7 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
       case "/api/studio/ideas": {
         if (limited("studio:ideas", 40, 36e5)) throw err(429, "40 idea rounds an hour is the limit. Try again later.");
         const got = await refreshIntel(String(b.focus || ""), !!b.refresh);
-        const out = await makeIdeas(got.trends, { mem: memory(), focus: b.focus, intel: intelText(playbook(db)), n: Math.min(8, Math.max(3, Number(b.n) || 6)) });
+        const out = await makeIdeas(got.trends, { mem: memory(), focus: b.focus, mix: b.mix, intel: intelText(playbook(db)), n: Math.min(8, Math.max(3, Number(b.n) || 6)) });
         return send(res, 200, { ...out, prompts: out.ideas.map(ideaPrompt) });
       }
       case "/api/studio/generate": {
@@ -230,18 +277,22 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
         const meta = { domains: g.domains, tickerBackups: g.tickerBackups, source: g.source, note: g.note, removed: g.removed };
         const r = db.prepare("INSERT INTO studio_drafts (idea, config, meta, created, updated) VALUES (?, ?, ?, ?, ?)")
           .run(g.idea, JSON.stringify(g.config), JSON.stringify(meta), t, t);
-        return send(res, 200, { id: Number(r.lastInsertRowid), config: g.config, ...meta });
+        return send(res, 200, { id: Number(r.lastInsertRowid), config: g.config, ...meta, preview: `/studio/p/${Number(r.lastInsertRowid)}/` });
       }
       case "/api/studio/save": {
         const d = draft(b.id);
         // the owner's edits pass the same honesty filter; tokenomics and the live roadmap stay facts
-        const c = b.config || {};
+        // a new brand or ticker flows through every piece of copy first
+        const c = rename(b.config || {}, { brand: d.config.brand, ticker: d.config.coin?.ticker }, { brand: clean24(b.config?.brand), ticker: tick(b.config?.coin?.ticker) });
         const re = honest({ brand: c.brand, tagline: c.tagline, about: c.about, emoji: c.emoji, accent: c.colors?.accent,
           display: c.display, ticker: c.coin?.ticker, lore: c.lore, how: c.how,
           next: (c.roadmap || []).find(x => x.status === "next")?.items, ideas: (c.roadmap || []).find(x => x.status === "idea")?.items,
           faq: (c.faq || []).filter(f => !/^Do I need \$|^Is this financial advice/.test(f.q || "")),
           kind: c.product?.kind, product_name: c.product?.name, mechanic: c.product?.mechanic, holder_perk: c.product?.holderPerk }, d.idea,
-          { x: c.coin?.x, telegram: c.coin?.telegram });
+          { x: c.coin?.x, telegram: c.coin?.telegram, launchDesk: c.launchDesk, buyUrl: c.coin?.buyUrl, launchedOn: c.coin?.launchedOn });
+        // the owner's own split, when it adds up; otherwise the writer's / the kind's default stays
+        const tnIn = c.tokenomics || {};
+        re.config.tokenomics = tokenomics({ kind: re.config.product.kind, allocation: tnIn.allocation, fee_source: tnIn.source, dev_buy_policy: tnIn.devBuyPolicy });
         re.config.product.app = !!d.app;
         re.config.coin.ca = String(c.coin?.ca || "").trim().replace(/[^1-9A-HJ-NP-Za-km-z]/g, "").slice(0, 44);
         const pct = Number(c.coin?.devBuyPercent);
@@ -256,7 +307,10 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
       case "/api/studio/deploy": {
         const d = draft(b.id);
         if (d.meta.builtin === "route") throw err(400, "Route already runs on this server at /route; it deploys with the repo.");
-        const out = await deploy(d.config, b.slug || d.config.brand, { extra: d.app ? { "play.html": d.app } : {} });
+        const extra = d.app ? { "play.html": d.app } : {};
+        extra["docs.html"] = bookHtml({ ...d.config, siteUrl: d.url }, bookOf(d));
+        if (d.content?.files?.banner?.png) { try { extra["og.png"] = await readFileP(path.join(DATA, "content", String(d.id), "banner.png")); } catch { /* no preview image */ } }
+        const out = await deploy(d.config, b.slug || d.config.brand, { extra });
         db.prepare("UPDATE studio_drafts SET url = ?, updated = ? WHERE id = ?").run(out.url, t, d.id);
         return send(res, 200, out);
       }
@@ -278,6 +332,55 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
         d.config.product = { ...pr, kind: pr.kind === "launchpad" ? "utility" : (pr.kind || "game"), app: true };
         db.prepare("UPDATE studio_drafts SET app = ?, config = ?, updated = ? WHERE id = ?").run(out.html, JSON.stringify(d.config), t, d.id);
         return send(res, 200, { ok: true, bytes: Buffer.byteLength(out.html), config: d.config });
+      }
+      case "/api/studio/polish": {
+        // a second pass by Claude over the built game or tool: bugs fixed, juice added
+        const d = draft(b.id);
+        if (!d.app) throw err(400, "Build the game or tool first.");
+        if (limited("studio:app", 20, 36e5)) throw err(429, "20 apps an hour is the limit. Try again later.");
+        const pr = d.config.product || {};
+        const out = await polishMiniApp(d.app, { name: pr.name, kind: pr.kind }, d.config);
+        if (out.error) throw err(502, out.error);
+        db.prepare("UPDATE studio_drafts SET app = ?, updated = ? WHERE id = ?").run(out.html, t, d.id);
+        return send(res, 200, { ok: true, bytes: Buffer.byteLength(out.html) });
+      }
+      case "/api/studio/content": {
+        // the content kit: plan, then the three pictures, then the three videos; files land on the volume
+        const d = draft(b.id);
+        if (limited("studio:content", 6, 36e5)) throw err(429, "6 content kits an hour is the limit. Try again later.");
+        const dir = path.join(DATA, "content", String(d.id));
+        await mkdir(dir, { recursive: true });
+        const { plan, source, note } = await planContent(d.config);
+        const kit = { at: t, source, note, plan, files: {}, notes: [], howToPost: HOW_TO_POST, render: renderStatus() };
+        const put = (k, v) => { kit.files[k] = v; db.prepare("UPDATE studio_drafts SET content = ?, updated = ? WHERE id = ?").run(JSON.stringify(kit), Date.now(), d.id); };
+        for (const kind of ["pfp", "banner", "launch"]) {
+          const v = await makeVisual(kind, plan.briefs[kind], d.config);
+          if (v.note) kit.notes.push(`${kind}: ${v.note}`);
+          await saveHtml(path.join(dir, `${kind}.html`), v.html);
+          const file = { html: `${kind}.html`, source: v.source, w: SIZES[kind][0], h: SIZES[kind][1] };
+          if (kit.render.images) {
+            try { await writeFile(path.join(dir, `${kind}.png`), await renderImage(v.html, { width: SIZES[kind][0], height: SIZES[kind][1] })); file.png = `${kind}.png`; }
+            catch (e) { kit.notes.push(`${kind}: could not render (${e.message})`); }
+          }
+          put(kind, file);
+        }
+        for (const v of plan.videos) {
+          const made = await makeVisual("video", "", d.config, { video: v });
+          if (made.note) kit.notes.push(`${v.key} video: ${made.note}`);
+          await saveHtml(path.join(dir, `${v.key}.html`), made.html);
+          const file = { html: `${v.key}.html`, source: made.source, title: v.title, w: SIZES.video[0], h: SIZES.video[1] };
+          if (kit.render.videos) {
+            try { const r = await renderVideo(made.html, { out: path.join(dir, `${v.key}.mp4`), fps: Number(process.env.VIDEO_FPS) || 30 }); file.mp4 = `${v.key}.mp4`; file.seconds = r.seconds; }
+            catch (e) { kit.notes.push(`${v.key} video: could not render (${e.message})`); }
+          }
+          put(v.key, file);
+        }
+        if (!kit.render.images) kit.notes.push("No browser on the server: the pictures and videos are HTML pages. Open each one and screenshot or screen-record it, or add chromium and ffmpeg to the build (see the README).");
+        return send(res, 200, { ok: true, content: kit });
+      }
+      case "/api/studio/content/get": {
+        const d = draft(b.id);
+        return send(res, 200, { content: d.content });
       }
       case "/api/studio/rate": {
         const d = draft(b.id);
@@ -333,6 +436,21 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
         res.writeHead(200, { "content-type": "text/javascript; charset=utf-8", "cache-control": "no-store" });
         return res.end("window.ROUTE = " + JSON.stringify(cfg) + ";\n");
       }
+      // the book at an unguessable link, so GitBook's importer can fetch it (nothing else is public)
+      const pb = /^\/public\/book\/([A-Za-z0-9_-]{20,40})\.(zip|md)$/.exec(p);
+      if (pb) {
+        const r = db.prepare("SELECT * FROM studio_drafts WHERE pub_token = ?").get(pb[1]);
+        if (!r) { res.writeHead(404); return res.end(); }
+        const d = draft(r.id), cfgDocs = { ...d.config, siteUrl: d.url }, pages = bookOf(d);
+        res.writeHead(200, { "content-type": pb[2] === "zip" ? "application/zip" : "text/markdown; charset=utf-8", "cache-control": "no-store" });
+        return res.end(pb[2] === "zip" ? zip(bookFiles(cfgDocs, pages)) : docsMarkdown(cfgDocs));
+      }
+      const sc = /^\/studio\/c\/(\d+)\/([a-z]+\.(?:png|mp4|html))$/.exec(p);
+      if (sc) {
+        if (!studioOk(req)) { res.writeHead(401, { "content-type": "text/plain" }); return res.end("Sign in to the Studio first."); }
+        res.setHeader("content-disposition", `inline; filename="${slugify(draft(sc[1]).config.brand)}-${sc[2]}"`);
+        return await serveFile(res, path.join(DATA, "content", sc[1], sc[2]), path.join(DATA, "content"));
+      }
       const sp = /^\/studio\/p\/(\d+)\/(.*)$/.exec(p);
       if (sp) {
         if (!studioOk(req)) { res.writeHead(401, { "content-type": "text/plain" }); return res.end("Sign in to the Studio first."); }
@@ -340,6 +458,14 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
         const sa = /^api\/(metadata|create|send)$/.exec(rel);
         if (sa) return await launchApi(req, res, sa[1]);
         if (rel === "config.js") { res.writeHead(200, { "content-type": "text/javascript; charset=utf-8", "cache-control": "no-store" }); return res.end(configJs(d.config)); }
+        if (rel === "docs.html" || rel === "docs.md" || rel === "docs.zip") {
+          const cfgDocs = { ...d.config, siteUrl: d.url }, pages = bookOf(d);
+          if (rel === "docs.html") { res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" }); return res.end(bookHtml(cfgDocs, pages)); }
+          const body = rel === "docs.zip" ? zip(bookFiles(cfgDocs, pages)) : docsMarkdown(cfgDocs);
+          res.writeHead(200, { "content-type": rel === "docs.zip" ? "application/zip" : "text/markdown; charset=utf-8", "cache-control": "no-store",
+                               "content-disposition": `attachment; filename="${slugify(d.config.brand)}-${rel}"` });
+          return res.end(body);
+        }
         if (rel === "play.html") {
           if (!d.app) { res.writeHead(404); return res.end(); }
           res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store",
@@ -365,7 +491,8 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
       if (!e.status) console.error("[route]", e);
     }
   });
-  return { server, api, db };
+  server.on("close", () => pumpLive?.stop());
+  return { server, api, db, pumpLive };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

@@ -1,11 +1,17 @@
 // trends.mjs — what is launching and running on Solana right now, from public feeds, for the Idea Maker and Launch Intel.
 //   DexScreener  newest token profiles + top boosted tokens, then each one's pair stats (free, no key)
 //   GeckoTerminal Solana trending pools + brand-new pools (free, no key)
-//   pump.fun     biggest coins, king of the hill, latest trades (unofficial API; often blocks servers — then left out)
+//   pump.fun     three ways, because pump.fun has no open API and blocks servers from its web one:
+//                1. live: every creation and graduation from PumpPortal's public stream (pumplive.mjs, registered below)
+//                2. HTTP: pump.fun's web API with browser headers, then its "advanced" API
+//                3. fallback: GeckoTerminal's index of pump.fun bonding-curve pools and PumpSwap pools (free)
 //   DEXTools     hot pools + gainers, only with DEXTOOLS_API_KEY
 // Every source is optional: one that fails is listed in `failed`, the rest still count. Cached 10 minutes.
 const TTL = 10 * 60 * 1000;
 let cache = null;
+// live sources (a WebSocket feed kept by the server) hand their items in here; each is an async () => items
+const live = new Map();
+export function registerLiveSource(name, fn) { if (fn) live.set(name, fn); else live.delete(name); }
 
 const num = v => { const n = Number(v); return Number.isFinite(n) ? n : null; };
 const clip = (s, n = 160) => String(s || "").replace(/\s+/g, " ").trim().slice(0, n);
@@ -78,19 +84,46 @@ export const SOURCES = {
     return [...(tr.data || []).slice(0, 25).map(p => pool(p, "GeckoTerminal trending")), ...(nw.data || []).slice(0, 20).map(p => pool(p, "GeckoTerminal new"))];
   },
   async pumpfun(f) {
-    const base = (process.env.COINCHECK_PUMP_API || "https://frontend-api-v3.pump.fun").replace(/\/$/, "");
-    const h = { origin: "https://pump.fun", referer: "https://pump.fun/" };
-    const coin = (c, source) => ({ source, name: clip(c.name, 40), symbol: clip(c.symbol, 12), description: clip(c.description, 200), address: c.mint || null,
-      mcUsd: num(c.usd_market_cap), createdAt: num(c.created_timestamp), graduated: !!c.complete, dex: "pumpfun",
-      website: c.website || null, x: c.twitter || null, telegram: c.telegram || null, url: c.mint ? `https://pump.fun/coin/${c.mint}` : null });
-    const big = await getJson(`${base}/coins?offset=0&limit=50&sort=market_cap&order=DESC&includeNsfw=false`, f, h);
-    const [koth, latest] = await Promise.all([
-      getJson(`${base}/coins/king-of-the-hill?includeNsfw=false`, f, h).catch(() => null),
-      getJson(`${base}/coins?offset=0&limit=30&sort=last_trade_timestamp&order=DESC&includeNsfw=false`, f, h).catch(() => []),
-    ]);
-    const list = j => (Array.isArray(j) ? j : (j?.coins || []));
-    return [...(koth && koth.mint ? [coin(koth, "pump.fun king of the hill")] : []),
-            ...list(big).slice(0, 40).map(c => coin(c, "pump.fun top")), ...list(latest).slice(0, 30).map(c => coin(c, "pump.fun latest"))];
+    const coin = (c, source) => ({ source, name: clip(c.name, 40), symbol: clip(c.symbol, 12), description: clip(c.description, 200), address: c.mint || c.coinMint || null,
+      mcUsd: num(c.usd_market_cap) ?? num(c.marketCap), createdAt: num(c.created_timestamp) ?? num(c.creationTime), graduated: !!c.complete || !!c.graduationDate, dex: "pumpfun",
+      website: c.website || null, x: c.twitter || null, telegram: c.telegram || null, url: (c.mint || c.coinMint) ? `https://pump.fun/coin/${c.mint || c.coinMint}` : null });
+    const list = j => (Array.isArray(j) ? j : (j?.coins || j?.data || []));
+    const BROWSER = { "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36",
+                      origin: "https://pump.fun", referer: "https://pump.fun/", "accept-language": "en-US,en;q=0.9" };
+    // 1. pump.fun's own web API (works from some networks)
+    try {
+      const base = (process.env.COINCHECK_PUMP_API || "https://frontend-api-v3.pump.fun").replace(/\/$/, "");
+      const big = await getJson(`${base}/coins?offset=0&limit=50&sort=market_cap&order=DESC&includeNsfw=false`, f, BROWSER);
+      const [koth, latest] = await Promise.all([
+        getJson(`${base}/coins/king-of-the-hill?includeNsfw=false`, f, BROWSER).catch(() => null),
+        getJson(`${base}/coins?offset=0&limit=30&sort=last_trade_timestamp&order=DESC&includeNsfw=false`, f, BROWSER).catch(() => []),
+      ]);
+      const out = [...(koth && koth.mint ? [coin(koth, "pump.fun king of the hill")] : []),
+                   ...list(big).slice(0, 40).map(c => coin(c, "pump.fun top")), ...list(latest).slice(0, 30).map(c => coin(c, "pump.fun latest"))];
+      if (out.length) return out;
+    } catch { /* blocked; next door */ }
+    // 2. pump.fun's "advanced" API, which is behind a different front door
+    try {
+      const j = await getJson("https://advanced-api-v2.pump.fun/coins/list?sortBy=creationTime&marketCapFrom=5000&limit=50", f, BROWSER);
+      const out = list(j).slice(0, 50).map(c => coin(c, "pump.fun newest"));
+      if (out.length) return out;
+    } catch { /* blocked too */ }
+    // 3. GeckoTerminal indexes pump.fun's bonding-curve pools and PumpSwap's pools: the same coins, through an open door
+    const pools = async (dex, sort, source, graduated) => {
+      const j = await getJson(`https://api.geckoterminal.com/api/v2/networks/solana/dexes/${dex}/pools?page=1&sort=${sort}`, f);
+      return (j.data || []).slice(0, 30).map(p => {
+        const a = p.attributes || {}, nm = clip(String(a.name || "").split(" / ")[0], 40);
+        return { source, name: nm, symbol: clip(nm, 12), description: null, address: (p.relationships?.base_token?.data?.id || "").replace(/^solana_/, "") || null,
+                 mcUsd: num(a.market_cap_usd) ?? num(a.fdv_usd), volUsd: num(a.volume_usd?.h24), liqUsd: num(a.reserve_in_usd), change24h: num(a.price_change_percentage?.h24),
+                 createdAt: a.pool_created_at ? Date.parse(a.pool_created_at) : null, graduated, dex: graduated ? "pumpswap" : "pumpfun",
+                 url: a.address ? `https://www.geckoterminal.com/solana/pools/${a.address}` : null };
+      });
+    };
+    const got = await Promise.allSettled([pools("pump-fun", "h24_tx_count_desc", "pump.fun busiest (via GeckoTerminal)", false),
+                                          pools("pumpswap", "h24_volume_usd_desc", "pump.fun graduated (via GeckoTerminal)", true)]);
+    const out = got.flatMap(g => g.status === "fulfilled" ? g.value : []);
+    if (!out.length) throw new Error("blocked on every door");
+    return out;
   },
   async dextools(f) {
     const key = process.env.DEXTOOLS_API_KEY;
@@ -108,8 +141,8 @@ export const SOURCES = {
 
 export async function trends({ fetchImpl = fetch, force = false, now = Date.now() } = {}) {
   if (!force && cache && now - cache.at < TTL) return cache.data;
-  const names = Object.keys(SOURCES);
-  const got = await Promise.allSettled(names.map(n => SOURCES[n](fetchImpl)));
+  const names = [...Object.keys(SOURCES), ...live.keys()];
+  const got = await Promise.allSettled(names.map(n => (SOURCES[n] || live.get(n))(fetchImpl)));
   const items = [], ok = [], failed = [];
   got.forEach((g, i) => {
     if (g.status === "fulfilled" && g.value.length) { ok.push(names[i]); items.push(...g.value); }

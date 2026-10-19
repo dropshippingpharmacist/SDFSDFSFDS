@@ -1,0 +1,8 @@
+# Railway build: Node 22 plus a headless Chromium and ffmpeg, so the Studio can render the content kit's pictures and
+# videos on the server. Remove the two packages if you never want videos; the Studio then hands you HTML pages instead.
+[phases.setup]
+nixPkgs = ["nodejs_22", "chromium", "ffmpeg"]
+
+[variables]
+CHROMIUM_PATH = "chromium"
+PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1"

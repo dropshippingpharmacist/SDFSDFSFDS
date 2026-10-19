@@ -66,7 +66,8 @@ iframe { width: 100%; height: calc(100vh - 210px); min-height: 520px; border: 1.
 .idea { border: 1.5px solid var(--line); border-radius: 14px; padding: 12px; display: grid; gap: 6px; }
 .idea h3 { margin: 0; font: 600 15px/1.2 var(--display); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .kind { font: 700 11px/1 var(--body); letter-spacing: .06em; text-transform: uppercase; border-radius: 999px; padding: 4px 8px; background: var(--accent); color: var(--accent-ink); }
-.kind.game { background: #6b4fd8; color: #fff; } .kind.utility { background: var(--ok); color: #fff; }
+.kind.game { background: #6b4fd8; color: #fff; } .kind.utility { background: var(--ok); color: #fff; } .kind.combo { background: linear-gradient(90deg, #6b4fd8, var(--ok), var(--accent)); color: #fff; }
+.sel { background: var(--field); border: 1.5px solid var(--line); border-radius: 10px; padding: 9px 11px; font: inherit; color: inherit; }
 .idea p { margin: 0; font-size: 14px; } .idea .why { color: var(--muted); font-size: 13px; }
 details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
 .trendlist { max-height: 260px; overflow: auto; font-size: 13px; color: var(--muted); display: grid; gap: 4px; margin-top: 8px; }
@@ -76,6 +77,11 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
 .intel { display: grid; gap: 8px; font-size: 13px; } .intel b { font-weight: 700; }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; } .chip { font-size: 12px; border: 1.5px solid var(--line); border-radius: 999px; padding: 3px 9px; }
 .xpost { border-left: 3px solid var(--accent); padding: 4px 10px; font-size: 13px; } .xpost a { color: var(--muted); font-size: 12px; }
+.kit { display: grid; gap: 12px; } .kit img { width: 100%; max-width: 420px; border: 1.5px solid var(--line); border-radius: 12px; display: block; }
+.kit video { width: 100%; max-width: 360px; border-radius: 12px; border: 1.5px solid var(--line); display: block; background: #000; }
+.kit .files { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+.post { border: 1.5px solid var(--line); border-radius: 12px; padding: 10px; display: grid; gap: 6px; font-size: 14px; } .post b { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.post pre { margin: 0; white-space: pre-wrap; font: inherit; }
 .check { display: grid; gap: 4px; font-size: 13px; } .check span::before { content: "○ "; color: var(--muted); } .check span.done::before { content: "● "; color: var(--ok); }
 @media (max-width: 980px) { .bench { grid-template-columns: minmax(0, 1fr); } .frame { position: static; } iframe { height: 70vh; } }
 @media (max-width: 460px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
@@ -93,7 +99,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
 <div id="appView" hidden>
   <header class="bar">
     <div class="logo">Launchpad <span>Studio</span></div>
-    <div class="pills"><span class="pill" id="aiPill">AI</span><span class="pill" id="vcPill">Vercel</span><span class="pill" id="xPill">X</span></div>
+    <div class="pills"><span class="pill" id="aiPill">AI</span><span class="pill" id="vcPill">Vercel</span><span class="pill" id="xPill">X</span><span class="pill" id="pumpPill">pump.fun</span></div>
   </header>
   <div class="bench">
     <div class="col">
@@ -109,8 +115,10 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
         <h2>Idea Maker</h2>
         <p class="muted">Reads what's launching and trending right now, the Launch Intel, what X is saying and what you liked and
           launched before, then invents original launchpads, games and utilities.</p>
-        <div class="row"><input id="focus" placeholder="Optional: steer it (cats, AI agents, sports-free, games only…)" aria-label="Steer the ideas">
+        <div class="row"><input id="focus" placeholder="Optional: steer it (cats, AI agents, a Temple Run feel, gaming season…)" aria-label="Steer the ideas" style="flex:1;min-width:180px">
+          <select id="mix" class="sel" aria-label="What kind of ideas"><option value="any">Any mix</option><option value="game">Games</option><option value="utility">Utilities</option><option value="launchpad">Launchpads</option><option value="combo">Three-in-one</option></select>
           <button class="btn" id="ideasBtn" type="button">Find ideas</button></div>
+        <p class="muted">Three-in-one = a game, a utility and a launchpad fused on one page. Games borrow the loops everyone knows (slingshot physics, endless runners, match-3, one-tap, daily puzzles) with your own mascot.</p>
         <p class="muted" id="ideaSrc"></p>
         <p class="err" id="ideaErr" role="alert"></p>
         <div class="ideas" id="ideas"></div>
@@ -140,16 +148,31 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
         <button class="btn alt small" id="checkBtn" type="button">Check availability</button>
         <p class="muted" id="tickerLine"></p>
         <div class="domains" id="tickers"></div>
-        <div class="row" id="appRow"><button class="btn" id="appBtn" type="button">Make the game / tool</button><span class="muted" id="appState"></span></div>
+        <div class="row" id="appRow"><button class="btn" id="appBtn" type="button">Make the game / tool</button><button class="btn alt" id="polishBtn" type="button" hidden>Polish it</button><span class="muted" id="appState"></span></div>
+        <div><b>Launch fields</b> <span class="muted">· paste these wherever you launch the token</span></div>
+        <div class="post" id="launchFields"></div>
         <div><b>Launch checklist</b></div>
         <div class="check" id="checklist"></div>
-        <div class="row"><a class="btn" id="launchBtn" target="_blank" rel="noopener">Launch this coin</a>
-          <span class="muted">Opens the launchpad with the name, ticker, links and intro filled in. The address comes back here on its own.</span></div>
+        <div><b>The docs (GitBook)</b></div>
+        <div class="row"><button class="btn" id="bookBtn" type="button">Write the docs</button><a class="btn alt small" id="docsBtn" target="_blank" rel="noopener">Open the docs</a>
+          <a class="btn alt small" id="docsZip" download>Download for GitBook (.zip)</a><button class="btn alt small" id="gitbookBtn" type="button">Publish to GitBook</button></div>
+        <p class="muted" id="bookState">Claude writes an in-depth, multi-page book (intro, getting started, the product, how to play, holder perks, tokenomics and where the money goes, roadmap, brand kit, FAQ, official links). It ships with the site at /docs.html. "Publish to GitBook" creates the space and docs site on your GitBook account (needs GITBOOK_TOKEN); the .zip imports by hand too.</p>
+        <div class="row"><a class="btn alt" id="launchBtn" target="_blank" rel="noopener">Launch it here (pump.fun)</a>
+          <span class="muted">Optional: this server's launchpad with everything filled in; the address comes back on its own. Launching somewhere else? Paste the contract address below and save.</span></div>
         <div class="rate">
           <button class="btn alt small" id="rateUp" type="button" aria-pressed="false">👍 Good one</button>
           <button class="btn alt small" id="rateDown" type="button" aria-pressed="false">👎 Not it</button>
           <input id="rateNote" placeholder="Why? (the next ideas learn from this)" aria-label="Why" style="flex:1;min-width:160px">
         </div>
+      </section>
+
+      <section class="card" id="kitCard" hidden>
+        <div class="row" style="justify-content:space-between"><h2>Content kit</h2><button class="btn" id="kitBtn" type="button">Make the content kit</button></div>
+        <p class="muted">The X profile picture, banner and the coin's launch picture, three videos (intro, the product, why now), the posts to go
+          with them and exactly how to post. Claude writes and designs it all; the server renders the MP4s. It takes several minutes.</p>
+        <p class="err" id="kitErr" role="alert"></p>
+        <p class="muted" id="kitState"></p>
+        <div class="kit" id="kit"></div>
       </section>
 
       <section class="card" id="editCard" hidden>
@@ -161,21 +184,27 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
         <label for="eTagline">Headline<input id="eTagline" maxlength="90"></label>
         <label for="eAbout">Intro<textarea id="eAbout" maxlength="260"></textarea></label>
         <div class="grid2">
-          <label for="eKind">Product<select id="eKind" style="background:var(--field);border:1.5px solid var(--line);border-radius:10px;padding:9px 11px"><option value="launchpad">Launchpad only</option><option value="game">Game</option><option value="utility">Utility</option></select></label>
+          <label for="eKind">Product<select id="eKind" class="sel"><option value="launchpad">Launchpad only</option><option value="game">Game</option><option value="utility">Utility</option><option value="combo">Three-in-one</option></select></label>
           <label for="eProd">Product name<input id="eProd" maxlength="40"></label>
         </div>
         <label for="eMech">How the game / tool works<textarea id="eMech" maxlength="500"></textarea></label>
         <label for="ePerk">Holder perk <small>badge, cosmetic, leaderboard spot — never payouts</small><input id="ePerk" maxlength="200"></label>
+        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="eDesk" style="width:auto"> Show the pump.fun launch desk on the site <small>(off = the site is the coin's home and its product; you launch the token wherever you launch)</small></label>
         <label for="eLore">Lore <small>paragraphs separated by a blank line</small><textarea id="eLore" rows="5"></textarea></label>
         <label for="eHow">How it works <small>one step per line: Title: sentence</small><textarea id="eHow" rows="4"></textarea></label>
         <label for="eNext">Roadmap, building next <small>one per line</small><textarea id="eNext" rows="3"></textarea></label>
         <label for="eIdeas">Roadmap, further out <small>one per line</small><textarea id="eIdeas" rows="2"></textarea></label>
         <label for="eFaq">FAQ <small>one per line: Question? | Answer</small><textarea id="eFaq" rows="5"></textarea></label>
+        <label for="eSource">Where the money comes from <small>what gets split, e.g. "Creator fees from trading"</small><input id="eSource" maxlength="80"></label>
+        <label for="eAlloc">Where it goes <small>one per line: Bucket: % — what it pays for (must add up to 100)</small><textarea id="eAlloc" rows="4"></textarea></label>
+        <label for="eDevPolicy">Dev buy policy<input id="eDevPolicy" maxlength="160"></label>
         <div class="grid2">
           <label for="eCa">Contract address <small>after you launch</small><input id="eCa" maxlength="44"></label>
           <label for="eDev">Dev buy % <small>after you launch</small><input id="eDev" inputmode="decimal"></label>
           <label for="eX">X link<input id="eX" type="url"></label>
           <label for="eTg">Telegram<input id="eTg" type="url"></label>
+          <label for="eBuy">Buy link <small>where people buy; empty = the pump.fun page of the address</small><input id="eBuy" type="url"></label>
+          <label for="eOn">Launched on <small>shown in Tokenomics; empty = "pump.fun, bonding curve"</small><input id="eOn" maxlength="60" placeholder="e.g. a Solana launchpad, bonding curve"></label>
         </div>
         <button class="btn" id="saveBtn" type="button">Save and refresh preview</button>
         <p class="muted">Tokenomics and the "Live now" roadmap are facts about the launchpad and stay as they are.
@@ -229,10 +258,18 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     $("aiPill").textContent = s.ai ? "AI writer: Claude" : "AI writer: off (plain writer)"; $("aiPill").className = "pill " + (s.ai ? "on" : "off");
     $("vcPill").textContent = s.vercel ? "Vercel: connected" : "Vercel: add VERCEL_TOKEN"; $("vcPill").className = "pill " + (s.vercel ? "on" : "off");
     $("xPill").textContent = s.x ? "X: " + s.x : "X: add TWITTERAPI_IO_KEY"; $("xPill").className = "pill " + (s.x ? "on" : "off");
+    pumpPill(s.pump);
+    $("gitbookBtn").textContent = s.gitbook ? "Publish to GitBook" : "Publish to GitBook (add GITBOOK_TOKEN)";
     loadDrafts();
   }
 
   const usd = n => "$" + Math.round(n || 0).toLocaleString();
+  function pumpPill(p) {
+    const el = $("pumpPill");
+    if (!p) { el.textContent = "pump.fun: feeds only"; el.className = "pill off"; return; }
+    el.textContent = p.connected ? "pump.fun live: " + p.created.toLocaleString() + " new, " + p.migrated + " graduated" : "pump.fun live: reconnecting";
+    el.className = "pill " + (p.connected ? "on" : "off");
+  }
   $("intelBtn").addEventListener("click", async () => {
     $("intelErr").textContent = ""; $("intelBtn").disabled = true; $("intelBtn").textContent = "Reading…";
     try {
@@ -265,12 +302,12 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
   $("ideasBtn").addEventListener("click", async () => {
     $("ideaErr").textContent = ""; $("ideasBtn").disabled = true; $("ideasBtn").textContent = "Reading the trends…";
     try {
-      const r = await call("/api/studio/ideas", { focus: $("focus").value.trim() });
+      const r = await call("/api/studio/ideas", { focus: $("focus").value.trim(), mix: $("mix").value });
       $("ideaSrc").textContent = (r.source === "claude" ? "Ideas by Claude" : "Plain idea maker") +
         " · read: " + (r.sources.join(", ") || "nothing answered") + (r.failed.length ? " · not read: " + r.failed.join(", ") : "") + (r.note ? " · " + r.note : "");
       const box = $("ideas"); box.textContent = "";
       r.ideas.forEach((i, n) => box.append(el("div", { className: "idea" },
-        el("h3", {}, el("span", { textContent: i.name + " · $" + i.ticker }), el("span", { className: "kind " + i.kind, textContent: i.kind })),
+        el("h3", {}, el("span", { textContent: i.name + " · $" + i.ticker }), el("span", { className: "kind " + i.kind, textContent: i.kind === "combo" ? "three-in-one" : i.kind })),
         el("p", { textContent: i.pitch }), el("p", { textContent: i.mechanic }),
         i.holderPerk ? el("p", { className: "why", textContent: "Holder perk: " + i.holderPerk }) : "",
         el("p", { className: "why", textContent: "Why now: " + i.whyNow + (i.inspiredBy ? " · inspired by " + i.inspiredBy : "") }),
@@ -303,7 +340,9 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
   function open(r) {
     cur = r;
     const c = r.config;
-    $("resultCard").hidden = $("editCard").hidden = $("deployCard").hidden = false;
+    $("resultCard").hidden = $("editCard").hidden = $("deployCard").hidden = $("kitCard").hidden = false;
+    $("kit").textContent = ""; $("kitState").textContent = ""; $("kitErr").textContent = "";
+    call("/api/studio/content/get", { id: r.id }).then(k => { if (k.content && cur && cur.id === r.id) renderKit(k.content); }).catch(() => {});
     $("resBrand").textContent = (c.emoji || "") + " " + c.brand + "  ·  $" + c.coin.ticker;
     $("resNote").hidden = !r.note; $("resNote").textContent = r.note || "";
     $("resRemoved").hidden = !(r.removed || []).length;
@@ -317,12 +356,15 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     $("slug").value = (c.brand || "launchpad").toLowerCase().replace(/[^a-z0-9]+/g, "-");
     $("liveUrl").hidden = !r.url; if (r.url) setLive(r.url);
     $("preview").src = r.preview + "?t=" + Date.now();
+    $("docsBtn").href = r.preview + "docs.html"; $("docsZip").href = r.preview + "docs.zip";
+    call("/api/studio/book/get", { id: r.id }).then(k => { if (cur && cur.id === r.id) bookState(k.book); }).catch(() => {});
     const builtin = r.builtin === "route";
     $("builtinNote").hidden = !builtin; $("deployRow").hidden = builtin; $("appRow").hidden = builtin;
     $("builtinNote").textContent = builtin ? "Route runs on this server at /route and deploys with the repo. Save the contract address and links here after you launch; /route updates on its own." : "";
     checklist();
     $("appState").textContent = r.hasApp ? "This site has its " + (c.product?.kind === "game" ? "game" : "tool") + ". Make it again to replace it." : "";
-    $("appBtn").textContent = (c.product?.kind === "game" ? "Make the game" : c.product?.kind === "utility" ? "Make the tool" : "Make a companion tool");
+    $("appBtn").textContent = (c.product?.kind === "game" ? "Make the game" : c.product?.kind === "utility" ? "Make the tool" : c.product?.kind === "combo" ? "Make the three-in-one" : "Make a companion tool");
+    $("polishBtn").hidden = !r.hasApp;
     setRate(r.rating || 0); $("rateNote").value = r.note || "";
   }
   async function checkTickers(list) {
@@ -346,14 +388,14 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     const items = [
       ["Ticker free on DexScreener", cur.tickerStatus === "free" || cur.tickerStatus === "dead"],
       ["Site online", !!cur.url], ["X link", !!c.coin.x], ["Telegram link", !!c.coin.telegram],
-      [c.product && c.product.kind !== "launchpad" ? "The " + c.product.kind + " is built" : "Companion tool (optional)", !!cur.hasApp || cur.builtin === "route"],
+      [c.product && c.product.kind !== "launchpad" ? "The " + (c.product.kind === "combo" ? "three-in-one" : c.product.kind) + " is built" : "Companion tool (optional)", !!cur.hasApp || cur.builtin === "route"],
       ["Launched (contract address)", !!c.coin.ca],
     ];
     items.forEach(([t, ok]) => box.append(el("span", { className: ok ? "done" : "", textContent: t })));
     const q = new URLSearchParams({ draft: cur.id, name: c.brand || "", symbol: c.coin.ticker || "", description: (c.tagline || "") + (c.about ? " " + c.about : ""),
       twitter: c.coin.x || "", telegram: c.coin.telegram || "", website: cur.url && /^https?:/.test(cur.url) ? cur.url : "" });
     $("launchBtn").href = "/launch/?" + q.toString();
-    $("launchBtn").textContent = c.coin.ca ? "Launched · open the launchpad" : "Launch this coin";
+    $("launchBtn").textContent = c.coin.ca ? "Launched · open the launchpad" : "Launch it here (pump.fun)";
   }
   function setRate(v) { $("rateUp").setAttribute("aria-pressed", String(v > 0)); $("rateDown").setAttribute("aria-pressed", String(v < 0)); }
   async function rate(v) {
@@ -370,10 +412,82 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     try {
       const r = await call("/api/studio/app", { id: cur.id });
       cur.config = r.config; cur.hasApp = true; fill(r.config);
-      $("appState").textContent = "Built (" + Math.round(r.bytes / 1024) + " KB). It's on the site under its own section.";
+      $("appState").textContent = "Built (" + Math.round(r.bytes / 1024) + " KB). It's on the site under its own section. Press Polish it for a second pass.";
+      $("polishBtn").hidden = false;
       $("preview").src = cur.preview + "?t=" + Date.now() + "#product"; checklist();
     } catch (e) { $("appState").textContent = e.message; } finally { $("appBtn").disabled = false; }
   });
+  $("polishBtn").addEventListener("click", async () => {
+    if (!cur) return;
+    $("polishBtn").disabled = true; $("appBtn").disabled = true; $("appState").textContent = "Claude is play-testing and polishing it. A minute or two…";
+    try {
+      const r = await call("/api/studio/polish", { id: cur.id });
+      $("appState").textContent = "Polished (" + Math.round(r.bytes / 1024) + " KB).";
+      $("preview").src = cur.preview + "?t=" + Date.now() + "#product";
+    } catch (e) { $("appState").textContent = e.message; } finally { $("polishBtn").disabled = false; $("appBtn").disabled = false; }
+  });
+  function bookState(bk) {
+    const s = $("bookState");
+    if (!bk) { s.textContent = "No docs written yet: the docs page shows a plain book built from the site until you press Write the docs."; return; }
+    s.textContent = "";
+    s.append((bk.source === "claude" ? "Docs by Claude, " : "Plain docs, ") + bk.pages.length + " pages: " + bk.pages.map(p => p.title).join(" · ") + (bk.note ? " · " + bk.note : ""));
+    if (bk.gitbook) {
+      s.append(el("br"), "GitBook: ");
+      if (bk.gitbook.publishedUrl) s.append(el("a", { href: bk.gitbook.publishedUrl, target: "_blank", rel: "noopener", textContent: bk.gitbook.publishedUrl }), " · ");
+      s.append(el("a", { href: bk.gitbook.editUrl, target: "_blank", rel: "noopener", textContent: "edit in GitBook" }), " · " + (bk.gitbook.steps || []).join(" · "));
+    }
+  }
+  $("bookBtn").addEventListener("click", async () => {
+    if (!cur) return;
+    $("bookBtn").disabled = true; $("bookState").textContent = "Claude is writing the book. A minute or two…";
+    try { await call("/api/studio/book", { id: cur.id }); bookState((await call("/api/studio/book/get", { id: cur.id })).book); }
+    catch (e) { $("bookState").textContent = e.message; } finally { $("bookBtn").disabled = false; }
+  });
+  $("gitbookBtn").addEventListener("click", async () => {
+    if (!cur) return;
+    $("gitbookBtn").disabled = true; $("bookState").textContent = "Creating the GitBook space, importing the pages, publishing…";
+    try { await call("/api/studio/gitbook", { id: cur.id, origin: location.origin }); bookState((await call("/api/studio/book/get", { id: cur.id })).book); }
+    catch (e) { $("bookState").textContent = e.message; } finally { $("gitbookBtn").disabled = false; }
+  });
+  $("kitBtn").addEventListener("click", async () => {
+    if (!cur) return;
+    $("kitErr").textContent = ""; $("kitBtn").disabled = true; $("kitState").textContent = "Writing the plan, designing the pictures, rendering the videos… several minutes. Leave this tab open.";
+    try { const r = await call("/api/studio/content", { id: cur.id }); renderKit(r.content); $("kitState").textContent = ""; }
+    catch (e) { $("kitErr").textContent = e.message; $("kitState").textContent = ""; }
+    finally { $("kitBtn").disabled = false; $("kitBtn").textContent = "Make it again"; }
+  });
+  function renderKit(k) {
+    const box = $("kit"); box.textContent = ""; const id = cur.id, f = k.files || {};
+    const url = n => "/studio/c/" + id + "/" + n;
+    const files = el("div", { className: "files" });
+    [["pfp", "Profile picture 400×400"], ["banner", "Banner 1500×500"], ["launch", "Launch picture 1000×1000"]].forEach(([key, title]) => {
+      const x = f[key]; if (!x) return;
+      files.append(el("div", {}, el("b", { textContent: title }), x.png ? el("img", { src: url(x.png) + "?t=" + k.at, alt: title }) : "",
+        el("div", { className: "row" }, x.png ? el("a", { className: "btn alt small", href: url(x.png), download: "", textContent: "Download PNG" }) : "",
+          el("a", { className: "btn alt small", href: url(x.html), target: "_blank", rel: "noopener", textContent: "Open the page" }), el("span", { className: "muted", textContent: x.source === "claude" ? "designed by Claude" : "template" }))));
+    });
+    box.append(files);
+    const vids = el("div", { className: "files" });
+    ["intro", "product", "why"].forEach(key => {
+      const x = f[key]; if (!x) return;
+      vids.append(el("div", {}, el("b", { textContent: x.title + (x.seconds ? " · " + x.seconds + "s" : "") }), x.mp4 ? el("video", { src: url(x.mp4) + "?t=" + k.at, controls: true, playsInline: true, preload: "metadata" }) : "",
+        el("div", { className: "row" }, x.mp4 ? el("a", { className: "btn alt small", href: url(x.mp4), download: "", textContent: "Download MP4" }) : "",
+          el("a", { className: "btn alt small", href: url(x.html), target: "_blank", rel: "noopener", textContent: "Open the animation" }), el("span", { className: "muted", textContent: x.source === "claude" ? "designed by Claude" : "template" }))));
+    });
+    box.append(vids);
+    if ((k.notes || []).length) box.append(el("p", { className: "note", textContent: k.notes.join(" · ") }));
+    const P = k.plan || {};
+    const copyBtn = text => el("button", { className: "btn alt small", type: "button", textContent: "Copy", onclick: e => { navigator.clipboard.writeText(text).then(() => { e.target.textContent = "Copied"; setTimeout(() => { e.target.textContent = "Copy"; }, 1500); }); } });
+    const post = (title, text) => el("div", { className: "post" }, el("b", { textContent: title }), el("pre", { textContent: text }), el("div", {}, copyBtn(text)));
+    box.append(el("h3", { textContent: "Profile" }), post("Display name", P.nameOnX || ""), post("Bio (paste the site link at [SITE])", P.bio || ""), post("Pinned post ([SITE], [CA])", P.pinned || ""), post("First reply under the intro, with the address", P.replyWithCa || ""));
+    box.append(el("h3", { textContent: "Posts, in order" }));
+    (P.posts || []).forEach((p, i) => box.append(post((i + 1) + ". " + p.when + " · media: " + p.media, p.text)));
+    const d = el("details", {}, el("summary", { textContent: "How to post it, step by step" }));
+    (k.howToPost || []).forEach(l => d.append(el("p", { className: "muted", textContent: "· " + l }))); box.append(d);
+    const sc = el("details", {}, el("summary", { textContent: "The video scripts" }));
+    (P.videos || []).forEach(v => { sc.append(el("p", {}, el("b", { textContent: v.title + " · hook: " + v.hook }))); v.scenes.forEach(x => sc.append(el("p", { className: "muted", textContent: x.seconds + "s · " + x.headline + " — " + x.sub + " (" + x.visual + ")" }))); });
+    box.append(sc);
+  }
   $("resultsBtn").addEventListener("click", async () => {
     $("resultsBtn").disabled = true;
     try { const r = await call("/api/studio/results", {}); renderDrafts(r.drafts); } catch (e) { $("genErr").textContent = e.message; }
@@ -388,18 +502,52 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     $("eFaq").value = (c.faq || []).filter(f => !/^Do I need \$|^Is this financial advice/.test(f.q)).map(f => f.q + " | " + f.a).join("\n");
     const pr = c.product || {};
     $("eKind").value = pr.kind || "launchpad"; $("eProd").value = pr.name || ""; $("eMech").value = pr.mechanic || ""; $("ePerk").value = pr.holderPerk || "";
+    $("eDesk").checked = c.launchDesk !== false;
     $("eCa").value = c.coin.ca || ""; $("eDev").value = c.coin.devBuyPercent ?? ""; $("eX").value = c.coin.x || ""; $("eTg").value = c.coin.telegram || "";
+    $("eBuy").value = c.coin.buyUrl || ""; $("eOn").value = c.coin.launchedOn || "";
+    const tn = c.tokenomics || {};
+    $("eSource").value = tn.source || ""; $("eDevPolicy").value = tn.devBuyPolicy || "";
+    $("eAlloc").value = (tn.allocation || []).map(a => a.name + ": " + a.pct + " — " + a.what).join("\n");
+    launchFields(c);
   }
   const lines = id => $(id).value.split("\n").map(s => s.trim()).filter(Boolean);
+  // the fields the launch form of any platform asks for, ready to copy
+  function launchFields(c) {
+    const box = $("launchFields"); box.textContent = "";
+    const desc = ((c.tagline || "") + " " + (c.about || "")).trim().slice(0, 500);
+    const rows = [["Name", c.brand], ["Ticker", c.coin.ticker], ["Description", desc], ["Website", cur && cur.url && /^https?:/.test(cur.url) ? cur.url : "(deploy the site first)"], ["X", c.coin.x || ""], ["Telegram", c.coin.telegram || ""]];
+    rows.forEach(([k, v]) => box.append(el("div", { className: "row" }, el("b", { textContent: k }), el("span", { textContent: v, style: "flex:1;min-width:120px;overflow-wrap:anywhere" }),
+      v && !/^\(/.test(v) ? el("button", { className: "btn alt small", type: "button", textContent: "Copy", onclick: e => navigator.clipboard.writeText(v).then(() => { e.target.textContent = "Copied"; setTimeout(() => { e.target.textContent = "Copy"; }, 1200); }) }) : "")));
+    box.append(el("p", { className: "muted", textContent: "The launch picture is in the content kit below (1000×1000 PNG)." }));
+  }
+  // a new name or ticker flows through every field in the editor right away (the server does the same on save)
+  function renameFields(fromBrand, toBrand, fromTick, toTick) {
+    const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const subs = [];
+    if (fromBrand && toBrand && fromBrand !== toBrand) subs.push([new RegExp(esc(fromBrand), "g"), toBrand]);
+    if (fromTick && toTick && fromTick !== toTick) subs.push([new RegExp("\\$?\\b" + esc(fromTick) + "\\b", "g"), m => (m.startsWith("$") ? "$" : "") + toTick]);
+    if (!subs.length) return;
+    ["eTagline", "eAbout", "eProd", "eMech", "ePerk", "eLore", "eHow", "eNext", "eIdeas", "eFaq"].forEach(id => { $(id).value = subs.reduce((s, [re, r]) => s.replace(re, r), $(id).value); });
+  }
+  let nameWas = "", tickWas = "";
+  $("eBrand").addEventListener("focus", () => { nameWas = $("eBrand").value; });
+  $("eBrand").addEventListener("change", () => { renameFields(nameWas, $("eBrand").value.trim(), "", ""); nameWas = $("eBrand").value.trim(); });
+  $("eTicker").addEventListener("focus", () => { tickWas = $("eTicker").value.toUpperCase(); });
+  $("eTicker").addEventListener("change", () => { const t = $("eTicker").value.toUpperCase().replace(/[^A-Z0-9]/g, ""); $("eTicker").value = t; renameFields("", "", tickWas, t); tickWas = t; });
   $("saveBtn").addEventListener("click", async () => {
     if (!cur) return;
     const c = JSON.parse(JSON.stringify(cur.config));
     c.brand = $("eBrand").value; c.tagline = $("eTagline").value; c.about = $("eAbout").value;
     c.coin.ticker = $("eTicker").value; c.coin.ca = $("eCa").value; c.coin.devBuyPercent = $("eDev").value; c.coin.x = $("eX").value; c.coin.telegram = $("eTg").value;
+    c.coin.buyUrl = $("eBuy").value.trim(); c.coin.launchedOn = $("eOn").value.trim();
+    c.tokenomics = { source: $("eSource").value.trim(), devBuyPolicy: $("eDevPolicy").value.trim(),
+      allocation: lines("eAlloc").map(l => { const m = /^(.+?):\s*(\d+)\s*%?\s*(?:[—–-]+\s*(.*))?$/.exec(l); return m ? { name: m[1].trim(), pct: Number(m[2]), what: (m[3] || "").trim() } : null; }).filter(Boolean) };
+    const caWas = cur.config.coin.ca, tickerWas = cur.config.coin.ticker;
     c.lore = $("eLore").value.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
     c.how = lines("eHow").map(l => { const i = l.indexOf(":"); return i > 0 ? { title: l.slice(0, i), text: l.slice(i + 1).trim() } : { title: l, text: l }; });
     c.roadmap = [{ status: "next", items: lines("eNext") }, { status: "idea", items: lines("eIdeas") }];
     c.product = { ...(c.product || {}), kind: $("eKind").value, name: $("eProd").value, mechanic: $("eMech").value, holderPerk: $("ePerk").value };
+    c.launchDesk = $("eDesk").checked;
     c.faq = lines("eFaq").map(l => { const [q, ...a] = l.split("|"); return { q: q.trim(), a: a.join("|").trim() }; });
     $("saveBtn").disabled = true;
     try {
@@ -408,6 +556,9 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
       $("resRemoved").hidden = !r.removed.length; $("resRemoved").textContent = r.removed.length ? "Removed " + r.removed.length + " sentence(s) that promised donations, partners or profits." : "";
       $("resBrand").textContent = (r.config.emoji || "") + " " + r.config.brand + "  ·  $" + r.config.coin.ticker;
       $("preview").src = cur.preview + "?t=" + Date.now(); checklist();
+      if (r.config.coin.ticker !== tickerWas) checkTickers([r.config.coin.ticker, ...(cur.tickerBackups || [])]);
+      // the address just arrived and the site is live: push it out, so Buy / Chart / Copy switch on without another click
+      if (r.config.coin.ca && r.config.coin.ca !== caWas && cur.url && /^https:/.test(cur.url) && !$("deployRow").hidden) $("deployBtn").click();
     } catch (e) { $("genErr").textContent = e.message; } finally { $("saveBtn").disabled = false; }
   });
 
