@@ -10,6 +10,9 @@ import crypto from "node:crypto";
 import { openDb, makeApi, err } from "./db.mjs";
 import { generate, honest } from "../studio/generate.mjs";
 import { deploy, checkDomain, configJs, slugify } from "../studio/deploy.mjs";
+import { trends, coinStats } from "../studio/trends.mjs";
+import { makeIdeas, ideaPrompt } from "../studio/ideas.mjs";
+import { makeMiniApp } from "../studio/miniapp.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(HERE, "public");
@@ -35,6 +38,10 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now } =
   const geoCache = new Map();
   db.exec(`CREATE TABLE IF NOT EXISTS studio_drafts (id INTEGER PRIMARY KEY, idea TEXT NOT NULL, config TEXT NOT NULL,
             meta TEXT NOT NULL, url TEXT, created INTEGER NOT NULL, updated INTEGER NOT NULL)`);
+  // the Studio's memory: your rating and note on each site, its game / utility, and how its coin did once launched
+  for (const col of ["rating INTEGER NOT NULL DEFAULT 0", "note TEXT", "app TEXT", "stats TEXT", "stats_at INTEGER"]) {
+    try { db.exec(`ALTER TABLE studio_drafts ADD COLUMN ${col}`); } catch { /* already there */ }
+  }
   // the Studio is the owner's tool: one password (STUDIO_PASSWORD), a cookie derived from it
   const studioToken = () => process.env.STUDIO_PASSWORD
     ? crypto.createHmac("sha256", process.env.STUDIO_PASSWORD).update("launchpad-studio").digest("base64url") : null;
@@ -42,7 +49,19 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now } =
   const draft = id => {
     const r = db.prepare("SELECT * FROM studio_drafts WHERE id = ?").get(Number(id));
     if (!r) throw err(404, "No such draft.");
-    return { ...r, config: JSON.parse(r.config), meta: JSON.parse(r.meta) };
+    return { ...r, config: JSON.parse(r.config), meta: JSON.parse(r.meta), stats: r.stats ? JSON.parse(r.stats) : null };
+  };
+  const summary = r => {
+    const c = JSON.parse(r.config);
+    return { id: r.id, brand: c.brand, ticker: c.coin?.ticker, kind: c.product?.kind || "launchpad", idea: r.idea,
+             note: r.note || "", rating: r.rating || 0, url: r.url, ca: c.coin?.ca || "", stats: r.stats ? JSON.parse(r.stats) : null,
+             app: !!r.app, updated: r.updated };
+  };
+  // what the generators learn from: liked, disliked, and launched (with DexScreener results)
+  const memory = () => {
+    const rows = db.prepare("SELECT * FROM studio_drafts ORDER BY updated DESC LIMIT 200").all().map(summary);
+    return { liked: rows.filter(r => r.rating > 0).slice(0, 15), disliked: rows.filter(r => r.rating < 0).slice(0, 10),
+             launched: rows.filter(r => r.ca).slice(0, 15) };
   };
   let lastGeo = 0;
 
@@ -137,10 +156,20 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now } =
     const t = Date.now();
     switch (p) {
       case "/api/studio/status":
-        return send(res, 200, { ai: !!process.env.ANTHROPIC_API_KEY, vercel: !!process.env.VERCEL_TOKEN });
+        return send(res, 200, { ai: !!process.env.ANTHROPIC_API_KEY, vercel: !!process.env.VERCEL_TOKEN, dextools: !!process.env.DEXTOOLS_API_KEY });
+      case "/api/studio/trends": {
+        const tr = await trends({ force: !!b.refresh });
+        return send(res, 200, { at: tr.at, ok: tr.ok, failed: tr.failed, items: tr.items.slice(0, 60) });
+      }
+      case "/api/studio/ideas": {
+        if (limited("studio:ideas", 40, 36e5)) throw err(429, "40 idea rounds an hour is the limit. Try again later.");
+        const tr = await trends({ force: !!b.refresh });
+        const out = await makeIdeas(tr, { mem: memory(), focus: b.focus, n: Math.min(8, Math.max(3, Number(b.n) || 6)) });
+        return send(res, 200, { ...out, prompts: out.ideas.map(ideaPrompt) });
+      }
       case "/api/studio/generate": {
         if (limited("studio:gen", 30, 36e5)) throw err(429, "30 sites an hour is the limit. Try again later.");
-        const g = await generate(b.idea, { ticker: b.ticker, x: b.x, telegram: b.telegram, accent: b.accent });
+        const g = await generate(b.idea, { ticker: b.ticker, x: b.x, telegram: b.telegram, accent: b.accent, mem: memory() });
         const meta = { domains: g.domains, tickerBackups: g.tickerBackups, source: g.source, note: g.note, removed: g.removed };
         const r = db.prepare("INSERT INTO studio_drafts (idea, config, meta, created, updated) VALUES (?, ?, ?, ?, ?)")
           .run(g.idea, JSON.stringify(g.config), JSON.stringify(meta), t, t);
@@ -153,8 +182,10 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now } =
         const re = honest({ brand: c.brand, tagline: c.tagline, about: c.about, emoji: c.emoji, accent: c.colors?.accent,
           display: c.display, ticker: c.coin?.ticker, lore: c.lore, how: c.how,
           next: (c.roadmap || []).find(x => x.status === "next")?.items, ideas: (c.roadmap || []).find(x => x.status === "idea")?.items,
-          faq: (c.faq || []).filter(f => !/^Do I need \$|^Is this financial advice/.test(f.q || "")) }, d.idea,
+          faq: (c.faq || []).filter(f => !/^Do I need \$|^Is this financial advice/.test(f.q || "")),
+          kind: c.product?.kind, product_name: c.product?.name, mechanic: c.product?.mechanic, holder_perk: c.product?.holderPerk }, d.idea,
           { x: c.coin?.x, telegram: c.coin?.telegram });
+        re.config.product.app = !!d.app;
         re.config.coin.ca = String(c.coin?.ca || "").trim().replace(/[^1-9A-HJ-NP-Za-km-z]/g, "").slice(0, 44);
         const pct = Number(c.coin?.devBuyPercent);
         re.config.coin.devBuyPercent = c.coin?.devBuyPercent === "" || c.coin?.devBuyPercent == null || !Number.isFinite(pct) ? null : Math.max(0, Math.min(100, pct));
@@ -167,14 +198,46 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now } =
       }
       case "/api/studio/deploy": {
         const d = draft(b.id);
-        const out = await deploy(d.config, b.slug || d.config.brand);
+        const out = await deploy(d.config, b.slug || d.config.brand, { extra: d.app ? { "play.html": d.app } : {} });
         db.prepare("UPDATE studio_drafts SET url = ?, updated = ? WHERE id = ?").run(out.url, t, d.id);
         return send(res, 200, out);
       }
       case "/api/studio/list":
-        return send(res, 200, { drafts: db.prepare("SELECT id, idea, config, url, updated FROM studio_drafts ORDER BY updated DESC LIMIT 50").all()
-          .map(r => ({ id: r.id, idea: r.idea, brand: JSON.parse(r.config).brand, ticker: JSON.parse(r.config).coin?.ticker, url: r.url, updated: r.updated })) });
-      case "/api/studio/get": { const d = draft(b.id); return send(res, 200, { id: d.id, idea: d.idea, config: d.config, url: d.url, ...d.meta }); }
+        return send(res, 200, { drafts: db.prepare("SELECT * FROM studio_drafts ORDER BY updated DESC LIMIT 50").all().map(summary) });
+      case "/api/studio/get": {
+        const d = draft(b.id);
+        return send(res, 200, { id: d.id, idea: d.idea, config: d.config, url: d.url, rating: d.rating || 0, note: d.note || "",
+                                hasApp: !!d.app, stats: d.stats, ...d.meta });
+      }
+      case "/api/studio/app": {
+        // Claude writes the site's game or utility (play.html); it can take a minute or two
+        const d = draft(b.id);
+        if (limited("studio:app", 20, 36e5)) throw err(429, "20 apps an hour is the limit. Try again later.");
+        const pr = d.config.product || {};
+        const out = await makeMiniApp({ name: pr.name, kind: pr.kind === "launchpad" ? "launchpad" : pr.kind, pitch: d.config.tagline,
+                                        mechanic: pr.mechanic || d.idea, holderPerk: pr.holderPerk }, d.config);
+        if (out.error) throw err(502, out.error);
+        d.config.product = { ...pr, kind: pr.kind === "launchpad" ? "utility" : (pr.kind || "game"), app: true };
+        db.prepare("UPDATE studio_drafts SET app = ?, config = ?, updated = ? WHERE id = ?").run(out.html, JSON.stringify(d.config), t, d.id);
+        return send(res, 200, { ok: true, bytes: Buffer.byteLength(out.html), config: d.config });
+      }
+      case "/api/studio/rate": {
+        const d = draft(b.id);
+        const rating = Math.max(-1, Math.min(1, Math.round(Number(b.rating) || 0)));
+        db.prepare("UPDATE studio_drafts SET rating = ?, note = ? WHERE id = ?").run(rating, String(b.note || "").trim().slice(0, 300), d.id);
+        return send(res, 200, { ok: true, rating });
+      }
+      case "/api/studio/results": {
+        // refresh how launched sites' coins are doing (at most once an hour each)
+        const rows = db.prepare("SELECT * FROM studio_drafts ORDER BY updated DESC LIMIT 50").all();
+        for (const r of rows) {
+          const ca = JSON.parse(r.config).coin?.ca;
+          if (!ca || (r.stats_at && t - r.stats_at < 36e5)) continue;
+          const st = await coinStats(ca);
+          if (st) db.prepare("UPDATE studio_drafts SET stats = ?, stats_at = ? WHERE id = ?").run(JSON.stringify(st), t, r.id);
+        }
+        return send(res, 200, { drafts: db.prepare("SELECT * FROM studio_drafts ORDER BY updated DESC LIMIT 50").all().map(summary) });
+      }
     }
     throw err(404, "No such endpoint.");
   }
@@ -202,7 +265,9 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now } =
       res.setHeader("referrer-policy", "same-origin");
       if (p.startsWith("/api/studio/")) return await handleStudio(req, res, p);
       if (p.startsWith("/api/")) return await handleApi(req, res, p);
-      if (p === "/studio") return await serveFile(res, path.join(STUDIO, "studio.html"), STUDIO);
+      // the front door is the Launchpad Maker; Route's own coin site lives at /route
+      if (p === "/" || p === "/studio") return await serveFile(res, path.join(STUDIO, "studio.html"), STUDIO);
+      if (p === "/route") return await serveFile(res, path.join(PUBLIC, "index.html"), PUBLIC);
       const sp = /^\/studio\/p\/(\d+)\/(.*)$/.exec(p);
       if (sp) {
         if (!studioOk(req)) { res.writeHead(401, { "content-type": "text/plain" }); return res.end("Sign in to the Studio first."); }
@@ -210,6 +275,12 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now } =
         const sa = /^api\/(metadata|create|send)$/.exec(rel);
         if (sa) return await launchApi(req, res, sa[1]);
         if (rel === "config.js") { res.writeHead(200, { "content-type": "text/javascript; charset=utf-8", "cache-control": "no-store" }); return res.end(configJs(d.config)); }
+        if (rel === "play.html") {
+          if (!d.app) { res.writeHead(404); return res.end(); }
+          res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store",
+            "content-security-policy": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data: blob:; media-src data: blob:; connect-src 'none'; sandbox allow-scripts" });
+          return res.end(d.app);
+        }
         if (rel.startsWith("api/") || rel === "dev.mjs" || rel === "package.json") { res.writeHead(404); return res.end(); }
         return await serveFile(res, path.join(LAUNCH, rel), LAUNCH);
       }

@@ -28,7 +28,7 @@ export async function templateFiles(dir = TEMPLATE, rel = "") {
 
 export const slugify = s => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "launchpad";
 
-export async function deploy(cfg, slug, { fetchImpl = fetch, token = process.env.VERCEL_TOKEN, team = process.env.VERCEL_TEAM_ID } = {}) {
+export async function deploy(cfg, slug, { fetchImpl = fetch, token = process.env.VERCEL_TOKEN, team = process.env.VERCEL_TEAM_ID, extra = {} } = {}) {
   if (!token) throw Object.assign(new Error("Set VERCEL_TOKEN on the server to deploy (vercel.com/account/tokens)."), { status: 400 });
   const files = [];
   for (const f of await templateFiles()) {
@@ -36,6 +36,9 @@ export async function deploy(cfg, slug, { fetchImpl = fetch, token = process.env
     files.push({ file: f, data: (await readFile(path.join(TEMPLATE, f))).toString("base64"), encoding: "base64" });
   }
   files.push({ file: "config.js", data: Buffer.from(configJs(cfg)).toString("base64"), encoding: "base64" });
+  for (const [name, text] of Object.entries(extra)) {           // e.g. play.html, the site's game or utility
+    if (/^[a-z0-9-]+\.html$/.test(name) && text) files.push({ file: name, data: Buffer.from(text).toString("base64"), encoding: "base64" });
+  }
   const body = {
     name: slugify(slug), files, target: "production",
     projectSettings: { framework: null, buildCommand: null, installCommand: null, outputDirectory: null },
