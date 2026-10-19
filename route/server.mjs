@@ -71,6 +71,11 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
              book: r.book ? JSON.parse(r.book) : null, theme: r.theme ? JSON.parse(r.theme) : null };
   };
   // the book's pages: Claude's when written, else built from the config on the spot
+  const docsHtml = (d, back = "./") => {
+    const site = siteOf(d), fix = t => (d.config.domain && typeof t === "string") ? t.replace(/https:\/\/[a-z0-9-]+\.vercel\.app/gi, site) : t;
+    const pages = bookOf(d).map(pg => ({ ...pg, markdown: fix(pg.markdown), title: fix(pg.title) }));
+    return bookHtml({ ...d.config, siteUrl: site }, pages).replace('href="./"', `href="${back}"`);
+  };
   const bookOf = d => (d.book?.pages?.length ? d.book.pages : rulesBook({ ...d.config, siteUrl: siteOf(d) }));
   const _unused = () => {
   };
@@ -283,7 +288,7 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
   async function shipSite(id) {
     const d = draft(id);
     const extra = d.app ? { "play.html": appFor(d) } : {};
-    extra["docs.html"] = bookHtml({ ...d.config, siteUrl: siteOf(d) }, bookOf(d)); extra["docs/index.html"] = extra["docs.html"].replace('href="./"', 'href="../"');
+    extra["docs.html"] = docsHtml(d); extra["docs/index.html"] = docsHtml(d, "../");
     extra["theme.css"] = d.theme?.css || "/* the default look */\n";
     if (d.theme?.svg) extra["mascot.svg"] = d.theme.svg;
     const out = await deploy(d.config, projectOf(d), { extra });
@@ -513,7 +518,7 @@ async function makeKit(id) {
           gitbookNote = "A GitBook copy is being published in the background (the site keeps its own /docs/).";
         }
         const extra = d.app ? { "play.html": appFor(d) } : {};
-        extra["docs.html"] = bookHtml({ ...d.config, siteUrl: siteOf(d) }, bookOf(d)); extra["docs/index.html"] = extra["docs.html"].replace('href="./"', 'href="../"');
+        extra["docs.html"] = docsHtml(d); extra["docs/index.html"] = docsHtml(d, "../");
         extra["theme.css"] = d.theme?.css || "/* the default look */\n";
         if (d.theme?.svg) extra["mascot.svg"] = d.theme.svg;
         if (d.content?.files?.banner?.png) { try { extra["og.png"] = await readFileP(path.join(DATA, "content", String(d.id), "banner.png")); } catch { /* no preview image */ } }
@@ -643,9 +648,10 @@ async function makeKit(id) {
         const sa = /^api\/(metadata|create|send)$/.exec(rel);
         if (sa) return await launchApi(req, res, sa[1]);
         if (rel === "config.js") { res.writeHead(200, { "content-type": "text/javascript; charset=utf-8", "cache-control": "no-store" }); return res.end(configJs(d.config)); }
+        if (rel === "docs/" || rel === "docs" || rel === "docs/index.html") { res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" }); return res.end(docsHtml(d, "../")); }
         if (rel === "docs.html" || rel === "docs.md" || rel === "docs.zip") {
           const cfgDocs = { ...d.config, siteUrl: siteOf(d) }, pages = bookOf(d);
-          if (rel === "docs.html") { res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" }); return res.end(bookHtml(cfgDocs, pages)); }
+          if (rel === "docs.html") { res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" }); return res.end(docsHtml(d)); }
           const body = rel === "docs.zip" ? zip(bookFiles(cfgDocs, pages)) : docsMarkdown(cfgDocs);
           res.writeHead(200, { "content-type": rel === "docs.zip" ? "application/zip" : "text/markdown; charset=utf-8", "cache-control": "no-store",
                                "content-disposition": `attachment; filename="${slugify(d.config.brand)}-${rel}"` });
