@@ -71,11 +71,14 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
              book: r.book ? JSON.parse(r.book) : null, theme: r.theme ? JSON.parse(r.theme) : null };
   };
   // the book's pages: Claude's when written, else built from the config on the spot
-  const docsHtml = (d, back = "./") => {
-    const site = siteOf(d), fix = t => (d.config.domain && typeof t === "string") ? t.replace(/https:\/\/[a-z0-9-]+\.vercel\.app/gi, site) : t;
-    const pages = bookOf(d).map(pg => ({ ...pg, markdown: fix(pg.markdown), title: fix(pg.title) }));
-    return bookHtml({ ...d.config, siteUrl: site }, pages).replace('href="./"', `href="${back}"`);
+  // the book as it should read right now: Official links rebuilt from the current site / X / Telegram / address, and
+  // any old vercel.app address swapped for the coin's own domain. Used for /docs/ and for GitBook alike (no AI, free)
+  const currentPages = d => {
+    const site = siteOf(d), cfg = { ...d.config, siteUrl: site };
+    const fix = t => (d.config.domain && typeof t === "string") ? t.replace(/https:\/\/[a-z0-9-]+\.vercel\.app/gi, site) : t;
+    return refreshLinks(bookOf(d), cfg).map(pg => ({ ...pg, markdown: fix(pg.markdown), title: fix(pg.title) }));
   };
+  const docsHtml = (d, back = "./") => bookHtml({ ...d.config, siteUrl: siteOf(d) }, currentPages(d)).replace('href="./"', `href="${back}"`);
   const bookOf = d => (d.book?.pages?.length ? d.book.pages : rulesBook({ ...d.config, siteUrl: siteOf(d) }));
   const _unused = () => {
   };
@@ -265,7 +268,7 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
   async function syncLinks(id, oldSite) {
     const d = draft(id);
     if (!d.book?.pages?.length) return "No book yet.";
-    const pages = refreshLinks(d.book.pages, { ...d.config, siteUrl: siteOf(d) }, oldSite);
+    const pages = refreshLinks(currentPages(d), { ...d.config, siteUrl: siteOf(d) }, oldSite);
     let book = { ...d.book, pages };
     if (process.env.GITBOOK_TOKEN && d.book.gitbook) {
       const out = await publishGitBook({ ...d.config, siteUrl: siteOf(d) }, pages, { existing: d.book.gitbook });
@@ -305,9 +308,9 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
   async function publishBook(id) {
     await writeBook(id);                                                   // always from the site as it is right now
     const d = draft(id);
-    const out = await publishGitBook({ ...d.config, siteUrl: siteOf(d) }, d.book.pages, { existing: d.book.gitbook || null });
+    const out = await publishGitBook({ ...d.config, siteUrl: siteOf(d) }, currentPages(d), { existing: d.book.gitbook || null });
     const book = { ...d.book, gitbook: { at: Date.now(), ...out } };
-    // the site's Docs button stays on the coin's own domain (/docs/); the GitBook copy is a backup, never linked from the site
+    if (out.publishedUrl) d.config.docsUrl = out.publishedUrl;            // the site's GitBook button points at the coin's own book
     db.prepare("UPDATE studio_drafts SET book = ?, config = ?, updated = ? WHERE id = ?").run(JSON.stringify(book), JSON.stringify(d.config), Date.now(), id);
     return out.publishedUrl ? `Published: ${out.publishedUrl}` : out.steps.join(" · ");
   }
@@ -510,12 +513,12 @@ async function makeKit(id) {
       case "/api/studio/deploy": {
         const d = draft(b.id);
         if (d.meta.builtin === "route") throw err(400, "Route already runs on this server at /route; it deploys with the repo.");
-        // the docs live on the coin's own domain (/docs/). A GitBook copy is published only when GITBOOK_AUTO=1, so coins
-        // are never tied together by a shared GitBook address
+        // the GitBook: published on its own the first time the site goes out (GITBOOK_AUTO=0 turns this off); the site
+        // keeps its own /docs/ page as well
         let gitbookNote = null;
-        if (process.env.GITBOOK_TOKEN && process.env.GITBOOK_AUTO === "1" && !d.book?.gitbook?.publishedUrl && !jobRunning("gitbook", d.id) && !jobRunning("book", d.id) && !limited("studio:gitbook", 10, 36e5)) {
+        if (process.env.GITBOOK_TOKEN && process.env.GITBOOK_AUTO !== "0" && !d.book?.gitbook?.publishedUrl && !jobRunning("gitbook", d.id) && !jobRunning("book", d.id) && !limited("studio:gitbook", 10, 36e5)) {
           runJob("gitbook", d.id, () => publishBook(d.id));
-          gitbookNote = "A GitBook copy is being published in the background (the site keeps its own /docs/).";
+          gitbookNote = "The GitBook is being published in the background; the site gets its GitBook button when it is done.";
         }
         const extra = d.app ? { "play.html": appFor(d) } : {};
         extra["docs.html"] = docsHtml(d); extra["docs/index.html"] = docsHtml(d, "../");
