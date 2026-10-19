@@ -913,5 +913,5 @@ test("the docs ship on the coin's own domain at /docs/ too", async () => {
   assert.ok(names.includes("docs/index.html"));
   assert.ok(!names.includes("../evil.html"));
   const tpl = await (await import("node:fs/promises")).readFile(new URL("../../launchpad/index.html", import.meta.url), "utf8");
-  assert.match(tpl, /C\.docsUrl : "docs\/"/);
+  assert.match(tpl, /!\/gitbook\\\.io\/i\.test\(C\.docsUrl\) \? C\.docsUrl : "docs\/"/);
 });

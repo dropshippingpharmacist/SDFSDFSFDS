@@ -310,7 +310,7 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now, ba
     const d = draft(id);
     const out = await publishGitBook({ ...d.config, siteUrl: siteOf(d) }, currentPages(d), { existing: d.book.gitbook || null });
     const book = { ...d.book, gitbook: { at: Date.now(), ...out } };
-    if (out.publishedUrl) d.config.docsUrl = out.publishedUrl;            // the site's GitBook button points at the coin's own book
+    // the site's Docs button stays on the coin's own domain (/docs/); GitBook is never linked from the site
     db.prepare("UPDATE studio_drafts SET book = ?, config = ?, updated = ? WHERE id = ?").run(JSON.stringify(book), JSON.stringify(d.config), Date.now(), id);
     return out.publishedUrl ? `Published: ${out.publishedUrl}` : out.steps.join(" · ");
   }
@@ -513,10 +513,9 @@ async function makeKit(id) {
       case "/api/studio/deploy": {
         const d = draft(b.id);
         if (d.meta.builtin === "route") throw err(400, "Route already runs on this server at /route; it deploys with the repo.");
-        // the GitBook: published on its own the first time the site goes out (GITBOOK_AUTO=0 turns this off); the site
-        // keeps its own /docs/ page as well
+        // the docs live on the coin's own domain (/docs/); GitBook is off unless GITBOOK_AUTO=1
         let gitbookNote = null;
-        if (process.env.GITBOOK_TOKEN && process.env.GITBOOK_AUTO !== "0" && !d.book?.gitbook?.publishedUrl && !jobRunning("gitbook", d.id) && !jobRunning("book", d.id) && !limited("studio:gitbook", 10, 36e5)) {
+        if (process.env.GITBOOK_TOKEN && process.env.GITBOOK_AUTO === "1" && !d.book?.gitbook?.publishedUrl && !jobRunning("gitbook", d.id) && !jobRunning("book", d.id) && !limited("studio:gitbook", 10, 36e5)) {
           runJob("gitbook", d.id, () => publishBook(d.id));
           gitbookNote = "The GitBook is being published in the background; the site gets its GitBook button when it is done.";
         }
