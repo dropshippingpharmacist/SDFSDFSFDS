@@ -205,6 +205,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
           <label for="eTg">Telegram<input id="eTg" type="url"></label>
           <label for="eBuy">Buy link <small>where people buy; empty = the pump.fun page of the address</small><input id="eBuy" type="url"></label>
           <label for="eOn">Launched on <small>shown in Tokenomics; empty = "pump.fun, bonding curve"</small><input id="eOn" maxlength="60" placeholder="e.g. a Solana launchpad, bonding curve"></label>
+          <label for="eDocs">GitBook link <small>the site's Docs button; filled in by Publish to GitBook</small><input id="eDocs" type="url" placeholder="https://….gitbook.io/…"></label>
         </div>
         <button class="btn" id="saveBtn" type="button">Save and refresh preview</button>
         <p class="muted">Tokenomics and the "Live now" roadmap are facts about the launchpad and stay as they are.
@@ -362,7 +363,10 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     $("builtinNote").hidden = !builtin; $("deployRow").hidden = builtin; $("appRow").hidden = builtin;
     $("builtinNote").textContent = builtin ? "Route runs on this server at /route and deploys with the repo. Save the contract address and links here after you launch; /route updates on its own." : "";
     checklist();
-    $("appState").textContent = r.hasApp ? "This site has its " + (c.product?.kind === "game" ? "game" : "tool") + ". Make it again to replace it." : "";
+    $("appState").textContent = "";
+    if (r.build && r.build.building) watchBuild(r.id);
+    else if (r.build && r.build.error) $("appState").textContent = "The build failed: " + r.build.error + " Press the button to try again.";
+    if (r.hasApp) $("appState").append("This site has its " + (c.product?.kind === "game" ? "game" : c.product?.kind === "combo" ? "three-in-one" : "tool") + ". ", el("a", { href: r.preview + "play.html", target: "_blank", rel: "noopener", textContent: "Open it full screen" }), ". Make it again to replace it.");
     $("appBtn").textContent = (c.product?.kind === "game" ? "Make the game" : c.product?.kind === "utility" ? "Make the tool" : c.product?.kind === "combo" ? "Make the three-in-one" : "Make a companion tool");
     $("polishBtn").hidden = !r.hasApp;
     setRate(r.rating || 0); $("rateNote").value = r.note || "";
@@ -406,13 +410,32 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
   $("rateUp").addEventListener("click", () => rate(cur && cur.rating > 0 ? 0 : 1));
   $("rateDown").addEventListener("click", () => rate(cur && cur.rating < 0 ? 0 : -1));
   $("rateNote").addEventListener("change", () => { if (cur) rate(cur.rating || 0); });
+  // the game / tool is being built in the background: poll until it lands, then show it
+  let buildTimer = null;
+  function watchBuild(id) {
+    clearTimeout(buildTimer);
+    $("appState").textContent = "Claude is building the " + ((cur && cur.config.product && cur.config.product.kind) === "combo" ? "three-in-one" : "game / tool") + " now. Two or three minutes; the preview will show it."; $("appBtn").disabled = true;
+    const tick = async () => {
+      if (!cur || cur.id !== id) { $("appBtn").disabled = false; return; }
+      try {
+        const r = await call("/api/studio/get", { id });
+        if (r.hasApp) { cur.config = r.config; cur.hasApp = true; fill(r.config); $("appBtn").disabled = false; $("polishBtn").hidden = false;
+          $("appState").textContent = ""; $("appState").append("Built. It's on the site under its own section. ", el("a", { href: cur.preview + "play.html", target: "_blank", rel: "noopener", textContent: "Open it full screen" }), ".");
+          $("preview").src = cur.preview + "?t=" + Date.now() + "#product"; checklist(); loadDrafts(); return; }
+        if (r.build && r.build.error) { $("appBtn").disabled = false; $("appState").textContent = "The build failed: " + r.build.error + " Press the button to try again."; return; }
+      } catch (e) { /* keep polling */ }
+      buildTimer = setTimeout(tick, 8000);
+    };
+    buildTimer = setTimeout(tick, 8000);
+  }
   $("appBtn").addEventListener("click", async () => {
     if (!cur) return;
     $("appBtn").disabled = true; $("appState").textContent = "Claude is building it. This takes a minute or two…";
     try {
       const r = await call("/api/studio/app", { id: cur.id });
       cur.config = r.config; cur.hasApp = true; fill(r.config);
-      $("appState").textContent = "Built (" + Math.round(r.bytes / 1024) + " KB). It's on the site under its own section. Press Polish it for a second pass.";
+      $("appState").textContent = ""; $("appState").append("Built (" + Math.round(r.bytes / 1024) + " KB). It's on the site under its own section (the preview on the right scrolls to it). ",
+        el("a", { href: cur.preview + "play.html", target: "_blank", rel: "noopener", textContent: "Open it full screen" }), ". Press Polish it for a second pass.");
       $("polishBtn").hidden = false;
       $("preview").src = cur.preview + "?t=" + Date.now() + "#product"; checklist();
     } catch (e) { $("appState").textContent = e.message; } finally { $("appBtn").disabled = false; }
@@ -430,7 +453,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     const s = $("bookState");
     if (!bk) { s.textContent = "No docs written yet: the docs page shows a plain book built from the site until you press Write the docs."; return; }
     s.textContent = "";
-    s.append((bk.source === "claude" ? "Docs by Claude, " : "Plain docs, ") + bk.pages.length + " pages: " + bk.pages.map(p => p.title).join(" · ") + (bk.note ? " · " + bk.note : ""));
+    s.append((bk.source === "claude" ? "Docs by Claude, " : "Plain docs, ") + bk.pages.length + " pages, " + bk.pages.reduce((n, p) => n + (p.words || 0), 0).toLocaleString() + " words: " + bk.pages.map(p => p.title).join(" · ") + (bk.note ? " · " + bk.note : ""));
     if (bk.gitbook) {
       s.append(el("br"), "GitBook: ");
       if (bk.gitbook.publishedUrl) s.append(el("a", { href: bk.gitbook.publishedUrl, target: "_blank", rel: "noopener", textContent: bk.gitbook.publishedUrl }), " · ");
@@ -445,8 +468,9 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
   });
   $("gitbookBtn").addEventListener("click", async () => {
     if (!cur) return;
-    $("gitbookBtn").disabled = true; $("bookState").textContent = "Creating the GitBook space, importing the pages, publishing…";
-    try { await call("/api/studio/gitbook", { id: cur.id, origin: location.origin }); bookState((await call("/api/studio/book/get", { id: cur.id })).book); }
+    $("gitbookBtn").disabled = true; $("bookState").textContent = "Writing the book if needed, then creating the GitBook space, the pages and the docs site, publishing and branding it. A few minutes…";
+    try { const r = await call("/api/studio/gitbook", { id: cur.id }); if (r.config) { cur.config = r.config; fill(r.config); } bookState((await call("/api/studio/book/get", { id: cur.id })).book);
+      $("preview").src = cur.preview + "?t=" + Date.now(); }
     catch (e) { $("bookState").textContent = e.message; } finally { $("gitbookBtn").disabled = false; }
   });
   $("kitBtn").addEventListener("click", async () => {
@@ -504,7 +528,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     $("eKind").value = pr.kind || "launchpad"; $("eProd").value = pr.name || ""; $("eMech").value = pr.mechanic || ""; $("ePerk").value = pr.holderPerk || "";
     $("eDesk").checked = c.launchDesk !== false;
     $("eCa").value = c.coin.ca || ""; $("eDev").value = c.coin.devBuyPercent ?? ""; $("eX").value = c.coin.x || ""; $("eTg").value = c.coin.telegram || "";
-    $("eBuy").value = c.coin.buyUrl || ""; $("eOn").value = c.coin.launchedOn || "";
+    $("eBuy").value = c.coin.buyUrl || ""; $("eOn").value = c.coin.launchedOn || ""; $("eDocs").value = c.docsUrl || "";
     const tn = c.tokenomics || {};
     $("eSource").value = tn.source || ""; $("eDevPolicy").value = tn.devBuyPolicy || "";
     $("eAlloc").value = (tn.allocation || []).map(a => a.name + ": " + a.pct + " — " + a.what).join("\n");
@@ -539,7 +563,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     const c = JSON.parse(JSON.stringify(cur.config));
     c.brand = $("eBrand").value; c.tagline = $("eTagline").value; c.about = $("eAbout").value;
     c.coin.ticker = $("eTicker").value; c.coin.ca = $("eCa").value; c.coin.devBuyPercent = $("eDev").value; c.coin.x = $("eX").value; c.coin.telegram = $("eTg").value;
-    c.coin.buyUrl = $("eBuy").value.trim(); c.coin.launchedOn = $("eOn").value.trim();
+    c.coin.buyUrl = $("eBuy").value.trim(); c.coin.launchedOn = $("eOn").value.trim(); c.docsUrl = $("eDocs").value.trim();
     c.tokenomics = { source: $("eSource").value.trim(), devBuyPolicy: $("eDevPolicy").value.trim(),
       allocation: lines("eAlloc").map(l => { const m = /^(.+?):\s*(\d+)\s*%?\s*(?:[—–-]+\s*(.*))?$/.exec(l); return m ? { name: m[1].trim(), pct: Number(m[2]), what: (m[3] || "").trim() } : null; }).filter(Boolean) };
     const caWas = cur.config.coin.ca, tickerWas = cur.config.coin.ticker;
@@ -581,7 +605,8 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
   $("deployBtn").addEventListener("click", async () => {
     if (!cur) return;
     $("deployErr").textContent = ""; $("deployBtn").disabled = true; $("deployBtn").textContent = "Deploying…";
-    try { const r = await call("/api/studio/deploy", { id: cur.id, slug: $("slug").value }); cur.url = r.url; setLive(r.url); checklist(); loadDrafts(); }
+    try { const r = await call("/api/studio/deploy", { id: cur.id, slug: $("slug").value }); cur.url = r.url; setLive(r.url); if (r.config) { cur.config = r.config; fill(r.config); } checklist(); loadDrafts();
+      if (r.gitbook) { $("deployErr").textContent = ""; $("liveUrl").append(el("br"), r.gitbook); bookState((await call("/api/studio/book/get", { id: cur.id })).book); } }
     catch (e) { $("deployErr").textContent = e.message; }
     finally { $("deployBtn").disabled = false; $("deployBtn").textContent = "Deploy to Vercel"; }
   });

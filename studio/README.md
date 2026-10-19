@@ -60,8 +60,10 @@ address, and a **vibe** chosen per site: arcade, neon, candy, retro or clean. Ev
   tabs with one mascot and shared progress).
 - Ideas and builds lean on the loops the whole world knows (slingshot physics, endless runners, match-3, one-tap,
   2048, daily puzzles, idle clickers, lane defense…) with your own mascot and name, never a real game's title or art.
-- **Make the game / tool** builds it to a quality bar (phone first, juice, progression, share card, no fakes); **Polish
-  it** is a second pass where Claude play-tests it in its head, fixes bugs and adds what is missing.
+- **The game builds itself.** A site that is a game, a tool or a three-in-one starts building it the moment the site is
+  written (two or three minutes, in the background); the preview on the right shows it when it lands, and "Open it
+  full screen" plays it in its own tab. Anyone can play on the deployed site, free, no wallet. **Make the game / tool**
+  rebuilds it; **Polish it** is a second pass where Claude play-tests it in its head, fixes bugs and adds what is missing.
 
 ## The content kit: pictures, three videos, the posts, how to post
 
@@ -80,12 +82,18 @@ Files live on the volume under `content/<site id>/` and are served to you only.
 
 ## The docs: a GitBook for every launch
 
-**Write the docs** has Claude write an in-depth, multi-page book from the site (introduction, getting started, the
-product, how to play / use it, holder perks, tokenomics with "where the money goes", roadmap, brand kit, FAQ, official
-links). It ships with the site at `/docs.html` (sidebar, pages, the site's colors). **Download for GitBook (.zip)** gives
+**Write the docs** has Claude write an in-depth book from the site (13-15 pages: welcome, the story, getting started,
+the product in depth, how to play / use it, holder perks, community and events, the coin, tokenomics with "where the
+money goes", launch plan, roadmap, safety, FAQ, glossary, official links). No contract address until you add one; X is
+always called X. It ships with the site at `/docs.html` (sidebar, pages, the site's colors). **Download for GitBook (.zip)** gives
 the GitBook-ready pages (README.md, SUMMARY.md, one file per page) to import by hand.
 
-**Publish to GitBook** does it for you with `GITBOOK_TOKEN` (gitbook.com → account → Developer settings → personal
+**It publishes itself.** With `GITBOOK_TOKEN` set, the first **Deploy to Vercel** writes the book (if you have not
+yet), creates the GitBook space and docs site, publishes it in the coin's colors with its emoji, and puts the link on
+the site: a **GitBook** button in the hero, the nav and the socials, specific to the coin (`…gitbook.io/<brand>-docs`).
+**Publish to GitBook** does the same by hand, and again after edits (the same space and site are reused).
+
+**Publish to GitBook** uses `GITBOOK_TOKEN` (gitbook.com → account → Developer settings → personal
 access token; `GITBOOK_ORG_ID` optional when you have several organizations): it creates the space, imports the pages
 and creates the docs site, then tells you the `*.gitbook.io` link, or exactly which step to finish in GitBook when the
 plan does not allow it from the API. The pages are fetched by GitBook from an unguessable link on this server.

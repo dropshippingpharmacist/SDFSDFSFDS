@@ -422,6 +422,7 @@ test("the trend feeds take live sources, and the server exposes the switch, the 
     await post("/api/studio/login", { password: "correct horse" });
     const g = await post("/api/studio/generate", { idea: "Frog Arcade, a three-in-one (game + utility + launchpad): a slingshot game, a card maker and a launch kit", ticker: "FROGARC" });
     assert.equal(g.config.product.kind, "combo"); assert.equal(g.config.launchDesk, false); assert.equal(g.config.vibe, "arcade");
+    assert.equal(g.build, null, "no key, no background build"); assert.equal((await post("/api/studio/get", { id: g.id })).build, null);
     const on = await post("/api/studio/save", { id: g.id, config: { ...g.config, launchDesk: true } });
     assert.equal(on.config.launchDesk, true, "the owner can turn the desk on");
     const cfg = await (await fetch(base + `/studio/p/${g.id}/config.js`, { headers: { cookie } })).text();
@@ -608,44 +609,66 @@ import { makeBook, rulesBook, bookHtml, bookFiles, zip, mdToHtml, publishGitBook
 test("the book: Claude's pages cleaned, the plain book from the config, HTML with a sidebar, GitBook files and a real zip", async () => {
   const cfg = { ...honest({ ...rules("cat runner game"), kind: "game", holder_perk: "gold skin" }, "x").config, siteUrl: "https://catrun.vercel.app" };
   const plain = rulesBook(cfg);
-  assert.ok(plain.length >= 7 && plain.some(p => p.slug === "tokenomics") && plain.at(-1).slug === "official-links");
+  assert.ok(plain.length >= 6 && plain.some(p => p.slug === "tokenomics") && !plain.some(p => p.slug === "brand") && plain.at(-1).slug === "official-links");
   const bk = await makeBook(cfg, { client: fakeClaude({ pages: [
-    { title: "Introduction", slug: "Intro!", markdown: "# Hi\n\nCat Run is a runner. Guaranteed 100x for holders. Play it on the site.\n\n- fast\n- fun\n- airdrops every week" },
-    { title: "Tokenomics", slug: "tokenomics", markdown: "| Share | Bucket | What |\n|---|---|---|\n| 40% | The game | levels |" },
-    { title: "Dupe", slug: "tokenomics", markdown: "x" }] }) });
+    { title: "Introduction", slug: "Intro!", description: "Start here.", markdown: "# Hi\n\nCat Run is a runner. Guaranteed 100x for holders. Play it on the site.\n\n- fast\n- fun\n- airdrops every week" },
+    { title: "Tokenomics", slug: "tokenomics", description: "", markdown: "| Share | Bucket | What |\n|---|---|---|\n| 40% | The game | levels |" },
+    { title: "Dupe", slug: "tokenomics", description: "", markdown: "x {% hint %}<b>html</b>{% endhint %}" }] }) });
   assert.equal(bk.source, "claude"); assert.deepEqual(bk.pages.map(p => p.slug), ["intro", "tokenomics", "tokenomics-2"]);
   assert.equal(bk.pages[0].markdown, "# Hi\n\nCat Run is a runner. Play it on the site.\n\n- fast\n- fun", "promises are dropped line by line");
+  assert.equal(bk.pages[0].description, "Start here."); assert.equal(bk.pages[2].markdown, "x html", "no HTML or template tags reach GitBook");
   assert.match(mdToHtml(bk.pages[1].markdown), /<table><tr><th>Share<\/th>.*<td>40%<\/td>/s);
   assert.match(mdToHtml("## T\n\nsome **bold** and `code` <script>x</script>\n\n1. one\n2. two\n\n> quote"), /<h3>T<\/h3>.*<b>bold<\/b>.*&lt;script&gt;.*<ol><li>one<\/li><li>two<\/li><\/ol>.*<blockquote>quote/s);
   const html = bookHtml(cfg, bk.pages);
   assert.match(html, /<nav><a href="#intro" data-i="0">Introduction<\/a>/); assert.match(html, /<article id="tokenomics-2">/); assert.ok(!html.includes("<script"));
   const files = bookFiles(cfg, bk.pages);
-  assert.ok(files["README.md"].startsWith("# " + cfg.brand) && files["SUMMARY.md"].includes("* [Tokenomics](tokenomics.md)") && files["tokenomics.md"] && files[".gitbook.yaml"]);
+  assert.ok(files["README.md"].includes("# " + cfg.brand) && files["SUMMARY.md"].includes("* [Tokenomics](tokenomics.md)") && files["tokenomics.md"] && files[".gitbook.yaml"]);
   const z = zip(files);
   assert.equal(z.readUInt32LE(0), 0x04034b50, "a zip local header"); assert.ok(z.includes(Buffer.from("SUMMARY.md")) && z.includes(Buffer.from("| 40% | The game |")));
   const eocd = z.length - 22; assert.equal(z.readUInt32LE(eocd), 0x06054b50); assert.equal(z.readUInt16LE(eocd + 10), Object.keys(files).length, "every file in the directory");
 });
 
-test("GitBook: a space, an import from the public link, a docs site; every refusal is reported with the manual step", async () => {
+test("GitBook: space, change request with every page, merge, docs site, publish, brand; a second publish reuses and replaces", async () => {
   const cfg = honest(rules("cat runner game"), "x").config, pages = rulesBook(cfg);
   await assert.rejects(() => publishGitBook(cfg, pages, { token: "" }), /GITBOOK_TOKEN/);
   const calls = [];
   const api = async (u, init) => {
-    calls.push([init.method, String(u).replace("https://api.gitbook.com/v1", ""), init.body ? JSON.parse(init.body) : null, init.headers.authorization]);
-    const p = String(u);
-    if (p.endsWith("/orgs")) return new Response(JSON.stringify({ items: [{ id: "org1" }] }), { status: 200 });
-    if (p.endsWith("/orgs/org1/spaces")) return new Response(JSON.stringify({ id: "sp1", urls: { app: "https://app.gitbook.com/s/sp1" } }), { status: 200 });
-    if (p.includes("/content/import")) return new Response("{}", { status: 200 });
-    if (p.endsWith("/orgs/org1/sites")) return new Response(JSON.stringify({ id: "site1", urls: { published: "https://catpad.gitbook.io/catpad-docs" } }), { status: 200 });
-    if (p.endsWith("/publish")) return new Response(JSON.stringify({ error: { message: "plan" } }), { status: 403 });
+    const path = String(u).replace("https://api.gitbook.com/v1", "");
+    calls.push([init.method, path, init.body ? JSON.parse(init.body) : null, init.headers.authorization]);
+    const j = o => new Response(JSON.stringify(o), { status: 200 });
+    if (path === "/orgs") return j({ items: [{ id: "org1" }] });
+    if (path === "/orgs/org1/spaces") return j({ id: "sp1", revision: "rev0", urls: { app: "https://app.gitbook.com/s/sp1" } });
+    if (path === "/spaces/sp1") return j({ id: "sp1", revision: "rev9", urls: { app: "https://app.gitbook.com/s/sp1" } });
+    if (path === "/spaces/sp1/revisions/rev0") return j({ pages: [{ id: "pDefault" }] });
+    if (path === "/spaces/sp1/revisions/rev9") return j({ pages: pages.map((p, i) => ({ id: "old" + i })) });
+    if (path === "/spaces/sp1/change-requests") return j({ id: "cr1" });
+    if (path.startsWith("/spaces/sp1/change-requests/cr1/content")) return j({});
+    if (path === "/spaces/sp1/change-requests/cr1/merge") return j({});
+    if (path === "/orgs/org1/sites") return j({ id: "site1", urls: {} });
+    if (path === "/orgs/org1/sites/site1") return j({ id: "site1", urls: { published: "https://crypto.gitbook.io/catpad-docs/" } });
+    if (path === "/orgs/org1/sites/site1/publish") return j({ urls: { published: "https://crypto.gitbook.io/catpad-docs/" } });
+    if (path === "/orgs/org1/sites/site1/customization") return init.method === "GET" ? j({ updatedAt: "x", title: "t", styling: { theme: "clean", primaryColor: { light: "#346DDB", dark: "#346DDB" } }, favicon: {}, themes: { default: "system", toggeable: false } }) : j({});
     return new Response("{}", { status: 404 });
   };
-  const out = await publishGitBook(cfg, pages, { token: "gb_tok", fetchImpl: api, publicZipUrl: "https://studio.example/public/book/abc.zip", publicMdUrl: "https://studio.example/public/book/abc.md" });
-  assert.equal(out.publishedUrl, "https://catpad.gitbook.io/catpad-docs"); assert.equal(out.imported, true);
+  const out = await publishGitBook(cfg, pages, { token: "gb_tok", fetchImpl: api });
+  assert.equal(out.publishedUrl, "https://crypto.gitbook.io/catpad-docs/"); assert.equal(out.spaceId, "sp1"); assert.equal(out.siteId, "site1");
   assert.ok(calls.every(c => c[3] === "Bearer gb_tok"));
-  assert.deepEqual(calls.map(c => c[0] + " " + c[1]), ["GET /orgs", "POST /orgs/org1/spaces", "POST /spaces/sp1/content/import", "POST /orgs/org1/sites", "POST /orgs/org1/sites/site1/publish"]);
-  assert.deepEqual(calls[2][2], { url: "https://studio.example/public/book/abc.zip", source: "zip" }, "the zip of pages is what GitBook imports");
-  assert.ok(out.steps.some(s => /Publishing refused: plan\. In GitBook/.test(s)), "the manual step is spelled out: " + out.steps.join(" | "));
+  assert.deepEqual(calls.map(c => c[0] + " " + c[1]), ["GET /orgs", "POST /orgs/org1/spaces", "GET /spaces/sp1/revisions/rev0", "POST /spaces/sp1/change-requests",
+    "POST /spaces/sp1/change-requests/cr1/content?compat=false", "POST /spaces/sp1/change-requests/cr1/merge", "POST /orgs/org1/sites", "POST /orgs/org1/sites/site1/publish",
+    "GET /orgs/org1/sites/site1/customization", "PUT /orgs/org1/sites/site1/customization"], "the exact flow GitBook's own tools use");
+  const content = calls[4][2].changes;
+  assert.deepEqual(content[0], { operation: "delete_page", page: "pDefault" }, "the empty default page goes");
+  assert.equal(content.length, 1 + pages.length); assert.equal(content[1].operation, "insert_page"); assert.equal(content[1].at, 0);
+  assert.match(content[1].document.markdown, /^---\ndescription: .+\n---\n\n# /, "frontmatter description, then the page");
+  assert.deepEqual(calls[6][2], { title: cfg.brand + " Docs", type: "basic", visibility: "public", spaces: ["sp1"] });
+  const brand = calls[9][2];
+  assert.equal(brand.styling.primaryColor.light, cfg.colors.accent); assert.equal(brand.favicon.emoji, "1f680"); assert.equal(brand.themes.toggeable, true); assert.ok(!("updatedAt" in brand));
+  calls.length = 0;
+  const again = await publishGitBook(cfg, pages, { token: "gb_tok", fetchImpl: api, existing: { spaceId: "sp1", siteId: "site1" } });
+  assert.ok(again.steps.includes("Space reused") && again.steps.includes("Site reused"));
+  assert.ok(calls.some(c => c[1] === "/spaces/sp1") && calls.some(c => c[1] === "/spaces/sp1/revisions/rev9") && !calls.some(c => c[1] === "/orgs/org1/spaces"), "the launch's own space again, none created");
+  const ch = calls.find(c => c[1].includes("/content"))[2].changes;
+  assert.equal(ch.filter(c => c.operation === "delete_page").length, pages.length, "last time's pages replaced");
 });
 
 test("over HTTP: the book is written, served as docs.html / docs.zip to the owner, and at the public link for GitBook only", async () => {
@@ -665,17 +688,15 @@ test("over HTTP: the book is written, served as docs.html / docs.zip to the owne
     const g = await post("/api/studio/generate", { idea: "a cat runner game", ticker: "RUN" });
     assert.equal((await post("/api/studio/book/get", { id: g.id })).book, null);
     const w = await post("/api/studio/book", { id: g.id });
-    assert.equal(w.status, 200); assert.equal(w.source, "rules"); assert.ok(w.pages.length >= 7);
+    assert.equal(w.status, 200); assert.equal(w.source, "rules"); assert.ok(w.pages.length >= 6);
     const docs = await (await fetch(base + `/studio/p/${g.id}/docs.html`, { headers: { cookie } })).text();
     assert.match(docs, /<article id="tokenomics">/); assert.match(docs, /Where the money goes/);
     const z = await fetch(base + `/studio/p/${g.id}/docs.zip`, { headers: { cookie } });
     assert.equal(z.headers.get("content-type"), "application/zip"); assert.equal(Buffer.from(await z.arrayBuffer()).readUInt32LE(0), 0x04034b50);
     assert.equal((await fetch(base + `/studio/p/${g.id}/docs.zip`)).status, 401);
-    const gb = await post("/api/studio/gitbook", { id: g.id, origin: "http://not-https" });
-    assert.equal(gb.status, 400); assert.match(gb.error, /public https address/);
-    const gb2 = await post("/api/studio/gitbook", { id: g.id, origin: "https://studio.example.app" });
+    const gb2 = await post("/api/studio/gitbook", { id: g.id });
     assert.equal(gb2.status, 400); assert.match(gb2.error, /GITBOOK_TOKEN/);
-    assert.equal((await fetch(base + "/public/book/nope-nope-nope-nope-nope.zip")).status, 404, "nothing public without the exact token");
+    assert.equal((await fetch(base + "/public/book/nope-nope-nope-nope-nope.zip")).status, 404, "nothing is public");
     const s2 = await post("/api/studio/status"); assert.equal(s2.gitbook, false);
   } finally { server.close(); delete process.env.STUDIO_PASSWORD; }
 });

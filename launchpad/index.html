@@ -193,6 +193,7 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -2; pointer-even
         <a class="btn ghost" id="siteChart" target="_blank" rel="noopener">Chart</a>
         <a class="btn ghost" id="siteX" target="_blank" rel="noopener">X</a>
         <a class="btn ghost" id="siteTg" target="_blank" rel="noopener">Telegram</a>
+        <a class="btn ghost" id="siteDocs" href="docs.html">Docs</a>
         <a class="btn ghost" id="sitePlay" href="#product" hidden>Play</a>
         <a class="btn ghost" href="#launch" id="siteLaunchLink">Launch a coin</a>
       </div>
@@ -342,6 +343,8 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -2; pointer-even
     });
 
     const site = $("site"), nav = $("siteNav"), secs = [];
+    // the docs: the coin's own GitBook once published, else the docs page shipped with the site
+    const docsUrl = /^https:\/\//.test(C.docsUrl || "") ? C.docsUrl : "docs.html";
     const section = (id, title, ...kids) => { const s = mk("section", { id }, mk("h2", { textContent: title }), ...kids); site.append(s); secs.push([id, title]); };
     // launchDesk false = this site is the coin's home and its product; the token was launched elsewhere
     if (C.launchDesk === false) { $("launch").hidden = true; $("siteLaunchLink").hidden = true; $("connectBtn").hidden = true; document.querySelector(".mine").hidden = true;
@@ -414,12 +417,14 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -2; pointer-even
       mk("span", { className: "st", textContent: { live: "Live now", next: "Building next", idea: "Ideas, not promises" }[ph.status] || ph.status }),
       mk("h3", { textContent: ph.title }), mk("ul", {}, ...(ph.items || []).map(i => mk("li", { textContent: i }))))));
     if ((C.faq || []).length) section("faq", "FAQ", ...C.faq.map(f => mk("details", {}, mk("summary", { textContent: f.q }), mk("p", { textContent: f.a }))));
-    const so = [["X", coin.x], ["Telegram", coin.telegram], ["Chart", ca && "https://dexscreener.com/solana/" + ca], ["pump.fun", ca && "https://pump.fun/coin/" + ca]].filter(x => x[1]);
+    const so = [["X", coin.x], ["Telegram", coin.telegram], [/gitbook\.io/.test(docsUrl) ? "GitBook" : "Docs", C.docs !== false && docsUrl],
+      ["Chart", ca && "https://dexscreener.com/solana/" + ca], ["Buy", ca && (coin.buyUrl || (C.launchDesk === false ? "https://jup.ag/swap/SOL-" + ca : "https://pump.fun/coin/" + ca))]].filter(x => x[1]);
     if (so.length) section("socials", "Socials", mk("div", { className: "socials" }, ...so.map(([t, h]) => mk("a", { className: "btn ghost", textContent: t, href: h, target: "_blank", rel: "noopener" }))));
     site.hidden = false;
     if (C.launchDesk !== false) nav.append(mk("a", { href: "#launch", textContent: "Launch" }));
     nav.append(...secs.map(([id, t]) => mk("a", { href: "#" + id, textContent: t.replace(/^How to buy .*/, "Buy").replace(/^How .* works$/, "How it works") })));
-    if (C.docs !== false) nav.append(mk("a", { href: "docs.html", textContent: "Docs" }));
+    if (C.docs !== false) nav.append(mk("a", { href: docsUrl, textContent: /gitbook\.io/.test(docsUrl) ? "GitBook" : "Docs", target: /^https:/.test(docsUrl) ? "_blank" : "", rel: "noopener" }));
+    $("siteDocs").href = docsUrl; $("siteDocs").textContent = /gitbook\.io/.test(docsUrl) ? "GitBook" : "Docs"; if (/^https:/.test(docsUrl)) { $("siteDocs").target = "_blank"; $("siteDocs").rel = "noopener"; }
     nav.hidden = false;
   })();
 
