@@ -226,9 +226,9 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
           <label for="eDev">Dev buy % <small>after you launch</small><input id="eDev" inputmode="decimal"></label>
           <label for="eX">X link<input id="eX" type="url"></label>
           <label for="eTg">Telegram<input id="eTg" type="url"></label>
-          <label for="eBuy">Buy link <small>where people buy; empty = the pump.fun page of the address</small><input id="eBuy" type="url"></label>
-          <label for="eOn">Launched on <small>shown in Tokenomics; empty = "pump.fun, bonding curve"</small><input id="eOn" maxlength="60" placeholder="e.g. a Solana launchpad, bonding curve"></label>
-          <label for="eDocs">GitBook link <small>the site's Docs button; filled in by Publish to GitBook</small><input id="eDocs" type="url" placeholder="https://….gitbook.io/…"></label>
+          <label for="eBuy">Buy link <small>where people buy (the coin's launchpad page)</small><input id="eBuy" type="url"></label>
+          <label for="eOn">Launched on <small>optional</small><input id="eOn" maxlength="60" placeholder="e.g. a Solana launchpad, bonding curve"></label>
+          <label for="eDocs">Docs link <small>empty = the site's own /docs/ page (recommended)</small><input id="eDocs" type="url" placeholder="leave empty"></label>
         </div>
         <button class="btn" id="saveBtn" type="button">Save and refresh preview</button>
         <p class="muted">Tokenomics and the "Live now" roadmap are facts about the launchpad and stay as they are.
@@ -580,7 +580,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     $("eDesk").checked = c.launchDesk !== false;
     const cl = c.colors || {}; setColors("eColors", cl.picked && cl.picked.length ? cl.picked : [cl.accent, cl.accent2, cl.accent3].filter(Boolean)); $("eFinish").value = c.finish || "";
     $("eCa").value = c.coin.ca || ""; $("eDev").value = c.coin.devBuyPercent ?? ""; $("eX").value = c.coin.x || ""; $("eTg").value = c.coin.telegram || "";
-    $("eBuy").value = c.coin.buyUrl || ""; $("eOn").value = c.coin.launchedOn || ""; $("eDocs").value = c.docsUrl || "";
+    $("eBuy").value = c.coin.buyUrl || ""; $("eOn").value = c.coin.launchedOn || ""; $("eDocs").value = /gitbook\.io/i.test(c.docsUrl || "") ? "" : (c.docsUrl || "");
     const tn = c.tokenomics || {};
     $("eSource").value = tn.source || ""; $("eDevPolicy").value = tn.devBuyPolicy || "";
     $("eAlloc").value = (tn.allocation || []).map(a => a.name + ": " + a.pct + " — " + a.what).join("\n");
