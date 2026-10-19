@@ -631,13 +631,25 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
   // ---- domains: owner details once, then price, confirm, buy, attach, ship
   const OWNER = [["firstName", "First name"], ["lastName", "Last name"], ["email", "Email"], ["phone", "Phone (+1.5555551234)"], ["city", "City"], ["state", "State / region"], ["zip", "ZIP / postcode"], ["country", "Country (2 letters, e.g. US)"], ["companyName", "Company (optional)"]];
   OWNER.forEach(([k, t]) => $("ownerForm").append(el("label", {}, t, el("input", { id: "own_" + k }))));
-  call("/api/studio/owner", {}).then(r => { if (r.owner) { OWNER.forEach(([k]) => { $("own_" + k).value = r.owner[k] || ""; }); $("ownerState").textContent = " Saved."; } }).catch(() => {});
+  call("/api/studio/owner", {}).then(r => { if (r.owner) { ownerSaved = true; OWNER.forEach(([k]) => { $("own_" + k).value = r.owner[k] || ""; }); $("ownerState").textContent = " Saved."; } else $("ownerBox").open = true; }).catch(() => {});
   $("ownerSave").addEventListener("click", async () => {
     const contact = Object.fromEntries(OWNER.map(([k]) => [k, $("own_" + k).value.trim()]));
-    try { await call("/api/studio/owner", { contact }); $("ownerState").textContent = " Saved."; } catch (e) { $("ownerState").textContent = " " + e.message; }
+    try { await call("/api/studio/owner", { contact }); ownerSaved = true; $("ownerState").textContent = " Saved.";
+      if (pendingBuy) { const d = pendingBuy; pendingBuy = null; $("domainState").scrollIntoView({ behavior: "smooth", block: "center" }); priceAndBuy(d); } }
+    catch (e) { $("ownerState").textContent = " " + e.message; }
   });
+  let ownerSaved = false, pendingBuy = null;
+  function needOwner(domain) {
+    // the purchase waits for the owner details: open the form, point at it, and buy right after Save
+    pendingBuy = domain; $("ownerBox").open = true;
+    $("domainState").textContent = "One step first: fill in the domain owner details below (every registrar requires them) and press Save. " + domain + " is bought right after.";
+    $("domainState").className = "note";
+    $("ownerBox").scrollIntoView({ behavior: "smooth", block: "center" }); setTimeout(() => $("own_firstName").focus(), 400);
+  }
   async function priceAndBuy(domain) {
     if (!cur) return;
+    $("domainState").className = "muted";
+    if (!ownerSaved) return needOwner(domain);
     $("domainState").textContent = "Checking " + domain + " with Vercel…";
     try {
       const q = await call("/api/studio/domain/quote", { domain });
@@ -646,7 +658,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
       if (!confirm(msg)) { $("domainState").textContent = "Not bought."; return; }
       await call("/api/studio/domain/buy", { id: cur.id, domain: q.domain, price: q.price });
       $("domainState").textContent = "Buying " + q.domain + ", attaching it and redeploying… about a minute."; watchJobs(cur.id);
-    } catch (e) { $("domainState").textContent = e.message; if (/owner details/.test(e.message)) $("ownerBox").open = true; }
+    } catch (e) { $("domainState").textContent = e.message; $("domainState").className = "note"; if (/owner details/.test(e.message)) { ownerSaved = false; needOwner(domain); } }
   }
   $("suggestBtn").addEventListener("click", async () => {
     if (!cur) return;
