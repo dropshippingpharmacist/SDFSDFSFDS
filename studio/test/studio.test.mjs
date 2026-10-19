@@ -480,7 +480,7 @@ test("content kit: the plan passes the honesty filter, the templates are complet
   assert.ok(MARKS.length >= 8);
   const v = templateVideo(intro, cfg);
   assert.match(v, /window\.render = function/);
-  { const script = v.slice(v.indexOf("<script>") + 8, v.lastIndexOf("</script>")); assert.doesNotThrow(() => new Function(script), "the template video's script parses"); } assert.match(v, /id="c" width="1080" height="1080"/); assert.match(v, /window\.DURATION = 7/);
+  { const script = v.slice(v.indexOf("<script>") + 8, v.lastIndexOf("</script>")); assert.doesNotThrow(() => new Function(script), "the template video's script parses"); } assert.match(v, /id="c" width="1080" height="1080"/); assert.match(v, /window\.DURATION = 9/, "2 s build-up + the scene + 3 s end card");
   const bad = { messages: { stream: () => ({ finalMessage: async () => ({ stop_reason: "end_turn", content: [{ type: "text", text: "<!doctype html><html><body><img src=\"https://evil/x.png\"></body></html>" }] }) }) } };
   assert.equal((await makeVisual("pfp", "x", cfg, { client: bad })).source, "template", "a page pulling images from the web is refused; the template is used");
   const good = { messages: { stream: () => ({ finalMessage: async () => ({ stop_reason: "end_turn", content: [{ type: "text", text: "```html\n<!doctype html><html><body><canvas id=\"c\"></canvas><script>window.DURATION=5;window.render=t=>{}</script></body></html>\n```" }] }) }) } };
@@ -810,4 +810,15 @@ test("parseBig: small requests use parse; big ones stream with the schema in the
   assert.deepEqual(r.parsed, { a: 2, b: "y" }); assert.ok(!("format" in seen.output_config) && /JSON Schema/.test(seen.system) && seen.system.startsWith("base"));
   const bad = { messages: { stream: () => ({ finalMessage: async () => ({ stop_reason: "end_turn", content: [{ type: "text", text: "{\"a\": \"no\"}" }] }) }) } };
   assert.equal((await parseBig(bad, { max_tokens: 40000 }, S)).parsed, null, "a wrong answer is null, never a crash");
+});
+
+
+// ---- the owner's colors and finish (2026-10-19) ---------------------------------------------------------------------
+import { FINISHES } from "../generate.mjs";
+test("colors and finish: the owner's picks become the palette, any finish rides on the site, junk is dropped", () => {
+  const c = honest(rules("a cat game"), "x", { colors: ["#112233", "#445566", "nope", "#778899"], finish: "galaxy" }).config;
+  assert.deepEqual([c.colors.accent, c.colors.accent2, c.colors.accent3], ["#112233", "#445566", "#778899"]);
+  assert.deepEqual(c.colors.picked, ["#112233", "#445566", "#778899"]); assert.equal(c.finish, "galaxy");
+  assert.equal(honest(rules("x"), "x", { finish: "glitter-bomb" }).config.finish, "", "unknown finishes are dropped");
+  assert.ok(FINISHES.includes("matte") && FINISHES.includes("ombre") && FINISHES.includes("retro") && FINISHES.length >= 12);
 });

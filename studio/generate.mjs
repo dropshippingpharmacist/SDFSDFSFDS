@@ -85,10 +85,15 @@ const fitText = (t, max) => {
 // a sentence with a banned claim is dropped, not reworded: the copy stays true
 const dropClaims = t => clean(t, 2000).split(/(?<=[.!?])\s+/).filter(x => x && !BANNED.test(x)).join(" ").slice(0, 600);
 
+// finishes: how the colors are laid on, across the whole site (template CSS keyed on data-finish)
+export const FINISHES = ["", "matte", "galaxy", "ombre", "retro", "neon", "pastel", "holographic", "sunset", "ocean", "monochrome", "candy", "earthy", "y2k", "vaporwave"];
+const ownColors = opts => (Array.isArray(opts.colors) ? opts.colors : []).filter(c => /^#[0-9a-f]{6}$/i.test(c)).slice(0, 5);
 export function honest(raw, idea, opts = {}) {
   const brand = clean(raw.brand, 24).replace(/[^\p{L}\p{N} .'-]/gu, "") || "Launchpad";
   const ticker = (opts.ticker || raw.ticker || brand).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10) || "PAD";
-  const accent = /^#[0-9a-f]{6}$/i.test(opts.accent || raw.accent || "") ? (opts.accent || raw.accent) : "#ff6a2b";
+  const mine = ownColors(opts);
+  const accent = mine[0] || (/^#[0-9a-f]{6}$/i.test(opts.accent || raw.accent || "") ? (opts.accent || raw.accent) : "#ff6a2b");
+  if (mine.length) raw = { ...raw, accent2: mine[1] || raw.accent2, accent3: mine[2] || raw.accent3 };
   const removed = [];
   const keep = (t, max) => { const out = dropClaims(t); if (clean(t, 2000).length > out.length + 5) removed.push(clean(t, 120)); return fitText(out, max); };
   const cfg = {
@@ -96,7 +101,8 @@ export function honest(raw, idea, opts = {}) {
     tagline: keep(raw.tagline, 90) || `Launch a coin with ${brand}.`,
     about: keep(raw.about, 380) || `${brand} is a launch site with its own coin. Launch from your own wallet; your keys never leave it.`,
     emoji: [...String(raw.emoji || "🚀")][0] || "🚀",
-    colors: palette(accent, raw),
+    colors: { ...palette(accent, raw), ...(mine.length ? { picked: mine } : {}) },
+    finish: FINISHES.includes(opts.finish) ? opts.finish : FINISHES.includes(raw.finish) ? raw.finish : "",
     display: FONTS.includes(raw.display) ? raw.display : "Bagel Fat One",
     maxDevBuySol: 5, defaultDevBuySol: 0.1,
     coin: { ticker, ca: "", x: clean(opts.x, 200) || "", telegram: clean(opts.telegram, 200) || "", devBuyPercent: null,
@@ -243,6 +249,8 @@ export async function generate(idea, opts = {}, client = null) {
         system: SYSTEM,
         messages: [{ role: "user", content: `The idea:\n${text}` +
           (opts.ticker ? `\nThe owner wants the ticker $${opts.ticker}.` : "") +
+          (ownColors(opts).length ? `\nThe owner picked these colors; build the palette from them (accent, accent2, accent3 in this order): ${ownColors(opts).join(", ")}.` : "") +
+          (opts.finish ? `\nThe owner wants a "${opts.finish}" finish for the whole site.` : "") +
           (opts.intel ? `\n\nWhat the Studio knows about launches right now (use it for the angle, the copy and the FAQ; never copy a live coin):\n${opts.intel}` : "") +
           (memoryText(opts.mem) ? `\n\nWhat this builder liked, disliked and launched before (lean toward what worked):\n${memoryText(opts.mem)}` : "") }],
       });
