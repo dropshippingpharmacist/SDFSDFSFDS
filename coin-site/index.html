@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Coin Launch Page</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Figtree:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one sticker-style hero (the animal + its name), then the story, the three buy steps, links, and the plain-language footer. */
+:root {
+  --bg: #fff6ec;          /* page */
+  --ink: #1d1530;         /* text */
+  --muted: #6b5f7d;       /* secondary text */
+  --card: #ffffff;        /* raised surfaces */
+  --line: #1d1530;        /* sticker outlines */
+  --pop: #ff6a2b;         /* the one loud color */
+  --mint: #2fbf8f;        /* "live" state */
+  --chip: #ffe2cf;        /* ticker chip */
+  --display: "Bagel Fat One", "Arial Rounded MT Bold", system-ui, sans-serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #150f24; --ink: #fbefe4; --muted: #b3a6c6; --card: #211936; --line: #fbefe4;
+    --pop: #ff7d42; --mint: #43d6a4; --chip: #3a2440; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #150f24; --ink: #fbefe4; --muted: #b3a6c6; --card: #211936; --line: #fbefe4;
+  --pop: #ff7d42; --mint: #43d6a4; --chip: #3a2440; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--ink); font: 400 17px/1.55 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+main { max-width: 760px; margin: 0 auto; padding-block: 40px 56px; display: grid; gap: 56px; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--pop); outline-offset: 3px; border-radius: 8px; }
+
+.example {
+  justify-self: start; font: 600 13px/1 var(--body); letter-spacing: .06em; text-transform: uppercase;
+  border: 2px dashed var(--muted); color: var(--muted); padding: 8px 12px; border-radius: 999px;
+}
+.hero { display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr); gap: 32px; align-items: center; }
+.sticker {
+  width: 100%; max-width: 220px; aspect-ratio: 1; border-radius: 50%; object-fit: cover;
+  border: 4px solid var(--line); box-shadow: 8px 8px 0 var(--pop); transform: rotate(-4deg); background: var(--card);
+}
+.sticker svg { width: 100%; height: 100%; display: block; }
+h1 {
+  font: 400 clamp(44px, 9vw, 76px)/.95 var(--display); margin: 0; text-wrap: balance; letter-spacing: .01em;
+}
+.ticker {
+  display: inline-block; margin-top: 14px; font: 800 18px/1 var(--body); letter-spacing: .04em;
+  background: var(--chip); border: 2px solid var(--line); border-radius: 10px; padding: 8px 12px;
+}
+.tagline { margin: 14px 0 0; font-size: 20px; color: var(--muted); max-width: 32ch; }
+
+.ca { display: grid; gap: 10px; }
+.ca-label { font: 600 13px/1 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.ca-row {
+  display: flex; gap: 10px; align-items: stretch; background: var(--card); border: 3px solid var(--line);
+  border-radius: 16px; padding: 8px 8px 8px 16px;
+}
+.ca-value { font: 500 15px/1.4 var(--mono); flex: 1; min-width: 0; align-self: center; overflow-wrap: anywhere; }
+.btn {
+  font: 800 16px/1 var(--body); border: 3px solid var(--line); border-radius: 12px; padding: 12px 18px;
+  background: var(--pop); color: #1d1530; cursor: pointer; text-decoration: none; display: inline-flex;
+  align-items: center; justify-content: center; gap: 8px; white-space: nowrap;
+}
+.btn:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--line); }
+.btn[aria-disabled="true"] { background: transparent; color: var(--muted); border-style: dashed; pointer-events: none; }
+.btn.ghost { background: var(--card); color: var(--ink); }
+.links { display: flex; flex-wrap: wrap; gap: 12px; }
+
+h2 { font: 400 32px/1.1 var(--display); margin: 0 0 14px; }
+.story p { margin: 0 0 12px; max-width: 62ch; }
+.credit {
+  display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 8px; padding: 14px 16px;
+  border-left: 6px solid var(--pop); background: var(--card); border-radius: 0 12px 12px 0;
+}
+.credit span { color: var(--muted); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; counter-reset: s; }
+.steps li {
+  counter-increment: s; display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px; align-items: start;
+}
+.steps li::before {
+  content: counter(s); font: 400 24px/44px var(--display); text-align: center; width: 44px; height: 44px;
+  border: 3px solid var(--line); border-radius: 50%; background: var(--chip);
+}
+.steps b { display: block; font-weight: 800; }
+.steps span { color: var(--muted); }
+
+footer { border-top: 3px solid var(--line); padding-top: 20px; color: var(--muted); font-size: 14px; max-width: 70ch; }
+footer p { margin: 0 0 8px; }
+.toast { color: var(--mint); font-weight: 800; min-height: 1.4em; font-size: 14px; }
+
+@media (max-width: 560px) {
+  .hero { grid-template-columns: minmax(0, 1fr); justify-items: start; gap: 24px; }
+  .sticker { max-width: 180px; }
+  .ca-row { flex-direction: column; padding: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .btn:hover { transform: none; } }
+</style>
+</head>
+<body>
+<script>
+/* ===== FILL THESE IN FOR EACH COIN (everything else updates itself) ===== */
+const COIN = {
+  example: true,                         // set to false for a real launch: removes the "Example" badge
+  name: "Mr. Whiskers, Esq.",
+  ticker: "WHISKERS",
+  tagline: "The cat who showed up to work in a suit and a tie.",
+  image: "",                             // "coin.png" next to this file, or an https:// image link; empty = drawn cat
+  ca: "",                                // contract address after launch; empty = "appears at launch"
+  x: "",                                 // the coin's X account, e.g. https://x.com/yourcoin
+  post: "https://x.com/",                // the viral post this coin is about
+  postBy: "@the_original_poster",        // who posted it (credit them)
+  story: [
+    "A photo of a cat in a tiny suit and a red tie went around X today. Hundreds of thousands of views in a few hours, and the replies all asked the same thing: where is he going in that outfit?",
+    "This coin is a tribute to that photo. It is not made by, endorsed by, or connected to the cat's owner or the person who posted it."
+  ]
+};
+/* ======================================================================== */
+</script>
+<main>
+  <div class="example" id="exampleBadge">Example coin: replace the fields at the top of the file</div>
+
+  <section class="hero" aria-labelledby="coinName">
+    <div class="sticker" id="sticker" role="img" aria-label="Coin picture"></div>
+    <div>
+      <h1 id="coinName"></h1>
+      <span class="ticker" id="coinTicker"></span>
+      <p class="tagline" id="coinTagline"></p>
+    </div>
+  </section>
+
+  <section class="ca" aria-label="Contract address">
+    <span class="ca-label">Contract address (Solana)</span>
+    <div class="ca-row">
+      <span class="ca-value" id="caValue"></span>
+      <button class="btn" type="button" id="copyBtn">Copy</button>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="links">
+      <a class="btn" id="buyLink" target="_blank" rel="noopener">Buy on pump.fun</a>
+      <a class="btn ghost" id="chartLink" target="_blank" rel="noopener">Chart on DexScreener</a>
+      <a class="btn ghost" id="xLink" target="_blank" rel="noopener">Follow on X</a>
+    </div>
+  </section>
+
+  <section class="story" aria-labelledby="storyTitle">
+    <h2 id="storyTitle">The moment</h2>
+    <div id="storyText"></div>
+    <div class="credit">
+      <span>Original post by <strong id="postBy"></strong></span>
+      <a class="btn ghost" id="postLink" target="_blank" rel="noopener">See the post on X</a>
+    </div>
+  </section>
+
+  <section aria-labelledby="buyTitle">
+    <h2 id="buyTitle">How to buy</h2>
+    <ol class="steps">
+      <li><div><b>Get a Solana wallet</b><span>Phantom or Solflare, on your phone or as a browser extension.</span></div></li>
+      <li><div><b>Add some SOL</b><span>Buy SOL in the wallet app or send it from an exchange.</span></div></li>
+      <li><div><b>Swap on pump.fun</b><span>Open the pump.fun link above, connect your wallet, and check the contract address matches this page before you buy.</span></div></li>
+    </ol>
+  </section>
+
+  <footer>
+    <p><strong>A memecoin, nothing more.</strong> No team, no roadmap, no utility, and no promise of value. Prices can go to zero in minutes.</p>
+    <p>Not financial advice. Only spend what you can afford to lose.</p>
+  </footer>
+</main>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const set = (id, text) => { $(id).textContent = text; };
+  const ca = (COIN.ca || "").trim();
+  const off = (a, label) => { a.textContent = label; a.setAttribute("aria-disabled", "true"); a.removeAttribute("href"); };
+
+  document.title = COIN.name + " ($" + COIN.ticker + ")";
+  $("exampleBadge").hidden = !COIN.example;
+  set("coinName", COIN.name);
+  set("coinTicker", "$" + COIN.ticker);
+  set("coinTagline", COIN.tagline);
+  set("postBy", COIN.postBy);
+
+  const sticker = $("sticker");
+  if (COIN.image) {
+    const img = document.createElement("img");
+    img.src = COIN.image; img.alt = COIN.name; img.className = "sticker";
+    sticker.replaceWith(img);
+  } else {
+    sticker.innerHTML = '<svg viewBox="0 0 200 200" aria-hidden="true"><rect width="200" height="200" fill="var(--chip)"/>' +
+      '<polygon points="52,78 66,30 96,62" fill="var(--ink)"/><polygon points="148,78 134,30 104,62" fill="var(--ink)"/>' +
+      '<circle cx="100" cy="105" r="56" fill="var(--ink)"/><circle cx="80" cy="98" r="8" fill="var(--bg)"/>' +
+      '<circle cx="120" cy="98" r="8" fill="var(--bg)"/><polygon points="92,170 108,170 112,196 88,196" fill="var(--pop)"/>' +
+      '<polygon points="70,152 100,166 130,152 130,176 70,176" fill="var(--bg)"/></svg>';
+  }
+
+  const story = $("storyText");
+  (COIN.story || []).forEach(t => { const p = document.createElement("p"); p.textContent = t; story.appendChild(p); });
+
+  if (ca) {
+    set("caValue", ca);
+    $("buyLink").href = "https://pump.fun/coin/" + encodeURIComponent(ca);
+    $("chartLink").href = "https://dexscreener.com/solana/" + encodeURIComponent(ca);
+  } else {
+    set("caValue", "Appears here at launch");
+    $("copyBtn").disabled = true; $("copyBtn").setAttribute("aria-disabled", "true");
+    off($("buyLink"), "pump.fun link at launch");
+    off($("chartLink"), "Chart at launch");
+  }
+  if (COIN.x) $("xLink").href = COIN.x; else off($("xLink"), "X account coming");
+  if (COIN.post) $("postLink").href = COIN.post; else off($("postLink"), "Post link coming");
+
+  $("copyBtn").addEventListener("click", () => {
+    const done = () => { set("toast", "Copied"); setTimeout(() => set("toast", ""), 1800); };
+    try {
+      navigator.clipboard.writeText(ca).then(done, () => selectCa());
+    } catch (e) { selectCa(); }
+  });
+  function selectCa() {
+    const r = document.createRange(); r.selectNodeContents($("caValue"));
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    set("toast", "Selected: press Ctrl+C or Cmd+C");
+  }
+})();
+</script>
+</body>
+</html>
