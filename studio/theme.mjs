@@ -4,7 +4,7 @@
 // no scripts, no outside resources, no imports. Without a key, a layout is still picked from the brand so sites differ.
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import { parseBig } from "./llm.mjs";
 
 const MODEL = "claude-opus-5-5";
 export const LAYOUTS = ["classic", "poster", "split", "terminal", "magazine"];
@@ -76,12 +76,12 @@ export async function makeTheme(cfg, { client = null } = {}) {
   if (!client && !process.env.ANTHROPIC_API_KEY) return fallback;
   try {
     const c = client || new Anthropic();
-    const r = await c.messages.parse({ model: MODEL, max_tokens: 24000, output_config: { effort: "high", format: zodOutputFormat(Theme) }, system: SYSTEM,
+    const r = await parseBig(c, { model: MODEL, max_tokens: 30000, output_config: { effort: "high" }, system: SYSTEM,
       messages: [{ role: "user", content: `Brand: ${cfg.brand} ($${cfg.coin?.ticker}), emoji ${cfg.emoji}, accent ${cfg.colors?.accent}, light ${cfg.colors?.light}, dark ${cfg.colors?.dark}, display font "${cfg.display}", vibe ${cfg.vibe}.\n` +
         `Tagline: ${cfg.tagline}\nAbout: ${cfg.about}\nProduct: ${cfg.product?.kind} — ${cfg.product?.name}: ${cfg.product?.mechanic || ""}\nLore: ${(cfg.lore || []).join(" ")}\n\n` +
-        `Layouts: ${LAYOUTS.map(l => `${l} (${LAYOUT_NOTES[l]})`).join("; ")}.\n\nThe skeleton:\n${SKELETON}` }] });
-    if (r.stop_reason !== "end_turn" || !r.parsed_output) return { ...fallback, notes: "The designer's answer could not be read." };
-    const o = r.parsed_output;
+        `Layouts: ${LAYOUTS.map(l => `${l} (${LAYOUT_NOTES[l]})`).join("; ")}.\n\nThe skeleton:\n${SKELETON}` }] }, Theme);
+    if (r.stop_reason !== "end_turn" || !r.parsed) return { ...fallback, notes: "The designer's answer could not be read." };
+    const o = r.parsed;
     return { layout: LAYOUTS.includes(o.layout) ? o.layout : fallback.layout, css: cleanCss(o.css), svg: cleanSvg(o.mascot_svg), notes: String(o.notes || "").slice(0, 200), source: "claude" };
   } catch (e) {
     return { ...fallback, notes: e instanceof Anthropic.APIError ? `Claude answered ${e.status}; the default look is used.` : "Claude could not be reached; the default look is used." };
