@@ -33,7 +33,8 @@ Points are in-app only. They are not tokens and pay nothing; holding $ROUTE earn
 
 ## Deploy on Railway
 
-1. New project → **Deploy from GitHub repo** → this repo. The `railway.json` at the repo root sets everything (Node 22, `npm start`).
+1. New project → **Deploy from GitHub repo** → this repo. `railway.json` and `nixpacks.toml` at the repo root set everything
+   (Node 22, `npm start`, plus a headless Chromium and ffmpeg so the Studio can render its content kit's pictures and videos).
 2. **Attach a volume** mounted at `/data`. Accounts and friendships live there, so without it every redeploy wipes them.
 3. **Settings → Networking → Generate Domain**, or add your own domain.
 4. Optional variables:

@@ -16,9 +16,17 @@ test("without a key the plain writer makes a complete, honest site", async () =>
   const c = g.config;
   assert.ok(c.brand && c.tagline && c.about && c.coin.ticker && c.lore.length && c.how.length && c.faq.length);
   assert.equal(c.coin.ca, "");
-  assert.deepEqual(c.roadmap[0].items.slice(0, 1), ["Launch a coin on pump.fun from your own wallet"], "live = facts");
+  assert.equal(c.launchDesk, false, "the launch desk is off unless the owner turns it on: the token is launched elsewhere");
+  assert.match(c.roadmap[0].items[0], /usable on this site$/, "live = facts about the product, not a launch form");
+  assert.ok(!c.how.some(h => /on pump\.fun/.test(h.title)), "no 'launch on pump.fun' step on a site without the desk");
+  const desk = honest(rules("a launchpad for cat memes"), "cats", { launchDesk: true }).config;
+  assert.equal(desk.launchDesk, true); assert.deepEqual(desk.roadmap[0].items.slice(0, 1), ["Launch a coin on pump.fun from your own wallet"]);
+  assert.equal(c.vibe, "candy"); assert.equal(honest({ ...rules("x"), kind: "game", vibe: "neon" }, "x").config.vibe, "neon");
+  assert.equal(honest({ ...rules("x"), kind: "combo", vibe: "nope" }, "x").config.vibe, "arcade", "a combo defaults to the arcade vibe");
   assert.ok(g.domains.length >= 3 && g.domains.every(d => /^[a-z0-9]+\.[a-z]+$/.test(d)));
-  assert.ok(c.faq.some(f => /financial advice/.test(f.q)));
+  assert.ok(c.faq.some(f => /^Do I need \$/.test(f.q)) && !JSON.stringify(c).includes("pump.fun"), "confident copy: no platform names, no disclaimers");
+  const long = honest({ ...rules("x"), about: "First sentence here. Second sentence is also here. " + "Third sentence goes on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on." }, "x").config;
+  assert.equal(long.about, "First sentence here. Second sentence is also here.", "long copy ends at a full sentence, never mid-word");
 });
 
 test("Claude's copy is used, with the model, effort and schema set", async () => {
@@ -133,11 +141,15 @@ const feeds = (over = {}) => async url => {
   return new Response("{}", { status: 404 });
 };
 
-test("trends: every source on its own; a blocked pump.fun or a missing DEXTools key never stops the rest", async () => {
+test("trends: every source on its own; a blocked pump.fun falls back to GeckoTerminal's pump.fun index, a missing DEXTools key never stops the rest", async () => {
   resetTrends(); delete process.env.DEXTOOLS_API_KEY;
   const t = await trends({ fetchImpl: feeds(), force: true });
-  assert.deepEqual(t.ok.sort(), ["dexscreener", "geckoterminal"]);
-  assert.ok(t.failed.some(f => f.startsWith("pumpfun (blocked")) && t.failed.some(f => f.startsWith("dextools (no DEXTOOLS_API_KEY")));
+  assert.deepEqual(t.ok.sort(), ["dexscreener", "geckoterminal", "pumpfun"]);
+  assert.ok(t.items.some(x => x.sources.includes("pump.fun busiest (via GeckoTerminal)")), "pump.fun through the open door (merged with the same coin from GeckoTerminal)");
+  assert.ok(t.failed.some(f => f.startsWith("dextools (no DEXTOOLS_API_KEY")));
+  resetTrends();
+  const dark = await trends({ fetchImpl: feeds({ "advanced-api-v2": () => new Response("", { status: 403 }), "dexes/": () => new Response("", { status: 500 }) }), force: true });
+  assert.ok(dark.failed.some(f => f.startsWith("pumpfun (blocked on every door")), "only when every door is shut");
   assert.ok(t.items.some(x => /bank/.test(x.description)) && t.items.some(x => x.symbol === "PIXELCAT" && x.mcUsd === 820000));
   assert.ok(!t.items.some(x => /not solana/.test(x.description || "")), "Solana only");
 });
@@ -165,7 +177,9 @@ test("ideas without a key: the plain remixer still gives a mix of kinds from the
   const tr = await trends({ fetchImpl: feeds(), force: true });
   const out = await makeIdeas(tr, {});
   assert.equal(out.source, "rules");
-  assert.ok(out.ideas.length >= 3 && new Set(out.ideas.map(i => i.kind)).size === 3);
+  assert.ok(out.ideas.length >= 4 && new Set(out.ideas.map(i => i.kind)).size === 4, "launchpad, game, utility and three-in-one");
+  assert.ok(rulesIdeas({ items: [] }, 4, "combo").every(i => i.kind === "combo"), "the kind can be fixed");
+  assert.match(ideaPrompt(rulesIdeas({ items: [] }, 1, "combo")[0]), /three-in-one \(game \+ utility \+ launchpad\)/);
   assert.ok(rulesIdeas({ items: [] }, 3).length === 3, "even with no feed at all");
   assert.equal(memoryText(null), "");
 });
@@ -347,5 +361,321 @@ test("Route is a draft under Your sites, its CA edits reach /route, the launchpa
     assert.equal(tk.status, 200); assert.equal(tk.tickers[0].ticker, "FROGS");
     const launch = await (await fetch(base + "/launch/?draft=" + n.id + "&name=Frogs")).text();
     assert.match(launch, /api\/studio\/launched/);
+  } finally { server.close(); delete process.env.STUDIO_PASSWORD; }
+});
+
+
+// ---- pump.fun live, the launch desk switch, the polish pass (2026-10-19) --------------------------------------------
+import { createPumpLive } from "../pumplive.mjs";
+
+test("pump.fun live: creations and graduations from the stream, USD caps, metadata from IPFS, a rolling window", async () => {
+  let t = Date.UTC(2026, 9, 19, 20);
+  let sent = [];
+  class FakeWS { constructor(u) { FakeWS.last = this; this.url = u; setTimeout(() => this.onopen && this.onopen(), 0); } send(m) { sent.push(JSON.parse(m).method); } close() {} }
+  const f = async u => {
+    if (/So1111/.test(String(u))) return new Response(JSON.stringify({ pairs: [{ chainId: "solana", priceUsd: "200", liquidity: { usd: 1e8 } }] }), { status: 200 });
+    if (/ipfs/.test(String(u))) return new Response(JSON.stringify({ name: "Bank Cat", symbol: "BANKCAT", description: "a cat that runs a bank", twitter: "https://x.com/bankcat", website: "https://bankcat.fun" }), { status: 200 });
+    return new Response("", { status: 404 });
+  };
+  const live = createPumpLive({ WS: FakeWS, fetchImpl: f, now: () => t });
+  live.connect();
+  await new Promise(r => setTimeout(r, 5));
+  assert.deepEqual(sent, ["subscribeNewToken", "subscribeMigration"]);
+  const ws = FakeWS.last;
+  ws.onmessage({ data: JSON.stringify({ txType: "create", mint: "M1", name: "Bank Cat", symbol: "BANKCAT", uri: "https://ipfs.io/ipfs/Qm1", traderPublicKey: "Dev1", marketCapSol: 30, solAmount: 1.5, pool: "pump" }) });
+  ws.onmessage({ data: JSON.stringify({ txType: "create", mint: "M2", name: "Old", symbol: "OLD", uri: null, marketCapSol: 28 }) });
+  ws.onmessage({ data: "not json" });
+  t += 2 * 36e5;
+  ws.onmessage({ data: JSON.stringify({ txType: "migrate", mint: "M1", pool: "pump-amm" }) });
+  const snap = await live.snapshot();
+  const cat = snap.find(x => x.address === "M1");
+  assert.equal(cat.source, "pump.fun graduated (live)"); assert.equal(cat.graduated, true); assert.equal(cat.dex, "pumpswap");
+  assert.equal(cat.mcUsd, 6000, "30 SOL at $200"); assert.equal(cat.devBuySol, 1.5);
+  assert.deepEqual([cat.description, cat.x, cat.website], ["a cat that runs a bank", "https://x.com/bankcat", "https://bankcat.fun"], "the coin's own metadata");
+  assert.equal(snap.find(x => x.address === "M2").source, "pump.fun new (live)");
+  const st = live.status(); assert.equal(st.connected, true); assert.equal(st.created, 2); assert.equal(st.migrated, 1); assert.equal(st.solUsd, 200);
+  t += 25 * 36e5;
+  assert.equal((await live.snapshot()).length, 0, "a day later the window has moved on");
+  live.stop();
+});
+
+test("the trend feeds take live sources, and the server exposes the switch, the polish pass and the three-in-one", async () => {
+  resetTrends();
+  const { registerLiveSource } = await import("../trends.mjs");
+  registerLiveSource("pumpfun live", async () => [{ source: "pump.fun new (live)", address: "L1", name: "Live Cat", symbol: "LIVECAT", mcUsd: 9000 }]);
+  const t = await trends({ fetchImpl: feeds(), force: true });
+  assert.ok(t.ok.includes("pumpfun live") && t.items.some(x => x.symbol === "LIVECAT"));
+  registerLiveSource("pumpfun live", null);
+
+  const { createServer } = await import("../../route/server.mjs");
+  process.env.STUDIO_PASSWORD = "correct horse";
+  const { server } = createServer({ dbFile: ":memory:", background: false });
+  await new Promise(r => server.listen(0, r));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  let cookie = "";
+  const post = async (p, b) => {
+    const r = await fetch(base + p, { method: "POST", headers: { "content-type": "application/json", "x-route": "1", cookie }, body: JSON.stringify(b || {}) });
+    const sc = r.headers.get("set-cookie"); if (sc) cookie = sc.split(";")[0];
+    return { status: r.status, ...(await r.json()) };
+  };
+  try {
+    await post("/api/studio/login", { password: "correct horse" });
+    const g = await post("/api/studio/generate", { idea: "Frog Arcade, a three-in-one (game + utility + launchpad): a slingshot game, a card maker and a launch kit", ticker: "FROGARC" });
+    assert.equal(g.config.product.kind, "combo"); assert.equal(g.config.launchDesk, false); assert.equal(g.config.vibe, "arcade");
+    const on = await post("/api/studio/save", { id: g.id, config: { ...g.config, launchDesk: true } });
+    assert.equal(on.config.launchDesk, true, "the owner can turn the desk on");
+    const cfg = await (await fetch(base + `/studio/p/${g.id}/config.js`, { headers: { cookie } })).text();
+    assert.match(cfg, /"launchDesk": true/); assert.match(cfg, /"vibe": "arcade"/);
+    assert.equal((await post("/api/studio/polish", { id: g.id })).status, 400, "nothing to polish before the app exists");
+    const ideas = await post("/api/studio/ideas", { mix: "combo" });
+    assert.ok(ideas.ideas.length && ideas.ideas.every(i => i.kind === "combo"), "the Idea Maker can be told: three-in-one only");
+    const st = await post("/api/studio/status"); assert.equal(st.pump, null, "no live feed in tests");
+    const page = await (await fetch(base + "/launch/")).text();
+    assert.match(page, /getParsedTokenAccountsByOwner/); assert.match(page, /id="scene"/);
+  } finally { server.close(); delete process.env.STUDIO_PASSWORD; }
+});
+
+
+// ---- the content kit (2026-10-19) ---------------------------------------------------------------------------------
+import { planContent, rulesPlan, templateImage, templateVideo, makeVisual, HOW_TO_POST, SIZES } from "../content.mjs";
+import { renderStatus } from "../render.mjs";
+
+test("content kit: the plan passes the honesty filter, the templates are complete pages, Claude's visuals are checked", async () => {
+  const cfg = honest({ ...rules("Frog Arcade game"), kind: "game", holder_perk: "a gold frog skin" }, "frogs").config;
+  const { plan, source } = await planContent(cfg, { client: fakeClaude({
+    bio: "Hop in. Guaranteed 100x! A frog game you can play now. [SITE]", name_on_x: "Frog Arcade 🐸", pfp_brief: "frog", banner_brief: "frogs", launch_image_brief: "frog",
+    videos: [{ key: "intro", hook: "Frogs are back", scenes: [{ seconds: 4, headline: "Frog Arcade", sub: "Hop in.", visual: "frog pops" }, { seconds: 30, headline: "Profits for all", sub: "we partner with banks", visual: "x" }], end_card: "Link in bio" }],
+    posts: [{ when: "launch day", media: "intro video", text: "Frog Arcade is live. Airdrops soon! Site in bio." }],
+    pinned: "Frog Arcade [SITE] [CA]", reply_with_ca: "CA: [CA]" }) });
+  assert.equal(source, "claude");
+  assert.equal(plan.bio, "Hop in. A frog game you can play now. [SITE]", "the promise is dropped");
+  assert.equal(plan.posts[0].text, "Frog Arcade is live. Site in bio.");
+  const intro = plan.videos.find(v => v.key === "intro");
+  assert.equal(intro.scenes.length, 1, "a scene whose headline is a promise is dropped; seconds are capped");
+  assert.ok(plan.videos.find(v => v.key === "product").scenes.length >= 2, "missing videos come from the plain plan");
+  assert.ok(rulesPlan(cfg).posts.length === 4 && HOW_TO_POST.length >= 5);
+  for (const k of ["pfp", "banner", "launch"]) assert.match(templateImage(k, cfg), /<!doctype html>[\s\S]*🐸|<!doctype html>/);
+  const v = templateVideo(intro, cfg);
+  assert.match(v, /window\.render = function/); assert.match(v, /id="c" width="1080" height="1080"/); assert.match(v, /window\.DURATION = 7/);
+  const bad = { messages: { stream: () => ({ finalMessage: async () => ({ stop_reason: "end_turn", content: [{ type: "text", text: "<!doctype html><html><body><img src=\"https://evil/x.png\"></body></html>" }] }) }) } };
+  assert.equal((await makeVisual("pfp", "x", cfg, { client: bad })).source, "template", "a page pulling images from the web is refused; the template is used");
+  const good = { messages: { stream: () => ({ finalMessage: async () => ({ stop_reason: "end_turn", content: [{ type: "text", text: "```html\n<!doctype html><html><body><canvas id=\"c\"></canvas><script>window.DURATION=5;window.render=t=>{}</script></body></html>\n```" }] }) }) } };
+  assert.equal((await makeVisual("video", "", cfg, { client: good, video: intro })).source, "claude");
+  assert.equal(typeof renderStatus().videos, "boolean"); assert.deepEqual(SIZES.banner, [1500, 500]);
+});
+
+test("content kit over HTTP: files land on the volume, are served to the owner only, and the kit is remembered", async () => {
+  const { createServer } = await import("../../route/server.mjs");
+  const { renderStatus } = await import("../render.mjs");
+  process.env.STUDIO_PASSWORD = "correct horse"; process.env.VIDEO_FPS = "6";
+  const prevData = process.env.DATA_DIR;
+  const { server } = createServer({ dbFile: ":memory:", background: false });
+  await new Promise(r => server.listen(0, r));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  let cookie = "";
+  const post = async (p, b) => {
+    const r = await fetch(base + p, { method: "POST", headers: { "content-type": "application/json", "x-route": "1", cookie }, body: JSON.stringify(b || {}) });
+    const sc = r.headers.get("set-cookie"); if (sc) cookie = sc.split(";")[0];
+    return { status: r.status, ...(await r.json()) };
+  };
+  try {
+    await post("/api/studio/login", { password: "correct horse" });
+    const g = await post("/api/studio/generate", { idea: "a cat clicker game", ticker: "CLICK" });
+    const k = await post("/api/studio/content", { id: g.id });
+    assert.equal(k.status, 200); assert.equal(k.content.source, "rules");
+    assert.ok(k.content.files.pfp.html === "pfp.html" && k.content.files.intro.html === "intro.html" && k.content.plan.posts.length === 4);
+    const page = await fetch(base + `/studio/c/${g.id}/pfp.html`, { headers: { cookie } });
+    assert.equal(page.status, 200); assert.match(await page.text(), /<!doctype html>/);
+    assert.equal((await fetch(base + `/studio/c/${g.id}/pfp.html`)).status, 401, "the owner's files");
+    assert.equal((await fetch(base + `/studio/c/${g.id}/../x.html`, { headers: { cookie } })).status, 404);
+    if (renderStatus().videos) {
+      assert.ok(k.content.files.pfp.png && k.content.files.intro.mp4, "rendered where a browser and ffmpeg exist: " + JSON.stringify(k.content.notes));
+      const mp4 = await fetch(base + `/studio/c/${g.id}/intro.mp4`, { headers: { cookie } });
+      assert.equal(mp4.headers.get("content-type"), "video/mp4"); assert.ok((await mp4.arrayBuffer()).byteLength > 10000);
+    }
+    assert.equal((await post("/api/studio/content/get", { id: g.id })).content.files.launch.html, "launch.html");
+  } finally { server.close(); delete process.env.STUDIO_PASSWORD; delete process.env.VIDEO_FPS; if (prevData) process.env.DATA_DIR = prevData; }
+});
+
+// ---- rename propagation, link previews, buy link, launch fields (2026-10-19) ----------------------------------------
+import { rename } from "../generate.mjs";
+import { headTags } from "../deploy.mjs";
+
+test("a new brand or ticker flows through every piece of copy; the site's buy link and launch platform are the owner's", async () => {
+  const cfg = honest(rules("a launchpad for cat memes"), "cats", { ticker: "MEOW" }).config;
+  const cat = cfg.brand;
+  assert.ok(cfg.faq.some(f => f.q.includes(cat) || f.a.includes(cat)) && cfg.faq.some(f => f.q.includes("$MEOW")));
+  const re = rename(cfg, { brand: cat, ticker: "MEOW" }, { brand: "Purr Arcade", ticker: "PURR" });
+  assert.equal(re.brand, "Purr Arcade"); assert.equal(re.coin.ticker, "PURR");
+  const all = JSON.stringify([re.tagline, re.about, re.lore, re.how, re.roadmap, re.faq, re.product]);
+  assert.ok(!all.includes(cat) && !all.includes("MEOW"), "nothing left of the old name or ticker: " + all.slice(0, 200));
+  assert.ok(all.includes("Purr Arcade") && all.includes("$PURR"), "the new ones took their place, $ kept where it was");
+  assert.deepEqual(rename(cfg, { brand: cat, ticker: "MEOW" }, { brand: cat, ticker: "MEOW" }).faq, cfg.faq, "no change, no damage");
+  const own = honest(rules("x"), "x", { buyUrl: "https://jup.ag/swap/SOL-abc", launchedOn: "a Solana launchpad" }).config;
+  assert.equal(own.coin.buyUrl, "https://jup.ag/swap/SOL-abc"); assert.equal(own.coin.launchedOn, "a Solana launchpad");
+  assert.equal(honest(rules("x"), "x", { buyUrl: "javascript:alert(1)" }).config.coin.buyUrl, "", "only https buy links");
+  const tags = headTags(own, { ogImage: true });
+  assert.match(tags, new RegExp(`<title>${own.brand} · \\$${own.coin.ticker}</title>`)); assert.match(tags, /og:image" content="og.png"/); assert.match(tags, /summary_large_image/); assert.match(tags, /rel="icon" href="data:image\/svg\+xml/);
+  assert.ok(!/og:image/.test(headTags(own)), "no image tag without the picture");
+
+  let body = null;
+  const ff = async (u, init) => { body = JSON.parse(init.body); return new Response(JSON.stringify({ id: "d", alias: ["x.vercel.app"] }), { status: 200 }); };
+  await deploy(own, "x", { fetchImpl: ff, token: "t", extra: { "og.png": Buffer.from("png"), "play.html": "<!doctype html><html></html>", "evil.exe": Buffer.from("x") } });
+  const names = body.files.map(f => f.file);
+  assert.ok(names.includes("og.png") && names.includes("play.html") && !names.includes("evil.exe"));
+  const index = Buffer.from(body.files.find(f => f.file === "index.html").data, "base64").toString();
+  assert.match(index, new RegExp(`<meta property="og:title" content="${own.brand} · \\$${own.coin.ticker}">`), "the link preview is baked into the deployed page");
+});
+
+test("over HTTP: saving a new name rewrites the copy on the server too, and the generate answer carries its preview", async () => {
+  const { createServer } = await import("../../route/server.mjs");
+  process.env.STUDIO_PASSWORD = "correct horse";
+  const { server } = createServer({ dbFile: ":memory:", background: false });
+  await new Promise(r => server.listen(0, r));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  let cookie = "";
+  const post = async (p, b) => {
+    const r = await fetch(base + p, { method: "POST", headers: { "content-type": "application/json", "x-route": "1", cookie }, body: JSON.stringify(b || {}) });
+    const sc = r.headers.get("set-cookie"); if (sc) cookie = sc.split(";")[0];
+    return { status: r.status, ...(await r.json()) };
+  };
+  try {
+    await post("/api/studio/login", { password: "correct horse" });
+    const g = await post("/api/studio/generate", { idea: "a launchpad for cat memes", ticker: "MEOW" });
+    assert.equal(g.preview, `/studio/p/${g.id}/`);
+    const s = await post("/api/studio/save", { id: g.id, config: { ...g.config, brand: "Purr Arcade", coin: { ...g.config.coin, ticker: "purr", buyUrl: "https://jup.ag/swap/SOL-abc", launchedOn: "a Solana launchpad" } } });
+    assert.equal(s.status, 200); assert.equal(s.config.brand, "Purr Arcade"); assert.equal(s.config.coin.ticker, "PURR");
+    const all = JSON.stringify(s.config);
+    assert.ok(!all.includes(g.config.brand) && !all.includes("MEOW") && all.includes("$PURR"), "the FAQ, about and lore follow the new name");
+    assert.equal(s.config.coin.buyUrl, "https://jup.ag/swap/SOL-abc"); assert.equal(s.config.coin.launchedOn, "a Solana launchpad");
+  } finally { server.close(); delete process.env.STUDIO_PASSWORD; }
+});
+
+
+// ---- tokenomics split and the docs (2026-10-19) --------------------------------------------------------------------
+import { tokenomics, ALLOC } from "../generate.mjs";
+import { docsHtml, docsMarkdown } from "../docs.mjs";
+
+test("where the money goes: a split per kind that always adds up, the owner's own when it does, and the docs carry it", async () => {
+  const game = honest({ ...rules("cat runner game"), kind: "game" }, "x").config;
+  assert.equal(game.tokenomics.allocation.reduce((n, a) => n + a.pct, 0), 100);
+  assert.equal(game.tokenomics.allocation[0].name, "The game"); assert.equal(game.tokenomics.source, "Creator fees from trading");
+  assert.equal(honest({ ...rules("x"), kind: "launchpad" }, "x").config.tokenomics.allocation[2].name, "Launch incentives");
+  for (const k of Object.keys(ALLOC)) assert.equal(ALLOC[k].reduce((n, a) => n + a[1], 0), 100, k + " adds up");
+  const own = tokenomics({ kind: "game", allocation: [{ name: "Game", pct: 60, what: "levels" }, { name: "Marketing", pct: 40, what: "clips" }], fee_source: "Creator fees", dev_buy_policy: "held 6 months" });
+  assert.deepEqual(own.allocation.map(a => a.pct), [60, 40]); assert.equal(own.devBuyPolicy, "held 6 months");
+  assert.equal(tokenomics({ kind: "utility", allocation: [{ name: "A", pct: 70, what: "" }, { name: "B", pct: 20, what: "" }] }).allocation[0].name, "The tool", "a split that does not add up falls back");
+  const writer = honest({ ...rules("x"), kind: "utility", allocation: [{ name: "Tool", pct: 50, what: "Guaranteed 100x returns" }, { name: "Team", pct: 50, what: "people" }], fee_source: "Creator fees", dev_buy_policy: "small" }, "x").config;
+  assert.equal(writer.tokenomics.allocation[0].what, "", "promises are dropped from the split too");
+  const md = docsMarkdown({ ...game, siteUrl: "https://catrun.vercel.app" });
+  assert.match(md, /^# .* docs/); assert.match(md, /## Tokenomics/); assert.match(md, /\| 40% \| The game \|/); assert.match(md, /Site: https:\/\/catrun.vercel.app/); assert.match(md, /## FAQ/);
+  const html = docsHtml(game);
+  assert.match(html, /<nav>.*href="#tokenomics".*<\/nav>/s); assert.match(html, /class="bar"><span style="width:40%"/); assert.match(html, /<title>.* docs<\/title>/);
+  assert.ok(!html.includes("<script"), "the docs page is plain HTML");
+});
+
+test("over HTTP: the docs preview, the Markdown download and the owner's split on save", async () => {
+  const { createServer } = await import("../../route/server.mjs");
+  process.env.STUDIO_PASSWORD = "correct horse";
+  const { server } = createServer({ dbFile: ":memory:", background: false });
+  await new Promise(r => server.listen(0, r));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  let cookie = "";
+  const post = async (p, b) => {
+    const r = await fetch(base + p, { method: "POST", headers: { "content-type": "application/json", "x-route": "1", cookie }, body: JSON.stringify(b || {}) });
+    const sc = r.headers.get("set-cookie"); if (sc) cookie = sc.split(";")[0];
+    return { status: r.status, ...(await r.json()) };
+  };
+  try {
+    await post("/api/studio/login", { password: "correct horse" });
+    const g = await post("/api/studio/generate", { idea: "a cat runner game", ticker: "RUN" });
+    const docs = await fetch(base + `/studio/p/${g.id}/docs.html`, { headers: { cookie } });
+    assert.equal(docs.status, 200); assert.match(await docs.text(), /Where the money goes/);
+    const md = await fetch(base + `/studio/p/${g.id}/docs.md`, { headers: { cookie } });
+    assert.match(md.headers.get("content-disposition"), /docs\.md/); assert.match(await md.text(), /## Tokenomics/);
+    assert.equal((await fetch(base + `/studio/p/${g.id}/docs.md`)).status, 401);
+    const s = await post("/api/studio/save", { id: g.id, config: { ...g.config, tokenomics: { source: "Creator fees", devBuyPolicy: "1% at launch, held", allocation: [{ name: "Game", pct: 55, what: "levels" }, { name: "Marketing", pct: 30, what: "clips" }, { name: "Team", pct: 15, what: "us" }] } } });
+    assert.deepEqual(s.config.tokenomics.allocation.map(a => a.pct), [55, 30, 15]);
+    const cfg = await (await fetch(base + `/studio/p/${g.id}/config.js`, { headers: { cookie } })).text();
+    assert.match(cfg, /"devBuyPolicy": "1% at launch, held"/);
+  } finally { server.close(); delete process.env.STUDIO_PASSWORD; }
+});
+
+
+// ---- the book and GitBook (2026-10-19) ----------------------------------------------------------------------------
+import { makeBook, rulesBook, bookHtml, bookFiles, zip, mdToHtml, publishGitBook } from "../gitbook.mjs";
+
+test("the book: Claude's pages cleaned, the plain book from the config, HTML with a sidebar, GitBook files and a real zip", async () => {
+  const cfg = { ...honest({ ...rules("cat runner game"), kind: "game", holder_perk: "gold skin" }, "x").config, siteUrl: "https://catrun.vercel.app" };
+  const plain = rulesBook(cfg);
+  assert.ok(plain.length >= 7 && plain.some(p => p.slug === "tokenomics") && plain.at(-1).slug === "official-links");
+  const bk = await makeBook(cfg, { client: fakeClaude({ pages: [
+    { title: "Introduction", slug: "Intro!", markdown: "# Hi\n\nCat Run is a runner. Guaranteed 100x for holders. Play it on the site.\n\n- fast\n- fun\n- airdrops every week" },
+    { title: "Tokenomics", slug: "tokenomics", markdown: "| Share | Bucket | What |\n|---|---|---|\n| 40% | The game | levels |" },
+    { title: "Dupe", slug: "tokenomics", markdown: "x" }] }) });
+  assert.equal(bk.source, "claude"); assert.deepEqual(bk.pages.map(p => p.slug), ["intro", "tokenomics", "tokenomics-2"]);
+  assert.equal(bk.pages[0].markdown, "# Hi\n\nCat Run is a runner. Play it on the site.\n\n- fast\n- fun", "promises are dropped line by line");
+  assert.match(mdToHtml(bk.pages[1].markdown), /<table><tr><th>Share<\/th>.*<td>40%<\/td>/s);
+  assert.match(mdToHtml("## T\n\nsome **bold** and `code` <script>x</script>\n\n1. one\n2. two\n\n> quote"), /<h3>T<\/h3>.*<b>bold<\/b>.*&lt;script&gt;.*<ol><li>one<\/li><li>two<\/li><\/ol>.*<blockquote>quote/s);
+  const html = bookHtml(cfg, bk.pages);
+  assert.match(html, /<nav><a href="#intro" data-i="0">Introduction<\/a>/); assert.match(html, /<article id="tokenomics-2">/); assert.ok(!html.includes("<script"));
+  const files = bookFiles(cfg, bk.pages);
+  assert.ok(files["README.md"].startsWith("# " + cfg.brand) && files["SUMMARY.md"].includes("* [Tokenomics](tokenomics.md)") && files["tokenomics.md"] && files[".gitbook.yaml"]);
+  const z = zip(files);
+  assert.equal(z.readUInt32LE(0), 0x04034b50, "a zip local header"); assert.ok(z.includes(Buffer.from("SUMMARY.md")) && z.includes(Buffer.from("| 40% | The game |")));
+  const eocd = z.length - 22; assert.equal(z.readUInt32LE(eocd), 0x06054b50); assert.equal(z.readUInt16LE(eocd + 10), Object.keys(files).length, "every file in the directory");
+});
+
+test("GitBook: a space, an import from the public link, a docs site; every refusal is reported with the manual step", async () => {
+  const cfg = honest(rules("cat runner game"), "x").config, pages = rulesBook(cfg);
+  await assert.rejects(() => publishGitBook(cfg, pages, { token: "" }), /GITBOOK_TOKEN/);
+  const calls = [];
+  const api = async (u, init) => {
+    calls.push([init.method, String(u).replace("https://api.gitbook.com/v1", ""), init.body ? JSON.parse(init.body) : null, init.headers.authorization]);
+    const p = String(u);
+    if (p.endsWith("/orgs")) return new Response(JSON.stringify({ items: [{ id: "org1" }] }), { status: 200 });
+    if (p.endsWith("/orgs/org1/spaces")) return new Response(JSON.stringify({ id: "sp1", urls: { app: "https://app.gitbook.com/s/sp1" } }), { status: 200 });
+    if (p.includes("/content/import")) return new Response("{}", { status: 200 });
+    if (p.endsWith("/orgs/org1/sites")) return new Response(JSON.stringify({ id: "site1", urls: { published: "https://catpad.gitbook.io/catpad-docs" } }), { status: 200 });
+    if (p.endsWith("/publish")) return new Response(JSON.stringify({ error: { message: "plan" } }), { status: 403 });
+    return new Response("{}", { status: 404 });
+  };
+  const out = await publishGitBook(cfg, pages, { token: "gb_tok", fetchImpl: api, publicZipUrl: "https://studio.example/public/book/abc.zip", publicMdUrl: "https://studio.example/public/book/abc.md" });
+  assert.equal(out.publishedUrl, "https://catpad.gitbook.io/catpad-docs"); assert.equal(out.imported, true);
+  assert.ok(calls.every(c => c[3] === "Bearer gb_tok"));
+  assert.deepEqual(calls.map(c => c[0] + " " + c[1]), ["GET /orgs", "POST /orgs/org1/spaces", "POST /spaces/sp1/content/import", "POST /orgs/org1/sites", "POST /orgs/org1/sites/site1/publish"]);
+  assert.deepEqual(calls[2][2], { url: "https://studio.example/public/book/abc.zip", source: "zip" }, "the zip of pages is what GitBook imports");
+  assert.ok(out.steps.some(s => /Publishing refused: plan\. In GitBook/.test(s)), "the manual step is spelled out: " + out.steps.join(" | "));
+});
+
+test("over HTTP: the book is written, served as docs.html / docs.zip to the owner, and at the public link for GitBook only", async () => {
+  const { createServer } = await import("../../route/server.mjs");
+  process.env.STUDIO_PASSWORD = "correct horse";
+  const { server } = createServer({ dbFile: ":memory:", background: false });
+  await new Promise(r => server.listen(0, r));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  let cookie = "";
+  const post = async (p, b) => {
+    const r = await fetch(base + p, { method: "POST", headers: { "content-type": "application/json", "x-route": "1", cookie }, body: JSON.stringify(b || {}) });
+    const sc = r.headers.get("set-cookie"); if (sc) cookie = sc.split(";")[0];
+    return { status: r.status, ...(await r.json()) };
+  };
+  try {
+    await post("/api/studio/login", { password: "correct horse" });
+    const g = await post("/api/studio/generate", { idea: "a cat runner game", ticker: "RUN" });
+    assert.equal((await post("/api/studio/book/get", { id: g.id })).book, null);
+    const w = await post("/api/studio/book", { id: g.id });
+    assert.equal(w.status, 200); assert.equal(w.source, "rules"); assert.ok(w.pages.length >= 7);
+    const docs = await (await fetch(base + `/studio/p/${g.id}/docs.html`, { headers: { cookie } })).text();
+    assert.match(docs, /<article id="tokenomics">/); assert.match(docs, /Where the money goes/);
+    const z = await fetch(base + `/studio/p/${g.id}/docs.zip`, { headers: { cookie } });
+    assert.equal(z.headers.get("content-type"), "application/zip"); assert.equal(Buffer.from(await z.arrayBuffer()).readUInt32LE(0), 0x04034b50);
+    assert.equal((await fetch(base + `/studio/p/${g.id}/docs.zip`)).status, 401);
+    const gb = await post("/api/studio/gitbook", { id: g.id, origin: "http://not-https" });
+    assert.equal(gb.status, 400); assert.match(gb.error, /public https address/);
+    const gb2 = await post("/api/studio/gitbook", { id: g.id, origin: "https://studio.example.app" });
+    assert.equal(gb2.status, 400); assert.match(gb2.error, /GITBOOK_TOKEN/);
+    assert.equal((await fetch(base + "/public/book/nope-nope-nope-nope-nope.zip")).status, 404, "nothing public without the exact token");
+    const s2 = await post("/api/studio/status"); assert.equal(s2.gitbook, false);
   } finally { server.close(); delete process.env.STUDIO_PASSWORD; }
 });

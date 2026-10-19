@@ -10,7 +10,10 @@ It is the home page of the Railway server: **`/`** (also `/studio`). See `route/
 Press **Read the market**. The Studio keeps every coin the feeds show, for good, on the Railway volume:
 - **DexScreener:** newest profiles and most boosted tokens, with each one's market cap, volume, liquidity, age and links;
 - **GeckoTerminal:** trending pools and brand-new pools;
-- **pump.fun:** the biggest coins, the king of the hill and the latest trades (when pump.fun answers);
+- **pump.fun, live:** every new coin and every graduation the moment it happens, from PumpPortal's public stream (no
+  key), with each coin's own description and links read from its metadata; the header pill shows the count. pump.fun's
+  web API is also tried with browser headers, and GeckoTerminal's index of pump.fun and PumpSwap pools is the fallback,
+  so pump.fun is never missing;
 - **DEXTools:** hot pools and gainers, with `DEXTOOLS_API_KEY`;
 - **X:** the posts about pump.fun and Solana memecoin launches with the most traction (likes, reposts, replies and
   views), plus a search for your own focus, with `TWITTERAPI_IO_KEY` (or `X_BEARER_TOKEN`).
@@ -32,6 +35,64 @@ Press **Find ideas** (optionally steer it: "cats", "AI agents", "sports"). It re
 From that, Claude invents 6 original launchpads, games and utilities, each with a ticker, a mechanic, a holder perk
 and "why now". It doesn't copy what is trending. **Build this** fills the idea form. Without `ANTHROPIC_API_KEY`, a
 plain idea maker still gives you ideas built from the trend list.
+
+## The site is the product; the token is launched wherever you launch
+
+Every site is the coin's home: contract address with a copy button, Buy / Chart / X / Telegram, the game or tool or
+three-in-one, lore, how it works, how to buy, tokenomics, roadmap, FAQ, socials. The pump.fun launch desk (launching a
+coin from the page itself) is **off by default**; the "Show the pump.fun launch desk" box in the editor turns it on for
+a site that really is a public launchpad. Launch the token wherever you launch it, paste the contract address into the
+draft, save, deploy.
+
+**Holder perks are real.** When a site has a contract address and a holder perk, the product section gets a "Connect
+wallet" button: the page reads the wallet's balance of the coin on-chain and tells the game or tool, which unlocks the
+perk (a skin, a badge, a mode). The app itself never touches a wallet. Set `PUBLIC_RPC_URL` on the server to give
+deployed sites a better RPC than Solana's public one for that check (a key meant for the browser, or none).
+
+**The look.** Every site gets a living scene behind the hero (the brand's emoji and sparks drifting in depth, steered by
+the pointer or the phone's tilt), sections that rise in as you scroll, cards that tilt, a sheen on the contract
+address, and a **vibe** chosen per site: arcade, neon, candy, retro or clean. Everything respects "reduce motion".
+
+## Three-in-one, games people already know, a polish pass
+
+- The Idea Maker has a kind selector: any mix, games, utilities, launchpads, or **three-in-one** (a game, a utility and
+  a launchpad fused on one page: the game unlocks a featured slot, the tool builds the launch kit, Play / Tools / Launch
+  tabs with one mascot and shared progress).
+- Ideas and builds lean on the loops the whole world knows (slingshot physics, endless runners, match-3, one-tap,
+  2048, daily puzzles, idle clickers, lane defense…) with your own mascot and name, never a real game's title or art.
+- **Make the game / tool** builds it to a quality bar (phone first, juice, progression, share card, no fakes); **Polish
+  it** is a second pass where Claude play-tests it in its head, fixes bugs and adds what is missing.
+
+## The content kit: pictures, three videos, the posts, how to post
+
+**Make the content kit** on any site gives you, in one go:
+- the X **profile picture** (400×400), the X **banner** (1500×500) and the coin's **launch picture** (1000×1000);
+- three **videos** for X (1080×1080 MP4, H.264 with a soft built-in backing track): an intro (~20 s), "the product"
+  (~15 s) and "why now" (~15 s);
+- the X **display name, bio, pinned post** and the first reply with the contract address, **four posts** in order with
+  the day and the media for each, and a step-by-step **how to post**.
+
+Claude writes the plan (scripts as scene lists, the posts) and designs every picture and video as a page in the
+brand's colors and font; a built-in template stands in for anything that fails a check. The posts pass the same
+honesty filter as the sites. The server renders the pages with a headless Chromium and ffmpeg: `nixpacks.toml` adds
+both to the Railway build. Without them the kit still has every page as HTML (open, screenshot or screen-record).
+Files live on the volume under `content/<site id>/` and are served to you only.
+
+## The docs: a GitBook for every launch
+
+**Write the docs** has Claude write an in-depth, multi-page book from the site (introduction, getting started, the
+product, how to play / use it, holder perks, tokenomics with "where the money goes", roadmap, brand kit, FAQ, official
+links). It ships with the site at `/docs.html` (sidebar, pages, the site's colors). **Download for GitBook (.zip)** gives
+the GitBook-ready pages (README.md, SUMMARY.md, one file per page) to import by hand.
+
+**Publish to GitBook** does it for you with `GITBOOK_TOKEN` (gitbook.com → account → Developer settings → personal
+access token; `GITBOOK_ORG_ID` optional when you have several organizations): it creates the space, imports the pages
+and creates the docs site, then tells you the `*.gitbook.io` link, or exactly which step to finish in GitBook when the
+plan does not allow it from the API. The pages are fetched by GitBook from an unguessable link on this server.
+
+Tokenomics on every site now include **where the money goes**: the creator-fee split (product / marketing / community
+& holder perks / team, tuned to the kind) and the dev-buy policy. Claude proposes it; edit the percentages in the
+Studio (they must add up to 100).
 
 ## Launching from the Studio
 

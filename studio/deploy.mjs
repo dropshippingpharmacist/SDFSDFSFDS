@@ -28,16 +28,34 @@ export async function templateFiles(dir = TEMPLATE, rel = "") {
 
 export const slugify = s => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "launchpad";
 
+const esc = s => String(s || "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+// what X, Telegram and Discord show when the site's link is posted: crawlers do not run config.js, so it is baked in
+export function headTags(cfg, { ogImage = false } = {}) {
+  const emoji = [...String(cfg.emoji || "🚀")][0];
+  return [`<title>${esc(cfg.brand)} · $${esc(cfg.coin?.ticker)}</title>`,
+    `<meta name="description" content="${esc(cfg.tagline)}">`,
+    `<meta property="og:title" content="${esc(cfg.brand)} · $${esc(cfg.coin?.ticker)}">`, `<meta property="og:description" content="${esc(cfg.tagline)}">`,
+    `<meta property="og:type" content="website">`, `<meta name="twitter:card" content="${ogImage ? "summary_large_image" : "summary"}">`,
+    ogImage ? `<meta property="og:image" content="og.png">` : "",
+    `<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${emoji}</text></svg>`)}">`,
+  ].filter(Boolean).join("\n");
+}
+
 export async function deploy(cfg, slug, { fetchImpl = fetch, token = process.env.VERCEL_TOKEN, team = process.env.VERCEL_TEAM_ID, extra = {} } = {}) {
   if (!token) throw Object.assign(new Error("Set VERCEL_TOKEN on the server to deploy (vercel.com/account/tokens)."), { status: 400 });
   const files = [];
   for (const f of await templateFiles()) {
     if (f === "config.js") continue;
-    files.push({ file: f, data: (await readFile(path.join(TEMPLATE, f))).toString("base64"), encoding: "base64" });
+    let data = await readFile(path.join(TEMPLATE, f));
+    if (f === "index.html") data = Buffer.from(data.toString().replace(/<title>[^<]*<\/title>/, headTags(cfg, { ogImage: Buffer.isBuffer(extra["og.png"]) })));
+    files.push({ file: f, data: data.toString("base64"), encoding: "base64" });
   }
-  files.push({ file: "config.js", data: Buffer.from(configJs(cfg)).toString("base64"), encoding: "base64" });
-  for (const [name, text] of Object.entries(extra)) {           // e.g. play.html, the site's game or utility
+  // PUBLIC_RPC_URL: an RPC the site may use from the browser for holder checks (a key meant for the public, or none)
+  const out = process.env.PUBLIC_RPC_URL ? { ...cfg, rpcUrl: process.env.PUBLIC_RPC_URL } : cfg;
+  files.push({ file: "config.js", data: Buffer.from(configJs(out)).toString("base64"), encoding: "base64" });
+  for (const [name, text] of Object.entries(extra)) {           // e.g. play.html (the site's game or utility), og.png (the link preview)
     if (/^[a-z0-9-]+\.html$/.test(name) && text) files.push({ file: name, data: Buffer.from(text).toString("base64"), encoding: "base64" });
+    if (/^[a-z0-9-]+\.png$/.test(name) && Buffer.isBuffer(text)) files.push({ file: name, data: text.toString("base64"), encoding: "base64" });
   }
   const body = {
     name: slugify(slug), files, target: "production",
