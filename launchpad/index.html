@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Launchpad</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Figtree:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap">
+<script src="config.js"></script>
+<script src="vendor/solana-web3-1.95.3.min.js"></script>
+<style>
+/* Layout: brand bar, a two-column launch desk (the form, and a live preview of the coin card with the launch steps), then this browser's launches and the footer. Colors come from config.js. */
+:root {
+  --accent: #ff6a2b; --accent-ink: #1d1530;
+  --bg: #fff6ec; --ink: #1d1530; --muted: #6b5f7d; --card: #ffffff; --line: #1d1530; --field: #fffaf5;
+  --ok: #1e9c74; --bad: #c8312b;
+  --display: "Bagel Fat One", "Arial Rounded MT Bold", system-ui, sans-serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: var(--bg-dark, #150f24); --ink: #fbefe4; --muted: #b3a6c6; --card: #211936; --line: #fbefe4; --field: #1a1330;
+    --ok: #43d6a4; --bad: #ff7b72; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: var(--bg-dark, #150f24); --ink: #fbefe4; --muted: #b3a6c6; --card: #211936; --line: #fbefe4; --field: #1a1330;
+  --ok: #43d6a4; --bad: #ff7b72; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--ink); font: 400 16px/1.5 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1080px; margin: 0 auto; }
+header.bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 20px; flex-wrap: wrap; }
+.brand { font: 400 30px/1 var(--display); display: flex; gap: 10px; align-items: center; }
+.btn {
+  font: 800 16px/1 var(--body); border: 3px solid var(--line); border-radius: 12px; padding: 12px 18px; cursor: pointer;
+  background: var(--accent); color: var(--accent-ink); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+}
+.btn:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--line); }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.btn.ghost { background: var(--card); color: var(--ink); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.hero { padding-block: 12px 28px; }
+.hero h1 { font: 400 clamp(36px, 6vw, 58px)/1 var(--display); margin: 0 0 12px; text-wrap: balance; max-width: 18ch; }
+.hero p { margin: 0; color: var(--muted); max-width: 60ch; font-size: 18px; }
+.desk { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 24px; align-items: start; }
+.panel { background: var(--card); border: 3px solid var(--line); border-radius: 20px; padding: 22px; }
+form { display: grid; gap: 16px; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+label { display: grid; gap: 6px; font-weight: 600; font-size: 14px; }
+label small { color: var(--muted); font-weight: 400; }
+input, textarea {
+  font: 400 16px/1.4 var(--body); color: var(--ink); background: var(--field); border: 2px solid var(--line);
+  border-radius: 10px; padding: 10px 12px; width: 100%; min-width: 0;
+}
+textarea { min-height: 84px; resize: vertical; }
+.drop {
+  border: 2px dashed var(--muted); border-radius: 14px; padding: 16px; display: flex; gap: 14px; align-items: center;
+  cursor: pointer; background: var(--field);
+}
+.drop img, .drop .ph { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 3px solid var(--line); flex: none; }
+.drop .ph { display: grid; place-items: center; font-size: 30px; background: var(--card); }
+.cost { font-size: 14px; color: var(--muted); margin: 0; }
+.preview { display: grid; gap: 18px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); }
+.coin { display: flex; gap: 16px; align-items: center; }
+.coin .pic { width: 88px; height: 88px; border-radius: 50%; border: 3px solid var(--line); object-fit: cover; flex: none;
+  background: var(--field); display: grid; place-items: center; font-size: 34px; box-shadow: 5px 5px 0 var(--accent); }
+.coin h2 { font: 400 28px/1.05 var(--display); margin: 0; overflow-wrap: anywhere; }
+.coin .tick { font: 800 15px/1 var(--body); color: var(--muted); margin-top: 6px; }
+.coin .desc { margin-top: 6px; color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.steps li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: start; font-size: 15px; color: var(--muted); }
+.steps li::before { content: "○"; font-weight: 800; text-align: center; }
+.steps li.doing { color: var(--ink); } .steps li.doing::before { content: "◐"; color: var(--accent); }
+.steps li.done { color: var(--ink); } .steps li.done::before { content: "✓"; color: var(--ok); }
+.steps li.fail { color: var(--bad); } .steps li.fail::before { content: "✕"; }
+.msg { font-size: 14px; min-height: 1.4em; margin: 0; overflow-wrap: anywhere; }
+.msg.bad { color: var(--bad); } .msg.ok { color: var(--ok); }
+.result { display: grid; gap: 10px; border-top: 3px solid var(--line); padding-top: 16px; }
+.mono { font: 500 13px/1.4 var(--mono); overflow-wrap: anywhere; }
+.links { display: flex; flex-wrap: wrap; gap: 10px; }
+section.mine { padding-block: 36px 8px; }
+section.mine h3 { font: 400 26px/1 var(--display); margin: 0 0 14px; }
+.mine ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.mine li { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; background: var(--card); border: 2px solid var(--line); border-radius: 12px; padding: 10px 14px; }
+.mine li b { font-weight: 800; } .mine li span { color: var(--muted); font-size: 14px; }
+footer { padding-block: 32px 40px; color: var(--muted); font-size: 14px; max-width: 75ch; }
+footer p { margin: 0 0 8px; }
+/* the optional site sections (Launchpad Studio fills them; a plain launchpad leaves them out) */
+nav.links-top { display: flex; gap: 14px; flex-wrap: wrap; font-weight: 600; font-size: 15px; }
+nav.links-top a { color: var(--muted); text-decoration: none; } nav.links-top a:hover { color: var(--ink); }
+.tickchip { display: inline-block; font: 800 15px/1 var(--body); border: 2px solid var(--line); border-radius: 999px; padding: 7px 12px; margin-bottom: 14px; }
+.cabar { display: grid; gap: 8px; margin-top: 20px; max-width: 640px; }
+.cabar small { font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-size: 12px; }
+.cabar .carow { display: flex; gap: 8px; align-items: center; background: var(--card); border: 3px solid var(--line); border-radius: 14px; padding: 6px 6px 6px 14px; }
+.cabar code { font: 500 14px/1.4 var(--mono); flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.hero .ctas { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.btn[aria-disabled="true"] { opacity: .5; pointer-events: none; }
+.site { display: grid; gap: 44px; padding-block: 44px 8px; }
+.site h2 { font: 400 clamp(28px, 4vw, 40px)/1.05 var(--display); margin: 0 0 14px; }
+.site p { max-width: 64ch; margin: 0 0 12px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.cards > div { background: var(--card); border: 3px solid var(--line); border-radius: 16px; padding: 16px; }
+.cards b { display: block; font-size: 17px; margin-bottom: 4px; } .cards span { color: var(--muted); font-size: 15px; }
+.kv { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); border: 3px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--card); max-width: 760px; }
+.kv > div { padding: 12px 16px; border-bottom: 2px solid var(--line); } .kv > div:nth-child(odd) { font-weight: 800; }
+.kv > div:nth-child(even) { color: var(--muted); } .kv > div:nth-last-child(-n+2) { border-bottom: 0; }
+.phase { border-left: 6px solid var(--line); padding-left: 14px; margin-bottom: 16px; }
+.phase.live { border-color: var(--ok); } .phase.next { border-color: var(--accent); }
+.phase .st { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.phase.live .st { color: var(--ok); } .phase h3 { margin: 2px 0 4px; font-size: 19px; } .phase ul { margin: 4px 0 0; padding-left: 18px; color: var(--muted); }
+details { background: var(--card); border: 3px solid var(--line); border-radius: 14px; padding: 12px 16px; max-width: 760px; }
+details + details { margin-top: 10px; } summary { font-weight: 800; cursor: pointer; } details p { color: var(--muted); margin: 8px 0 0; }
+.socials { display: flex; gap: 10px; flex-wrap: wrap; }
+@media (max-width: 820px) { .desk { grid-template-columns: minmax(0, 1fr); } .preview { position: static; } .kv { grid-template-columns: minmax(0, 1fr); } .kv > div:nth-child(odd) { border-bottom: 0; padding-bottom: 0; } }
+@media (max-width: 520px) { .row { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .btn:hover:not(:disabled) { transform: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="bar">
+    <div class="brand"><span id="brandEmoji" aria-hidden="true"></span><span id="brandName"></span></div>
+    <button class="btn ghost" type="button" id="connectBtn">Connect wallet</button>
+  </header>
+
+  <nav class="links-top" id="siteNav" aria-label="Sections" hidden></nav>
+  <section class="hero">
+    <span class="tickchip" id="heroTick" hidden></span>
+    <h1 id="tagline"></h1>
+    <p id="about"></p>
+    <div class="cabar" id="caBar" hidden>
+      <small>Contract address</small>
+      <div class="carow"><code id="siteCa">Launching soon</code><button class="btn" type="button" id="siteCopy">Copy</button></div>
+      <div class="ctas">
+        <a class="btn" id="siteBuy" target="_blank" rel="noopener">Buy on pump.fun</a>
+        <a class="btn ghost" id="siteChart" target="_blank" rel="noopener">Chart</a>
+        <a class="btn ghost" id="siteX" target="_blank" rel="noopener">X</a>
+        <a class="btn ghost" id="siteTg" target="_blank" rel="noopener">Telegram</a>
+        <a class="btn ghost" href="#launch">Launch a coin</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="desk" id="launch">
+    <div class="panel">
+      <form id="launchForm" novalidate>
+        <label class="drop" for="image" id="drop">
+          <span class="ph" id="dropPh" aria-hidden="true">＋</span>
+          <img id="dropImg" alt="" hidden>
+          <span><b>Coin picture</b><br><small>PNG, JPG, GIF or WebP, under 3 MB. Square works best.</small></span>
+        </label>
+        <input type="file" id="image" accept="image/png,image/jpeg,image/gif,image/webp" hidden>
+        <div class="row">
+          <label for="name">Name <small>up to 32 characters</small><input id="name" maxlength="32" autocomplete="off" required></label>
+          <label for="symbol">Ticker <small>1–10 letters or numbers</small><input id="symbol" maxlength="11" autocomplete="off" required></label>
+        </div>
+        <label for="description">Description <small>what the coin is about, up to 500 characters</small>
+          <textarea id="description" maxlength="500"></textarea></label>
+        <div class="row">
+          <label for="twitter">X link <small>optional</small><input id="twitter" type="url" placeholder="https://x.com/…"></label>
+          <label for="telegram">Telegram link <small>optional</small><input id="telegram" type="url" placeholder="https://t.me/…"></label>
+        </div>
+        <div class="row">
+          <label for="website">Website <small>optional</small><input id="website" type="url" placeholder="https://…"></label>
+          <label for="devBuy">Your first buy (SOL) <small id="devBuyHint"></small><input id="devBuy" type="number" min="0" step="0.01" inputmode="decimal"></label>
+        </div>
+        <p class="cost">Launching costs about 0.02 SOL in Solana network fees plus your first buy. PumpPortal, which builds the
+          launch, charges its own small fee on that buy. Everything is signed in your wallet; check the amounts before you approve.</p>
+        <button class="btn" type="submit" id="launchBtn">Launch coin</button>
+      </form>
+    </div>
+
+    <aside class="panel preview" aria-label="Preview and progress">
+      <div class="coin">
+        <div class="pic" id="pvPic" aria-hidden="true">？</div>
+        <div><h2 id="pvName">Your coin</h2><div class="tick" id="pvTick">$TICKER</div><div class="desc" id="pvDesc"></div></div>
+      </div>
+      <ol class="steps" id="steps">
+        <li data-step="upload">Upload the picture and details to pump.fun</li>
+        <li data-step="build">Build the launch transaction</li>
+        <li data-step="sign">Approve it in your wallet</li>
+        <li data-step="send">Send it to Solana</li>
+        <li data-step="live">Coin is live on pump.fun</li>
+      </ol>
+      <p class="msg" id="msg" role="status" aria-live="polite"></p>
+      <div class="result" id="result" hidden>
+        <b>Your coin's address</b>
+        <span class="mono" id="resMint"></span>
+        <div class="links">
+          <a class="btn" id="resPump" target="_blank" rel="noopener">Open on pump.fun</a>
+          <button class="btn ghost" type="button" id="resCopy">Copy address</button>
+          <a class="btn ghost" id="resTx" target="_blank" rel="noopener">Transaction</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="site" id="site" hidden></div>
+
+  <section class="mine" aria-labelledby="mineTitle">
+    <h3 id="mineTitle">Launched from this browser</h3>
+    <ul id="mineList"></ul>
+    <p class="cost" id="mineEmpty">Coins you launch here show up in this list (saved only in this browser).</p>
+  </section>
+
+  <footer>
+    <p>Coins launch on pump.fun's bonding curve. Anyone can launch anything: check a coin's address on pump.fun before buying.</p>
+    <p>Memecoins have no promised value and can go to zero in minutes. Not financial advice.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  const C = window.LAUNCHPAD || {};
+  const $ = id => document.getElementById(id);
+  const set = (id, t) => { $(id).textContent = t; };
+  const web3 = window.solanaWeb3;
+
+  // ---- brand
+  const col = C.colors || {};
+  const root = document.documentElement.style;
+  if (col.accent) root.setProperty("--accent", col.accent);
+  if (col.accentInk) root.setProperty("--accent-ink", col.accentInk);
+  if (col.light) root.setProperty("--bg", col.light);
+  if (col.dark) root.setProperty("--bg-dark", col.dark);
+  document.title = C.brand || "Launchpad";
+  set("brandName", C.brand || "Launchpad"); set("brandEmoji", C.emoji || "");
+  set("tagline", C.tagline || "Launch a coin."); set("about", C.about || "");
+  const maxBuy = Number(C.maxDevBuySol ?? 5);
+  $("devBuy").value = String(C.defaultDevBuySol ?? 0); $("devBuy").max = String(maxBuy);
+  set("devBuyHint", `0 to ${maxBuy}; 0 = launch without buying`);
+
+  // ---- the site sections (only when config.js has them: Launchpad Studio writes them)
+  (function site() {
+    const coin = C.coin;
+    const mk = (tag, props = {}, ...kids) => { const e = Object.assign(document.createElement(tag), props); kids.forEach(k => e.append(k)); return e; };
+    if (C.display) {
+      const allowed = ["Bagel Fat One", "Unbounded", "Fredoka", "Bungee", "Rubik", "Lilita One", "Chakra Petch"];
+      if (allowed.includes(C.display)) {
+        const l = mk("link", { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=" + encodeURIComponent(C.display).replace(/%20/g, "+") + ":wght@400;700&display=swap" });
+        document.head.append(l);
+        root.setProperty("--display", '"' + C.display + '", "Arial Rounded MT Bold", system-ui, sans-serif');
+      }
+    }
+    if (!coin) return;
+    const tk = "$" + coin.ticker;
+    set("heroTick", tk); $("heroTick").hidden = false; $("caBar").hidden = false;
+    const off = a => { a.setAttribute("aria-disabled", "true"); a.removeAttribute("href"); };
+    const ca = String(coin.ca || "").trim();
+    if (ca) {
+      set("siteCa", ca);
+      $("siteBuy").href = "https://pump.fun/coin/" + encodeURIComponent(ca);
+      $("siteChart").href = "https://dexscreener.com/solana/" + encodeURIComponent(ca);
+    } else { $("siteCopy").disabled = true; off($("siteBuy")); off($("siteChart")); $("siteBuy").textContent = "Buy at launch"; }
+    if (coin.x) $("siteX").href = coin.x; else $("siteX").hidden = true;
+    if (coin.telegram) $("siteTg").href = coin.telegram; else $("siteTg").hidden = true;
+    $("siteCopy").addEventListener("click", () => {
+      try { navigator.clipboard.writeText(ca).then(() => say("Contract address copied.", "ok"), () => say(ca)); } catch (e) { say(ca); }
+    });
+
+    const site = $("site"), nav = $("siteNav"), secs = [];
+    const section = (id, title, ...kids) => { const s = mk("section", { id }, mk("h2", { textContent: title }), ...kids); site.append(s); secs.push([id, title]); };
+    if ((C.lore || []).length) section("lore", "The lore", ...C.lore.map(t => mk("p", { textContent: t })));
+    if ((C.how || []).length) section("how", "How " + (C.brand || "it") + " works",
+      mk("div", { className: "cards" }, ...C.how.map(c => mk("div", {}, mk("b", { textContent: c.title }), mk("span", { textContent: c.text })))));
+    section("buy", "How to buy " + tk, mk("div", { className: "cards" },
+      mk("div", {}, mk("b", { textContent: "1. Get a Solana wallet" }), mk("span", { textContent: "Phantom or Solflare, on your phone or as a browser extension." })),
+      mk("div", {}, mk("b", { textContent: "2. Add SOL" }), mk("span", { textContent: "Buy SOL in the wallet app or send it from an exchange." })),
+      mk("div", {}, mk("b", { textContent: "3. Swap on pump.fun" }), mk("span", { textContent: "Use the Buy button at the top. Check the contract address matches this page first." }))));
+    // tokenomics are FACTS about a pump.fun launch, never generated text
+    const kv = [["Total supply", "1,000,000,000"], ["Launched on", "pump.fun, bonding curve"],
+      ["Team allocation", coin.devBuyPercent != null ? `None held back. The dev bought ${coin.devBuyPercent}% at launch, public on-chain.` : "None held back. The dev's launch buy is public on-chain."],
+      ["Tax", "0% buy, 0% sell"], ["Liquidity", "Moves to PumpSwap automatically if the bonding curve completes"],
+      ["Utility", tk + " is the community coin of " + (C.brand || "this launchpad") + ". The launchpad works without it."]];
+    section("tokenomics", "Tokenomics", mk("div", { className: "kv" }, ...kv.flatMap(([k, v]) => [mk("div", { textContent: k }), mk("div", { textContent: v })])));
+    if ((C.roadmap || []).length) section("roadmap", "Roadmap", ...C.roadmap.map(ph => mk("div", { className: "phase " + (ph.status || "") },
+      mk("span", { className: "st", textContent: { live: "Live now", next: "Building next", idea: "Ideas, not promises" }[ph.status] || ph.status }),
+      mk("h3", { textContent: ph.title }), mk("ul", {}, ...(ph.items || []).map(i => mk("li", { textContent: i }))))));
+    if ((C.faq || []).length) section("faq", "FAQ", ...C.faq.map(f => mk("details", {}, mk("summary", { textContent: f.q }), mk("p", { textContent: f.a }))));
+    const so = [["X", coin.x], ["Telegram", coin.telegram], ["Chart", ca && "https://dexscreener.com/solana/" + ca], ["pump.fun", ca && "https://pump.fun/coin/" + ca]].filter(x => x[1]);
+    if (so.length) section("socials", "Socials", mk("div", { className: "socials" }, ...so.map(([t, h]) => mk("a", { className: "btn ghost", textContent: t, href: h, target: "_blank", rel: "noopener" }))));
+    site.hidden = false;
+    nav.append(mk("a", { href: "#launch", textContent: "Launch" }), ...secs.map(([id, t]) => mk("a", { href: "#" + id, textContent: t.replace(/^How to buy .*/, "Buy").replace(/^How .* works$/, "How it works") })));
+    nav.hidden = false;
+  })();
+
+  // ---- wallet
+  let wallet = null, owner = null;
+  const providers = () => [window.phantom && window.phantom.solana, window.solflare, window.backpack && window.backpack.solana]
+    .filter(p => p && typeof p.connect === "function" && typeof p.signTransaction === "function");
+  async function connect() {
+    const p = providers()[0];
+    if (!p) { say("No Solana wallet found. Install Phantom or Solflare, then reload this page.", "bad"); return null; }
+    try {
+      const r = await p.connect();
+      const pk = (r && r.publicKey) || p.publicKey;
+      wallet = p; owner = pk.toString();
+      set("connectBtn", owner.slice(0, 4) + "…" + owner.slice(-4));
+      say("Wallet connected.", "ok");
+      return owner;
+    } catch (e) { say("The wallet did not connect: " + (e.message || "request rejected") + ".", "bad"); return null; }
+  }
+  $("connectBtn").addEventListener("click", connect);
+
+  // ---- form + live preview
+  let imageData = "";
+  function preview() {
+    set("pvName", $("name").value.trim() || "Your coin");
+    set("pvTick", "$" + ($("symbol").value.trim().replace(/^\$/, "").toUpperCase() || "TICKER"));
+    set("pvDesc", $("description").value.trim());
+  }
+  ["name", "symbol", "description"].forEach(id => $(id).addEventListener("input", preview));
+  $("image").addEventListener("change", () => {
+    const f = $("image").files[0];
+    if (!f) return;
+    if (f.size > 3 * 1024 * 1024) { say("The picture must be under 3 MB.", "bad"); return; }
+    const rd = new FileReader();
+    rd.onload = () => {
+      imageData = String(rd.result);
+      $("dropImg").src = imageData; $("dropImg").hidden = false; $("dropPh").hidden = true;
+      const pv = $("pvPic"); pv.textContent = "";
+      const im = document.createElement("img"); im.src = imageData; im.alt = ""; im.className = "pic";
+      pv.replaceWith(im); im.id = "pvPic";
+    };
+    rd.readAsDataURL(f);
+  });
+
+  // ---- progress
+  function say(t, kind) { const m = $("msg"); m.textContent = t; m.className = "msg" + (kind ? " " + kind : ""); }
+  function step(name, state) {
+    document.querySelectorAll("#steps li").forEach(li => {
+      if (li.dataset.step === name) li.className = state;
+    });
+  }
+  function resetSteps() { document.querySelectorAll("#steps li").forEach(li => { li.className = ""; }); }
+  async function post(path, body) {
+    const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    let j = {};
+    try { j = await r.json(); } catch (e) { j = { error: `The server answered ${r.status} without details.` }; }
+    if (!r.ok) throw new Error(j.error || `The server answered ${r.status}.`);
+    return j;
+  }
+  const b64ToBytes = b => Uint8Array.from(atob(b), c => c.charCodeAt(0));
+  function bytesToB64(u8) { let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  // ---- launch
+  $("launchForm").addEventListener("submit", async ev => {
+    ev.preventDefault();
+    const name = $("name").value.trim(), symbol = $("symbol").value.trim().replace(/^\$/, "").toUpperCase();
+    const devBuySol = Number($("devBuy").value || 0);
+    if (!imageData) return say("Add a picture for the coin.", "bad");
+    if (!name) return say("Give the coin a name.", "bad");
+    if (!/^[A-Z0-9]{1,10}$/.test(symbol)) return say("The ticker needs 1–10 letters or numbers.", "bad");
+    if (!(devBuySol >= 0 && devBuySol <= maxBuy)) return say(`Your first buy must be between 0 and ${maxBuy} SOL.`, "bad");
+    if (!owner && !(await connect())) return;
+    $("launchBtn").disabled = true; $("result").hidden = true; resetSteps();
+    let current = "upload";
+    try {
+      step("upload", "doing"); say("Uploading the picture and details…");
+      const meta = await post("api/metadata", { name, symbol, description: $("description").value,
+        twitter: $("twitter").value, telegram: $("telegram").value, website: $("website").value, image: imageData });
+      step("upload", "done");
+
+      current = "build"; step("build", "doing"); say("Building the launch…");
+      const mint = web3.Keypair.generate();
+      const built = await post("api/create", { publicKey: owner, mint: mint.publicKey.toBase58(), name, symbol,
+                                               uri: meta.metadataUri, devBuySol });
+      const tx = web3.VersionedTransaction.deserialize(b64ToBytes(built.tx));
+      step("build", "done");
+
+      current = "sign"; step("sign", "doing"); say("Approve the launch in your wallet. Check the SOL amount first.");
+      // the wallet signs FIRST (it may add its own safety instructions), then the new coin's mint key
+      const signed = await wallet.signTransaction(tx);
+      signed.sign([mint]);
+      step("sign", "done");
+
+      current = "send"; step("send", "doing"); say("Sending to Solana…");
+      const sent = await post("api/send", { tx: bytesToB64(signed.serialize()) });
+      step("send", "done");
+
+      current = "live"; step("live", "doing"); say("Waiting for Solana to confirm…");
+      const ca = mint.publicKey.toBase58();
+      showResult(ca, sent.signature);
+      let st = "pending";
+      for (let i = 0; i < 30 && st === "pending"; i++) {
+        await sleep(2000);
+        try { st = (await post("api/send", { signature: sent.signature })).status; } catch (e) { /* keep waiting */ }
+      }
+      if (st === "failed") throw new Error("Solana did not accept the launch. Nothing was created; try again.");
+      if (st === "pending") { say("Sent. Solana is slow to confirm right now: open the transaction link to watch it.", "ok"); }
+      else { say("Your coin is live.", "ok"); }
+      step("live", "done");
+      remember({ ca, name, symbol, at: Date.now() });
+    } catch (e) {
+      step(current, "fail");
+      const m = String(e && e.message || e);
+      say(/reject|cancel|denied/i.test(m) ? "You cancelled in the wallet. Nothing was launched." : m, "bad");
+    } finally {
+      $("launchBtn").disabled = false;
+    }
+  });
+
+  function showResult(ca, sig) {
+    set("resMint", ca);
+    $("resPump").href = "https://pump.fun/coin/" + ca;
+    $("resTx").href = "https://solscan.io/tx/" + sig;
+    $("result").hidden = false;
+  }
+  $("resCopy").addEventListener("click", () => {
+    const ca = $("resMint").textContent;
+    try { navigator.clipboard.writeText(ca).then(() => say("Address copied.", "ok"), () => say(ca)); } catch (e) { say(ca); }
+  });
+
+  // ---- this browser's launches
+  const KEY = "launchpad.mine";
+  function mine() { try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) { return []; } }
+  function remember(x) { try { localStorage.setItem(KEY, JSON.stringify([x].concat(mine()).slice(0, 30))); } catch (e) { /* private mode */ } renderMine(); }
+  function renderMine() {
+    const list = mine(), ul = $("mineList"); ul.textContent = "";
+    $("mineEmpty").hidden = list.length > 0;
+    list.forEach(c => {
+      const li = document.createElement("li");
+      const b = document.createElement("b"); b.textContent = c.name + " ($" + c.symbol + ")";
+      const s = document.createElement("span"); s.className = "mono"; s.textContent = c.ca;
+      const a = document.createElement("a"); a.className = "btn ghost"; a.textContent = "pump.fun"; a.target = "_blank"; a.rel = "noopener";
+      a.href = "https://pump.fun/coin/" + c.ca;
+      li.append(b, s, a); ul.appendChild(li);
+    });
+  }
+  renderMine();
+  if (!web3) say("The Solana library did not load. Reload the page.", "bad");
+})();
+</script>
+</body>
+</html>

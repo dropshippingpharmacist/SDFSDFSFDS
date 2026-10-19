@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Route</title>
+<meta name="description" content="Route: see where your friends are headed and cross paths on purpose. $ROUTE on pump.fun.">
+<meta name="theme-color" content="#ff5a1f">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=DM+Sans:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<script src="route-config.js"></script>
+<style>
+/* Layout: a transit-map story. Hero (two friends' dotted routes meeting at one pin, the CA bar) then the
+   chapters as stops along one vertical route line: lore, how it works, the game, buy, tokenomics, roadmap, safety, FAQ. */
+:root {
+  --bg: #f6f7fb; --ink: #10131c; --muted: #5d6476; --card: #ffffff; --line: #d9dde8; --rail: #10131c;
+  --route: #ff5a1f; --route-ink: #ffffff; --friend: #00a389;
+  --display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #0d1017; --ink: #eef1f7; --muted: #9aa3b8; --card: #161b26; --line: #283043; --rail: #eef1f7;
+    --route: #ff6a33; --friend: #22c39e; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #0d1017; --ink: #eef1f7; --muted: #9aa3b8; --card: #161b26; --line: #283043; --rail: #eef1f7;
+  --route: #ff6a33; --friend: #22c39e; color-scheme: dark; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 400 17px/1.6 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--route); outline-offset: 3px; border-radius: 6px; }
+.wrap { max-width: 1040px; margin: 0 auto; }
+nav.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 18px; flex-wrap: wrap; }
+.logo { font: 800 24px/1 var(--display); display: flex; align-items: center; gap: 8px; text-decoration: none; }
+.logo i { width: 12px; height: 12px; border-radius: 50%; background: var(--route); box-shadow: 14px 0 0 var(--friend); margin-right: 14px; }
+.navlinks { display: flex; gap: 16px; flex-wrap: wrap; font-weight: 600; font-size: 15px; }
+.navlinks a { text-decoration: none; color: var(--muted); }
+.navlinks a:hover { color: var(--ink); }
+.btn { display: inline-flex; align-items: center; gap: 8px; border-radius: 14px; padding: 13px 18px; font-weight: 700; text-decoration: none;
+  background: var(--route); color: var(--route-ink); border: 0; cursor: pointer; font-size: 16px; }
+.btn.alt { background: var(--card); color: var(--ink); border: 1.5px solid var(--line); }
+.btn[aria-disabled="true"] { opacity: .55; pointer-events: none; }
+.hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 32px; align-items: center; padding-block: 24px 40px; }
+.hero h1 { font: 800 clamp(40px, 7vw, 76px)/1 var(--display); margin: 0 0 18px; letter-spacing: -.02em; text-wrap: balance; }
+.hero h1 em { font-style: normal; color: var(--route); }
+.hero p.lead { font-size: 20px; color: var(--muted); margin: 0 0 22px; max-width: 34ch; }
+.tick { display: inline-block; font: 800 15px/1 var(--display); border: 2px solid var(--rail); border-radius: 999px; padding: 8px 14px; margin-bottom: 18px; }
+.ca { display: grid; gap: 8px; margin-bottom: 16px; }
+.ca small { font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-size: 12px; }
+.ca-row { display: flex; gap: 8px; align-items: center; background: var(--card); border: 1.5px solid var(--line); border-radius: 14px; padding: 8px 8px 8px 14px; }
+.ca-row code { font: 500 14px/1.4 var(--mono); flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.ctas { display: flex; flex-wrap: wrap; gap: 10px; }
+.toast { min-height: 1.3em; font-size: 14px; color: var(--friend); font-weight: 700; margin: 6px 0 0; }
+.art { width: 100%; max-width: 440px; justify-self: center; }
+.art svg { width: 100%; height: auto; display: block; }
+.stops { position: relative; display: grid; gap: 28px; padding-block: 20px 40px; }
+.stops::before { content: ""; position: absolute; left: 13px; top: 30px; bottom: 40px; width: 4px; background: var(--rail); border-radius: 2px; }
+.stop { position: relative; padding-left: 52px; scroll-margin-top: 20px; }
+.stop::before { content: ""; position: absolute; left: 3px; top: 8px; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--bg); border: 4px solid var(--rail); }
+.stop.hot::before { background: var(--route); border-color: var(--route); }
+.stop h2 { font: 800 clamp(26px, 4vw, 36px)/1.1 var(--display); margin: 0 0 14px; letter-spacing: -.01em; }
+.stop p { max-width: 64ch; margin: 0 0 12px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.card { background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 16px; }
+.card b { display: block; font-size: 17px; margin-bottom: 4px; }
+.card span { color: var(--muted); font-size: 15px; }
+.kv { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); border: 1.5px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--card); max-width: 720px; }
+.kv div { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.kv div:nth-child(odd) { font-weight: 700; }
+.kv div:nth-child(even) { color: var(--muted); }
+.kv div:nth-last-child(-n+2) { border-bottom: 0; }
+.phase { border-left: 4px solid var(--line); padding-left: 14px; margin-bottom: 14px; }
+.phase.live { border-color: var(--friend); }
+.phase.next { border-color: var(--route); }
+.phase h3 { margin: 0 0 4px; font: 700 18px/1.3 var(--body); }
+.phase .st { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.phase.live .st { color: var(--friend); } .phase.next .st { color: var(--route); } .phase .st { color: var(--muted); }
+.phase ul { margin: 6px 0 0; padding-left: 18px; color: var(--muted); }
+details { background: var(--card); border: 1.5px solid var(--line); border-radius: 14px; padding: 12px 16px; max-width: 760px; }
+details + details { margin-top: 10px; }
+summary { font-weight: 700; cursor: pointer; }
+details p { color: var(--muted); margin: 8px 0 0; }
+footer { border-top: 1.5px solid var(--line); padding-block: 28px 44px; display: grid; gap: 14px; color: var(--muted); font-size: 14px; }
+footer .links { display: flex; gap: 16px; flex-wrap: wrap; font-weight: 700; color: var(--ink); }
+@media (max-width: 780px) { .hero { grid-template-columns: minmax(0, 1fr); } .art { max-width: 320px; } .kv { grid-template-columns: minmax(0, 1fr); } .kv div:nth-child(odd) { border-bottom: 0; padding-bottom: 0; } }
+@media (prefers-reduced-motion: no-preference) {
+  .art .dash { stroke-dasharray: 6 9; animation: move 2.2s linear infinite; }
+  @keyframes move { to { stroke-dashoffset: -30; } }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="top" aria-label="Site">
+    <a class="logo" href="#top"><i></i>Route</a>
+    <div class="navlinks"><a href="#lore">Lore</a><a href="#how">How it works</a><a href="#game">Game</a><a href="#buy">Buy</a>
+      <a href="#tokenomics">Tokenomics</a><a href="#roadmap">Roadmap</a><a href="#faq">FAQ</a></div>
+    <a class="btn" id="navApp" href="/app">Open Route</a>
+  </nav>
+
+  <header class="hero" id="top">
+    <div>
+      <span class="tick" id="tickChip">$ROUTE</span>
+      <h1>Same county. <em>Never</em> see each other. Fix that.</h1>
+      <p class="lead">Route shows your friends where you're headed, and where they are. Cross paths on purpose and pull up.</p>
+      <div class="ca">
+        <small>Contract address</small>
+        <div class="ca-row"><code id="caText">Launching soon</code><button class="btn" type="button" id="copyBtn">Copy</button></div>
+        <p class="toast" id="toast" role="status" aria-live="polite"></p>
+      </div>
+      <div class="ctas">
+        <a class="btn" id="buyBtn" target="_blank" rel="noopener">Buy on pump.fun</a>
+        <a class="btn alt" id="chartBtn" target="_blank" rel="noopener">Chart</a>
+        <a class="btn alt" id="xBtn" target="_blank" rel="noopener">X</a>
+        <a class="btn alt" href="/app">Open the app</a>
+      </div>
+    </div>
+    <div class="art" aria-hidden="true">
+      <svg viewBox="0 0 400 400">
+        <rect x="0" y="0" width="400" height="400" rx="40" fill="var(--card)" stroke="var(--line)" stroke-width="3"/>
+        <path d="M40 330 C 120 330, 120 210, 200 200" fill="none" stroke="var(--route)" stroke-width="10" stroke-linecap="round" class="dash"/>
+        <path d="M360 70 C 280 70, 300 190, 200 200" fill="none" stroke="var(--friend)" stroke-width="10" stroke-linecap="round" class="dash"/>
+        <circle cx="40" cy="330" r="16" fill="var(--route)"/>
+        <circle cx="360" cy="70" r="16" fill="var(--friend)"/>
+        <circle cx="200" cy="200" r="58" fill="var(--route)" opacity=".14"/>
+        <circle cx="200" cy="200" r="26" fill="var(--rail)"/>
+        <circle cx="200" cy="200" r="10" fill="var(--bg)"/>
+        <text x="200" y="290" text-anchor="middle" font-family="Unbounded, sans-serif" font-weight="800" font-size="22" fill="var(--ink)">crossing paths</text>
+      </svg>
+    </div>
+  </header>
+
+  <main class="stops">
+    <section class="stop hot" id="lore">
+      <h2>The lore</h2>
+      <p>You have a friend from school on Facebook. You live twenty minutes apart. You haven't seen each other in four years and you probably never will, because nobody texts "hey, I'll be at the taco spot on 5th at 7."</p>
+      <p>Route does it for you. Add each other, share where you're heading, and when your paths cross, Route tells you both. One tap and you pull up. That's it. That's the whole idea: the people already around you, actually around you.</p>
+    </section>
+
+    <section class="stop" id="how">
+      <h2>How Route works</h2>
+      <div class="cards">
+        <div class="card"><b>Add each other</b><span>Both of you add each other by username. Until you both do, neither sees a thing. No strangers, ever.</span></div>
+        <div class="card"><b>Share where you're heading</b><span>"Taco spot on 5th, leaving in 30." Friends see the area, never your doorstep, and it disappears on its own.</span></div>
+        <div class="card"><b>Cross paths</b><span>Heading near the same place at the same time? Route flags it: crossing paths.</span></div>
+        <div class="card"><b>Pull up</b><span>Tap Pull up. They say "I'm down" or "not now". Ghost mode hides you from everyone in one tap.</span></div>
+      </div>
+    </section>
+
+    <section class="stop" id="game">
+      <h2>The game: link-ups</h2>
+      <p>When you pull up and actually meet, you both tap "We linked up". Both confirm, you both score.</p>
+      <div class="cards">
+        <div class="card"><b>10 points</b><span>Every confirmed link-up. One per friend per day counts, so it rewards seeing people, not farming.</span></div>
+        <div class="card"><b>+25 Reconnected</b><span>The first link-up ever with a friend. The friend you haven't seen in years is worth the most.</span></div>
+        <div class="card"><b>Streaks and badges</b><span>Link up every week to keep your streak. Badges: First Route, Pulled Up, Linked, Social Butterfly, Regular.</span></div>
+        <div class="card"><b>Friends leaderboard</b><span>You against your own friends. Points live in the app; they are not tokens and pay nothing.</span></div>
+      </div>
+    </section>
+
+    <section class="stop" id="buy">
+      <h2>How to buy <span id="buyTick">$ROUTE</span></h2>
+      <div class="cards">
+        <div class="card"><b>1. Get a Solana wallet</b><span>Phantom or Solflare, on your phone or as a browser extension.</span></div>
+        <div class="card"><b>2. Add SOL</b><span>Buy SOL in the wallet app or send it from an exchange.</span></div>
+        <div class="card"><b>3. Swap on pump.fun</b><span>Use the Buy button above. Check the contract address matches this page before you buy.</span></div>
+      </div>
+    </section>
+
+    <section class="stop" id="tokenomics">
+      <h2>Tokenomics</h2>
+      <div class="kv" id="kv">
+        <div>Total supply</div><div>1,000,000,000</div>
+        <div>Launched on</div><div>pump.fun, bonding curve</div>
+        <div>Team allocation</div><div id="devLine">None held back. The dev's launch buy is public on-chain.</div>
+        <div>Tax</div><div>0% buy, 0% sell</div>
+        <div>Liquidity</div><div>Moves to PumpSwap automatically if the bonding curve completes</div>
+        <div>Utility</div><div>None promised. $ROUTE is the community coin of the app; you never need it to use Route</div>
+      </div>
+    </section>
+
+    <section class="stop" id="roadmap">
+      <h2>Roadmap</h2>
+      <div class="phase live"><span class="st">Live now</span><h3>Route, the app</h3>
+        <ul><li>Mutual friends, shared routes, "I'm around here"</li><li>Crossing paths, pull-ups, ghost mode, blocking</li><li>Link-ups: points, streaks, badges, friends leaderboard</li><li>The <a href="/launch/">Route launchpad</a> for pump.fun</li></ul></div>
+      <div class="phase next"><span class="st">Building next</span><h3>On your home screen</h3>
+        <ul><li>Install Route to your phone's home screen</li><li>Notifications when a friend pulls up or your paths cross</li><li>Group routes: a whole crew heading the same way</li></ul></div>
+      <div class="phase"><span class="st">Ideas, not promises</span><h3>Further out</h3>
+        <ul><li>City and county leaderboards (opt-in)</li><li>Seasonal link-up challenges</li></ul></div>
+    </section>
+
+    <section class="stop" id="safety">
+      <h2>Safety first</h2>
+      <div class="cards">
+        <div class="card"><b>About 1 km, never exact</b><span>Places are rounded before they're stored. Friends see an area.</span></div>
+        <div class="card"><b>Everything expires</b><span>Routes last at most 12 hours, "I'm around here" at most 6.</span></div>
+        <div class="card"><b>Friends only</b><span>Both people must add each other. Block anyone, and to them you disappear.</span></div>
+        <div class="card"><b>Ghost mode</b><span>One tap and nobody sees anything from you until you turn it off.</span></div>
+      </div>
+    </section>
+
+    <section class="stop" id="faq">
+      <h2>FAQ</h2>
+      <details><summary>Is Route live?</summary><p>Yes. Open the app, make an account, and add a friend by username.</p></details>
+      <details><summary>Do I need $ROUTE to use the app?</summary><p>No. The app is free and works without the coin.</p></details>
+      <details><summary>Does holding $ROUTE earn points or rewards?</summary><p>No. Points come only from real link-ups with friends, and they stay in the app.</p></details>
+      <details><summary>Can strangers see where I am?</summary><p>No. Only people you have both added see anything, and only an area, for a limited time.</p></details>
+      <details><summary>What is the contract address?</summary><p>The one at the top of this page. Always check it here before buying anything named Route.</p></details>
+      <details><summary>Is this financial advice?</summary><p>No. Memecoins can go to zero in minutes. Only spend what you can afford to lose.</p></details>
+    </section>
+  </main>
+
+  <footer>
+    <div class="links"><a href="/app">Open Route</a><a href="/launch/">Launchpad</a><a id="fX" target="_blank" rel="noopener">X</a><a id="fTg" target="_blank" rel="noopener">Telegram</a></div>
+    <p>$ROUTE is a memecoin with no promised value. Route the app is free and does not require it. Not financial advice.</p>
+  </footer>
+</div>
+<script>
+(function () {
+  const R = window.ROUTE || {};
+  const $ = id => document.getElementById(id);
+  const tk = "$" + (R.ticker || "ROUTE");
+  ["tickChip", "buyTick"].forEach(id => { $(id).textContent = tk; });
+  document.title = "Route " + tk;
+  const off = (a, t) => { a.setAttribute("aria-disabled", "true"); a.removeAttribute("href"); if (t) a.textContent = t; };
+  const ca = String(R.ca || "").trim();
+  if (ca) {
+    $("caText").textContent = ca;
+    $("buyBtn").href = "https://pump.fun/coin/" + encodeURIComponent(ca);
+    $("chartBtn").href = "https://dexscreener.com/solana/" + encodeURIComponent(ca);
+  } else {
+    $("copyBtn").disabled = true; $("copyBtn").setAttribute("aria-disabled", "true");
+    off($("buyBtn"), "Buy at launch"); off($("chartBtn"));
+  }
+  if (R.x) { $("xBtn").href = R.x; $("fX").href = R.x; } else { off($("xBtn")); $("fX").hidden = true; }
+  if (R.telegram) $("fTg").href = R.telegram; else $("fTg").hidden = true;
+  if (R.devBuyPercent != null) $("devLine").textContent = "None held back. The dev bought " + R.devBuyPercent + "% at launch, public on-chain.";
+  if (R.appUrl) { $("navApp").href = R.appUrl; }
+  $("copyBtn").addEventListener("click", () => {
+    const done = t => { $("toast").textContent = t; setTimeout(() => { $("toast").textContent = ""; }, 1800); };
+    try { navigator.clipboard.writeText(ca).then(() => done("Copied"), () => done(ca)); } catch (e) { done(ca); }
+  });
+})();
+</script>
+</body>
+</html>

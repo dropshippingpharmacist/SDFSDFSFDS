@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Launchpad Studio</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=DM+Sans:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: a workbench. Left: the idea and the generated copy you can edit. Right: the live site in a frame, deploy on top. */
+:root {
+  --bg: #f4f5f9; --ink: #11141d; --muted: #5d6476; --card: #ffffff; --line: #d7dbe6; --field: #ffffff;
+  --accent: #ff5a1f; --accent-ink: #ffffff; --ok: #138a62; --bad: #c8312b; --warn: #a3620a;
+  --display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #0d1017; --ink: #eef1f7; --muted: #9aa3b8; --card: #161b26; --line: #283043; --field: #10141d;
+    --accent: #ff6a33; --ok: #3fd19b; --bad: #ff7b72; --warn: #f0b04a; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #0d1017; --ink: #eef1f7; --muted: #9aa3b8; --card: #161b26; --line: #283043; --field: #10141d;
+  --accent: #ff6a33; --ok: #3fd19b; --bad: #ff7b72; --warn: #f0b04a; color-scheme: dark; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 400 15px/1.5 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+button, input, textarea { font: inherit; color: inherit; }
+.btn { border: 0; border-radius: 12px; padding: 11px 16px; font-weight: 700; cursor: pointer; background: var(--accent); color: var(--accent-ink); text-decoration: none; display: inline-flex; gap: 8px; align-items: center; }
+.btn.alt { background: var(--card); color: var(--ink); border: 1.5px solid var(--line); }
+.btn.small { padding: 7px 12px; font-size: 13px; }
+.btn:disabled { opacity: .5; cursor: progress; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+input, textarea { background: var(--field); border: 1.5px solid var(--line); border-radius: 10px; padding: 9px 11px; width: 100%; min-width: 0; }
+textarea { resize: vertical; min-height: 70px; }
+label { display: grid; gap: 4px; font-weight: 600; font-size: 13px; }
+label small { color: var(--muted); font-weight: 400; }
+header.bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 16px; flex-wrap: wrap; max-width: 1400px; margin: 0 auto; }
+.logo { font: 800 20px/1 var(--display); } .logo span { color: var(--accent); }
+.pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.pill { font-size: 12px; font-weight: 700; border-radius: 999px; padding: 5px 10px; border: 1.5px solid var(--line); background: var(--card); }
+.pill.on { border-color: var(--ok); color: var(--ok); } .pill.off { border-color: var(--warn); color: var(--warn); }
+.bench { display: grid; grid-template-columns: minmax(0, 460px) minmax(0, 1fr); gap: 18px; max-width: 1400px; margin: 0 auto; padding-bottom: 40px; align-items: start; }
+.col { display: grid; gap: 14px; min-width: 0; }
+.card { background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 16px; display: grid; gap: 12px; }
+.card h2 { font: 600 16px/1.2 var(--display); margin: 0; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.muted { color: var(--muted); font-size: 13px; margin: 0; }
+.note { font-size: 13px; padding: 8px 10px; border-radius: 10px; background: color-mix(in srgb, var(--warn) 12%, var(--card)); border: 1px solid var(--warn); }
+.err { color: var(--bad); font-weight: 600; min-height: 1.2em; margin: 0; font-size: 14px; }
+.domains { display: grid; gap: 6px; }
+.dom { display: flex; gap: 8px; align-items: center; justify-content: space-between; border: 1.5px solid var(--line); border-radius: 10px; padding: 7px 10px; flex-wrap: wrap; }
+.dom code { font: 500 13px var(--mono); }
+.st { font-size: 12px; font-weight: 800; } .st.available { color: var(--ok); } .st.taken { color: var(--bad); } .st.unknown, .st.invalid { color: var(--muted); }
+.frame { position: sticky; top: 12px; display: grid; gap: 10px; min-width: 0; }
+iframe { width: 100%; height: calc(100vh - 210px); min-height: 520px; border: 1.5px solid var(--line); border-radius: 16px; background: var(--card); }
+.live { font: 500 14px var(--mono); overflow-wrap: anywhere; }
+.drafts { display: grid; gap: 6px; }
+.drafts button { text-align: left; background: var(--field); border: 1.5px solid var(--line); border-radius: 10px; padding: 8px 10px; cursor: pointer; }
+.login { max-width: 380px; margin: 12vh auto; }
+@media (max-width: 980px) { .bench { grid-template-columns: minmax(0, 1fr); } .frame { position: static; } iframe { height: 70vh; } }
+@media (max-width: 460px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head>
+<body>
+<form class="card login" id="loginView" hidden novalidate>
+  <div class="logo">Launchpad <span>Studio</span></div>
+  <p class="muted">Type a launchpad idea. Get a branded, working pump.fun launchpad site, live on Vercel.</p>
+  <label for="pw">Studio password<input id="pw" type="password" autocomplete="current-password"></label>
+  <p class="err" id="loginErr" role="alert"></p>
+  <button class="btn" type="submit">Open the Studio</button>
+</form>
+
+<div id="appView" hidden>
+  <header class="bar">
+    <div class="logo">Launchpad <span>Studio</span></div>
+    <div class="pills"><span class="pill" id="aiPill">AI</span><span class="pill" id="vcPill">Vercel</span></div>
+  </header>
+  <div class="bench">
+    <div class="col">
+      <section class="card">
+        <h2>Your idea</h2>
+        <label for="idea">What is the launchpad about? <small>e.g. "a launchpad for cat memes", "a launchpad for gamers"</small>
+          <textarea id="idea" maxlength="500"></textarea></label>
+        <div class="grid2">
+          <label for="wantTicker">Ticker <small>optional</small><input id="wantTicker" maxlength="10" placeholder="ROUTE"></label>
+          <label for="wantAccent">Color <small>optional</small><input id="wantAccent" type="color" value="#ff6a2b"></label>
+          <label for="wantX">X link <small>optional</small><input id="wantX" type="url" placeholder="https://x.com/…"></label>
+          <label for="wantTg">Telegram <small>optional</small><input id="wantTg" type="url" placeholder="https://t.me/…"></label>
+        </div>
+        <button class="btn" id="genBtn" type="button">Generate the site</button>
+        <p class="err" id="genErr" role="alert"></p>
+      </section>
+
+      <section class="card" id="resultCard" hidden>
+        <h2 id="resBrand"></h2>
+        <p class="note" id="resNote" hidden></p>
+        <p class="note" id="resRemoved" hidden></p>
+        <div><b>Domains</b> <span class="muted">· checked against the registries</span></div>
+        <div class="domains" id="domains"></div>
+        <button class="btn alt small" id="checkBtn" type="button">Check availability</button>
+        <p class="muted" id="tickerLine"></p>
+      </section>
+
+      <section class="card" id="editCard" hidden>
+        <h2>Edit the site</h2>
+        <div class="grid2">
+          <label for="eBrand">Brand<input id="eBrand" maxlength="24"></label>
+          <label for="eTicker">Ticker<input id="eTicker" maxlength="10"></label>
+        </div>
+        <label for="eTagline">Headline<input id="eTagline" maxlength="90"></label>
+        <label for="eAbout">Intro<textarea id="eAbout" maxlength="260"></textarea></label>
+        <label for="eLore">Lore <small>paragraphs separated by a blank line</small><textarea id="eLore" rows="5"></textarea></label>
+        <label for="eHow">How it works <small>one step per line: Title: sentence</small><textarea id="eHow" rows="4"></textarea></label>
+        <label for="eNext">Roadmap, building next <small>one per line</small><textarea id="eNext" rows="3"></textarea></label>
+        <label for="eIdeas">Roadmap, further out <small>one per line</small><textarea id="eIdeas" rows="2"></textarea></label>
+        <label for="eFaq">FAQ <small>one per line: Question? | Answer</small><textarea id="eFaq" rows="5"></textarea></label>
+        <div class="grid2">
+          <label for="eCa">Contract address <small>after you launch</small><input id="eCa" maxlength="44"></label>
+          <label for="eDev">Dev buy % <small>after you launch</small><input id="eDev" inputmode="decimal"></label>
+          <label for="eX">X link<input id="eX" type="url"></label>
+          <label for="eTg">Telegram<input id="eTg" type="url"></label>
+        </div>
+        <button class="btn" id="saveBtn" type="button">Save and refresh preview</button>
+        <p class="muted">Tokenomics and the "Live now" roadmap are facts about the launchpad and stay as they are.
+          Sentences promising donations, partners or profits are removed on save.</p>
+      </section>
+
+      <section class="card">
+        <h2>Your sites</h2>
+        <div class="drafts" id="drafts"></div>
+        <p class="muted" id="draftsEmpty">Generated sites show up here.</p>
+      </section>
+    </div>
+
+    <div class="frame">
+      <section class="card" id="deployCard" hidden>
+        <div class="row">
+          <label for="slug" style="flex:1">Vercel project name<input id="slug" maxlength="40"></label>
+          <button class="btn" id="deployBtn" type="button">Deploy to Vercel</button>
+        </div>
+        <p class="err" id="deployErr" role="alert"></p>
+        <p class="live" id="liveUrl" hidden></p>
+      </section>
+      <iframe id="preview" title="Site preview"></iframe>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const el = (t, p = {}, ...k) => { const e = Object.assign(document.createElement(t), p); k.forEach(x => e.append(x)); return e; };
+  let cur = null;
+
+  async function call(path, body) {
+    const r = await fetch(path, { method: "POST", headers: { "content-type": "application/json", "x-route": "1" }, body: JSON.stringify(body || {}) });
+    let j = {}; try { j = await r.json(); } catch (e) {}
+    if (r.status === 401 && path !== "/api/studio/login") { show(false); throw new Error(j.error || "Sign in first."); }
+    if (!r.ok) throw new Error(j.error || "Something went wrong (" + r.status + ").");
+    return j;
+  }
+  function show(inApp) { $("loginView").hidden = inApp; $("appView").hidden = !inApp; }
+
+  $("loginView").addEventListener("submit", async e => {
+    e.preventDefault(); $("loginErr").textContent = "";
+    try { await call("/api/studio/login", { password: $("pw").value }); boot(); } catch (er) { $("loginErr").textContent = er.message; }
+  });
+
+  async function boot() {
+    const s = await call("/api/studio/status");
+    show(true);
+    $("aiPill").textContent = s.ai ? "AI writer: Claude" : "AI writer: off (plain writer)"; $("aiPill").className = "pill " + (s.ai ? "on" : "off");
+    $("vcPill").textContent = s.vercel ? "Vercel: connected" : "Vercel: add VERCEL_TOKEN"; $("vcPill").className = "pill " + (s.vercel ? "on" : "off");
+    loadDrafts();
+  }
+
+  $("genBtn").addEventListener("click", async () => {
+    $("genErr").textContent = ""; $("genBtn").disabled = true; $("genBtn").textContent = "Writing the site…";
+    try {
+      const r = await call("/api/studio/generate", { idea: $("idea").value, ticker: $("wantTicker").value.trim(),
+        x: $("wantX").value.trim(), telegram: $("wantTg").value.trim(), accent: $("wantAccent").value });
+      open(r); loadDrafts();
+    } catch (e) { $("genErr").textContent = e.message; }
+    finally { $("genBtn").disabled = false; $("genBtn").textContent = "Generate the site"; }
+  });
+
+  function open(r) {
+    cur = r;
+    const c = r.config;
+    $("resultCard").hidden = $("editCard").hidden = $("deployCard").hidden = false;
+    $("resBrand").textContent = (c.emoji || "") + " " + c.brand + "  ·  $" + c.coin.ticker;
+    $("resNote").hidden = !r.note; $("resNote").textContent = r.note || "";
+    $("resRemoved").hidden = !(r.removed || []).length;
+    $("resRemoved").textContent = (r.removed || []).length ? "Removed " + r.removed.length + " sentence(s) that promised donations, partners or profits." : "";
+    const ds = $("domains"); ds.textContent = "";
+    (r.domains || []).forEach(d => ds.append(el("div", { className: "dom" }, el("code", { textContent: d }),
+      el("span", { className: "st", id: "st-" + d, textContent: "not checked" }))));
+    $("tickerLine").textContent = "Ticker $" + c.coin.ticker + ((r.tickerBackups || []).length ? " · backups: " + r.tickerBackups.map(t => "$" + t).join(", ") : "") +
+      ". Search pump.fun for it before you launch.";
+    fill(c);
+    $("slug").value = (c.brand || "launchpad").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    $("liveUrl").hidden = !r.url; if (r.url) setLive(r.url);
+    $("preview").src = "/studio/p/" + r.id + "/?t=" + Date.now();
+  }
+  function fill(c) {
+    $("eBrand").value = c.brand; $("eTicker").value = c.coin.ticker; $("eTagline").value = c.tagline; $("eAbout").value = c.about;
+    $("eLore").value = (c.lore || []).join("\n\n");
+    $("eHow").value = (c.how || []).map(h => h.title + ": " + h.text).join("\n");
+    const ph = s => ((c.roadmap || []).find(x => x.status === s) || { items: [] }).items.join("\n");
+    $("eNext").value = ph("next"); $("eIdeas").value = ph("idea");
+    $("eFaq").value = (c.faq || []).filter(f => !/^Do I need \$|^Is this financial advice/.test(f.q)).map(f => f.q + " | " + f.a).join("\n");
+    $("eCa").value = c.coin.ca || ""; $("eDev").value = c.coin.devBuyPercent ?? ""; $("eX").value = c.coin.x || ""; $("eTg").value = c.coin.telegram || "";
+  }
+  const lines = id => $(id).value.split("\n").map(s => s.trim()).filter(Boolean);
+  $("saveBtn").addEventListener("click", async () => {
+    if (!cur) return;
+    const c = JSON.parse(JSON.stringify(cur.config));
+    c.brand = $("eBrand").value; c.tagline = $("eTagline").value; c.about = $("eAbout").value;
+    c.coin.ticker = $("eTicker").value; c.coin.ca = $("eCa").value; c.coin.devBuyPercent = $("eDev").value; c.coin.x = $("eX").value; c.coin.telegram = $("eTg").value;
+    c.lore = $("eLore").value.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
+    c.how = lines("eHow").map(l => { const i = l.indexOf(":"); return i > 0 ? { title: l.slice(0, i), text: l.slice(i + 1).trim() } : { title: l, text: l }; });
+    c.roadmap = [{ status: "next", items: lines("eNext") }, { status: "idea", items: lines("eIdeas") }];
+    c.faq = lines("eFaq").map(l => { const [q, ...a] = l.split("|"); return { q: q.trim(), a: a.join("|").trim() }; });
+    $("saveBtn").disabled = true;
+    try {
+      const r = await call("/api/studio/save", { id: cur.id, config: c });
+      cur.config = r.config; cur.removed = r.removed; fill(r.config);
+      $("resRemoved").hidden = !r.removed.length; $("resRemoved").textContent = r.removed.length ? "Removed " + r.removed.length + " sentence(s) that promised donations, partners or profits." : "";
+      $("resBrand").textContent = (r.config.emoji || "") + " " + r.config.brand + "  ·  $" + r.config.coin.ticker;
+      $("preview").src = "/studio/p/" + cur.id + "/?t=" + Date.now();
+    } catch (e) { $("genErr").textContent = e.message; } finally { $("saveBtn").disabled = false; }
+  });
+
+  $("checkBtn").addEventListener("click", async () => {
+    if (!cur) return;
+    $("checkBtn").disabled = true;
+    try {
+      const r = await call("/api/studio/domains", { domains: cur.domains || [] });
+      r.domains.forEach(d => {
+        const s = $("st-" + d.domain); if (!s) return;
+        s.textContent = { available: "available", taken: "taken", unknown: "couldn't check", invalid: "not a domain" }[d.status];
+        s.className = "st " + d.status;
+        if (d.status === "available" && !s.nextSibling) s.after(el("a", { className: "btn alt small", textContent: "Buy", target: "_blank", rel: "noopener",
+          href: "https://porkbun.com/checkout/search?q=" + encodeURIComponent(d.domain) }));
+      });
+    } catch (e) { $("genErr").textContent = e.message; } finally { $("checkBtn").disabled = false; }
+  });
+
+  function setLive(url) { const l = $("liveUrl"); l.hidden = false; l.textContent = ""; l.append("Live: ", el("a", { href: url, textContent: url, target: "_blank", rel: "noopener" })); }
+  $("deployBtn").addEventListener("click", async () => {
+    if (!cur) return;
+    $("deployErr").textContent = ""; $("deployBtn").disabled = true; $("deployBtn").textContent = "Deploying…";
+    try { const r = await call("/api/studio/deploy", { id: cur.id, slug: $("slug").value }); cur.url = r.url; setLive(r.url); loadDrafts(); }
+    catch (e) { $("deployErr").textContent = e.message; }
+    finally { $("deployBtn").disabled = false; $("deployBtn").textContent = "Deploy to Vercel"; }
+  });
+
+  async function loadDrafts() {
+    const r = await call("/api/studio/list");
+    const d = $("drafts"); d.textContent = "";
+    r.drafts.forEach(x => d.append(el("button", { type: "button", onclick: async () => open(await call("/api/studio/get", { id: x.id })) },
+      el("b", { textContent: x.brand + " · $" + x.ticker }), el("div", { className: "muted", textContent: (x.url ? "Live · " : "Draft · ") + x.idea.slice(0, 70) }))));
+    $("draftsEmpty").hidden = r.drafts.length > 0;
+  }
+
+  call("/api/studio/status").then(boot, () => show(false));
+})();
+</script>
+</body>
+</html>

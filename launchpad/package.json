@@ -1,0 +1,10 @@
+{
+  "name": "launchpad",
+  "private": true,
+  "type": "module",
+  "description": "A pump.fun launchpad: launch real coins from your own wallet. Static page + three Vercel functions.",
+  "scripts": {
+    "dev": "node dev.mjs"
+  },
+  "engines": { "node": ">=18" }
+}

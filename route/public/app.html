@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Route</title>
+<meta name="theme-color" content="#ff5a1f">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=DM+Sans:wght@400;600;700&display=swap">
+<style>
+/* Layout: a phone-first app. Top bar (logo, points, ghost), the map, then the tab's cards; tabs sit in a bottom bar. */
+:root {
+  --bg: #f6f7fb; --ink: #10131c; --muted: #5d6476; --card: #ffffff; --line: #d9dde8; --field: #ffffff;
+  --route: #ff5a1f; --route-ink: #ffffff; --friend: #00a389; --warn: #c8312b; --ghost: #6b4fd8;
+  --display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1017; --ink: #eef1f7; --muted: #9aa3b8; --card: #161b26; --line: #283043; --field: #10141d;
+    --route: #ff6a33; --friend: #22c39e; --warn: #ff7b72; --ghost: #9b85ff; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1017; --ink: #eef1f7; --muted: #9aa3b8; --card: #161b26; --line: #283043; --field: #10141d;
+  --route: #ff6a33; --friend: #22c39e; --warn: #ff7b72; --ghost: #9b85ff; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 400 16px/1.45 var(--body); padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+.pad { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 720px; margin: 0 auto; }
+button, input, select { font: inherit; color: inherit; }
+.btn { border: 0; border-radius: 12px; padding: 11px 16px; font-weight: 700; cursor: pointer; background: var(--route); color: var(--route-ink); }
+.btn.alt { background: var(--card); color: var(--ink); border: 1.5px solid var(--line); }
+.btn.friend { background: var(--friend); color: #fff; }
+.btn.small { padding: 7px 12px; font-size: 14px; border-radius: 10px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+:focus-visible { outline: 3px solid var(--route); outline-offset: 2px; }
+input, select { background: var(--field); border: 1.5px solid var(--line); border-radius: 12px; padding: 11px 12px; width: 100%; min-width: 0; }
+.logo { font: 800 22px/1 var(--display); letter-spacing: -.01em; display: flex; align-items: center; gap: 8px; }
+.logo i { width: 12px; height: 12px; border-radius: 50%; background: var(--route); box-shadow: 14px 0 0 var(--friend); margin-right: 14px; }
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 500; background: var(--bg); border-bottom: 1px solid var(--line); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 501; background: var(--bg); }
+.topin { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-block: 12px; }
+.chips { display: flex; gap: 8px; align-items: center; }
+.chip { font-weight: 700; font-size: 14px; border-radius: 999px; padding: 6px 12px; background: var(--card); border: 1.5px solid var(--line); cursor: pointer; }
+.chip.ghost-on { background: var(--ghost); color: #fff; border-color: var(--ghost); }
+#map { height: 300px; border-radius: 18px; border: 1.5px solid var(--line); margin-top: 14px; background: var(--card); }
+.nomap { display: grid; place-items: center; color: var(--muted); font-size: 14px; text-align: center; padding: 16px; }
+section.card { background: var(--card); border: 1.5px solid var(--line); border-radius: 18px; padding: 16px; margin-top: 14px; display: grid; gap: 12px; }
+section.card h2 { font: 600 17px/1.2 var(--display); margin: 0; }
+.muted { color: var(--muted); font-size: 14px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; border: 1.5px solid var(--line); border-radius: 14px; padding: 10px 12px; }
+.item b { display: block; overflow-wrap: anywhere; }
+.item .acts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.cross { border-color: var(--route); background: color-mix(in srgb, var(--route) 10%, var(--card)); }
+.tag { display: inline-block; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 2px 8px; background: var(--route); color: var(--route-ink); margin-left: 6px; }
+.tag.f { background: var(--friend); color: #fff; }
+.places { display: grid; gap: 6px; }
+.places button { text-align: left; background: var(--field); border: 1.5px solid var(--line); border-radius: 10px; padding: 9px 12px; cursor: pointer; }
+.places button[aria-pressed="true"] { border-color: var(--route); }
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 600; background: var(--card); border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0px); }
+nav.tabs .in { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 720px; margin: 0 auto; }
+nav.tabs button { background: none; border: 0; padding: 14px 8px; font-weight: 700; color: var(--muted); cursor: pointer; }
+nav.tabs button[aria-selected="true"] { color: var(--route); }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(84px + env(safe-area-inset-bottom, 0px)); z-index: 700;
+  background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-weight: 600; max-width: 90vw; }
+.big { font: 800 44px/1 var(--display); }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; text-align: center; }
+.stats div { border: 1.5px solid var(--line); border-radius: 14px; padding: 10px 6px; }
+.stats b { display: block; font: 800 22px/1.1 var(--display); }
+.badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.badge { border: 1.5px dashed var(--line); border-radius: 14px; padding: 10px; font-size: 14px; color: var(--muted); }
+.badge.on { border-style: solid; border-color: var(--friend); color: var(--ink); }
+.badge b { display: block; }
+.auth { max-width: 420px; margin: 8vh auto 0; display: grid; gap: 14px; }
+.auth h1 { font: 800 40px/1 var(--display); margin: 0; }
+.err { color: var(--warn); font-weight: 600; min-height: 1.3em; margin: 0; }
+.leaflet-container { font: inherit; }
+@media (max-width: 440px) { .grid2 { grid-template-columns: minmax(0, 1fr); } .item { grid-template-columns: minmax(0, 1fr); } .item .acts { justify-content: flex-start; } }
+</style>
+</head>
+<body>
+<div id="authView" class="pad" hidden>
+  <form class="auth" id="authForm" novalidate>
+    <div class="logo"><i></i>Route</div>
+    <h1 id="authTitle">See where your friends are headed.</h1>
+    <p class="muted">Add each other, share where you're going, and cross paths on purpose. Friends see an area, never your doorstep, and every share expires on its own.</p>
+    <label for="username">Username<input id="username" autocomplete="username" required></label>
+    <label for="password">Password<input id="password" type="password" autocomplete="current-password" required></label>
+    <label for="display" id="displayWrap" hidden>Your name (what friends see)<input id="display" autocomplete="nickname"></label>
+    <p class="err" id="authErr" role="alert"></p>
+    <button class="btn" id="authBtn" type="submit">Sign in</button>
+    <button class="btn alt" id="authSwitch" type="button">New here? Create an account</button>
+  </form>
+</div>
+
+<div id="appView" hidden>
+  <header class="top pad"><div class="wrap topin">
+    <div class="logo"><i></i>Route</div>
+    <div class="chips">
+      <span class="chip" id="pointsChip" title="Your link-up points">0 pts</span>
+      <button class="chip" id="ghostBtn" type="button" aria-pressed="false">Ghost off</button>
+    </div>
+  </div></header>
+
+  <main class="wrap pad">
+    <!-- MAP TAB -->
+    <div id="tab-map">
+      <div id="map" role="region" aria-label="Map of you and your friends"></div>
+
+      <section class="card" id="pullCard" hidden>
+        <h2>Pull-ups</h2>
+        <ul class="list" id="pullList"></ul>
+      </section>
+
+      <section class="card">
+        <h2>Where are you heading?</h2>
+        <div class="row">
+          <input id="placeQ" placeholder="Search a place: a café, a park, a neighborhood" aria-label="Search a place">
+          <button class="btn alt" id="placeGo" type="button">Search</button>
+        </div>
+        <div class="places" id="placeList"></div>
+        <button class="btn alt small" id="useHere" type="button">Use my current location as the destination</button>
+        <label for="placeLabel">Call it<input id="placeLabel" maxlength="60" placeholder="Taco spot on 5th"></label>
+        <div class="grid2">
+          <label for="leaveIn">Leaving
+            <select id="leaveIn"><option value="0">Now</option><option value="30">In 30 minutes</option><option value="60">In 1 hour</option><option value="120">In 2 hours</option><option value="240">In 4 hours</option></select></label>
+          <label for="stayFor">Share for
+            <select id="stayFor"><option value="1">1 hour</option><option value="3" selected>3 hours</option><option value="6">6 hours</option><option value="12">12 hours</option></select></label>
+        </div>
+        <button class="btn" id="shareBtn" type="button" disabled>Share with my friends</button>
+        <p class="muted">Friends see the area (about 1 km), the name you give it, and when. It disappears when the time is up.</p>
+      </section>
+
+      <section class="card">
+        <h2>I'm around here</h2>
+        <p class="muted" id="hereState">Let friends see your general area for 2 hours, so they can pull up.</p>
+        <div class="row"><button class="btn friend" id="hereBtn" type="button">Share my area for 2 hours</button>
+          <button class="btn alt" id="hereClear" type="button" hidden>Stop sharing my area</button></div>
+      </section>
+
+      <section class="card">
+        <h2>Friends on the move</h2>
+        <ul class="list" id="friendRoutes"></ul>
+        <p class="muted" id="friendRoutesEmpty">When friends share where they're heading, it shows up here. Crossing paths shows first.</p>
+      </section>
+
+      <section class="card">
+        <h2>Your routes</h2>
+        <ul class="list" id="myRoutes"></ul>
+        <p class="muted" id="myRoutesEmpty">Nothing shared right now.</p>
+      </section>
+    </div>
+
+    <!-- FRIENDS TAB -->
+    <div id="tab-friends" hidden>
+      <section class="card">
+        <h2>Add a friend</h2>
+        <div class="row"><input id="addName" placeholder="Their username" aria-label="Their username" autocapitalize="off"><button class="btn" id="addBtn" type="button">Send request</button></div>
+        <p class="muted">You both have to add each other. Until then neither of you sees a thing. Your username: <b id="myName"></b></p>
+      </section>
+      <section class="card" id="incomingCard" hidden><h2>Requests for you</h2><ul class="list" id="incoming"></ul></section>
+      <section class="card"><h2>Friends</h2><ul class="list" id="friendList"></ul><p class="muted" id="friendEmpty">No friends yet. Send your username to someone you want to cross paths with.</p></section>
+      <section class="card" id="outgoingCard" hidden><h2>Waiting on them</h2><ul class="list" id="outgoing"></ul></section>
+    </div>
+
+    <!-- GAME TAB -->
+    <div id="tab-game" hidden>
+      <section class="card">
+        <h2>Link-ups</h2>
+        <div class="big" id="gPoints">0</div>
+        <p class="muted">Pull up on a friend. When they're down and you actually meet, you both tap "We linked up". Both confirm: 10 points each. The first link-up ever with a friend: +25, "Reconnected". One link-up per friend counts each day.</p>
+        <div class="stats"><div><b id="gLinkups">0</b>link-ups</div><div><b id="gPeople">0</b>friends linked</div><div><b id="gStreak">0</b>week streak</div></div>
+      </section>
+      <section class="card"><h2>Badges</h2><div class="badges" id="badges"></div></section>
+      <section class="card"><h2>Leaderboard</h2><p class="muted">You and your friends.</p><ul class="list" id="board"></ul></section>
+      <section class="card"><button class="btn alt" id="logoutBtn" type="button">Sign out</button></section>
+    </div>
+  </main>
+
+  <nav class="tabs" aria-label="Sections"><div class="in" role="tablist">
+    <button role="tab" data-tab="map" aria-selected="true">Map</button>
+    <button role="tab" data-tab="friends" aria-selected="false">Friends</button>
+    <button role="tab" data-tab="game" aria-selected="false">Game</button>
+  </div></nav>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin></script>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const el = (tag, props = {}, ...kids) => { const e = Object.assign(document.createElement(tag), props); kids.forEach(k => e.append(k)); return e; };
+  let me = null, picked = null, map = null, layer = null, signup = false, feedTimer = null;
+
+  // ---- api
+  async function call(path, body) {
+    const opt = body === undefined ? { headers: { "x-route": "1" } }
+      : { method: "POST", headers: { "content-type": "application/json", "x-route": "1" }, body: JSON.stringify(body) };
+    const r = await fetch(path, opt);
+    let j = {}; try { j = await r.json(); } catch (e) { /* empty */ }
+    if (r.status === 401 && path !== "/api/login") { showAuth(); throw new Error("Sign in first."); }
+    if (!r.ok) throw new Error(j.error || "Something went wrong (" + r.status + ").");
+    return j;
+  }
+  function toast(t) { const x = $("toast"); x.textContent = t; x.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { x.hidden = true; }, 2600); }
+  const ago = t => { const m = Math.round((Date.now() - t) / 6e4); return m < 1 ? "just now" : m < 60 ? m + " min ago" : Math.round(m / 60) + " h ago"; };
+  const when = (from, to) => {
+    const f = new Date(from), now = Date.now();
+    const hm = d => d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    return (from <= now ? "now" : "from " + hm(f)) + " until " + hm(new Date(to));
+  };
+
+  // ---- auth
+  function showAuth() { $("appView").hidden = true; $("authView").hidden = false; clearInterval(feedTimer); }
+  $("authSwitch").addEventListener("click", () => {
+    signup = !signup;
+    $("displayWrap").hidden = !signup;
+    $("authBtn").textContent = signup ? "Create account" : "Sign in";
+    $("authSwitch").textContent = signup ? "Have an account? Sign in" : "New here? Create an account";
+    $("password").autocomplete = signup ? "new-password" : "current-password";
+  });
+  $("authForm").addEventListener("submit", async e => {
+    e.preventDefault(); $("authErr").textContent = "";
+    try {
+      await call(signup ? "/api/signup" : "/api/login",
+        { username: $("username").value.trim(), password: $("password").value, display: $("display").value.trim() });
+      await start();
+    } catch (er) { $("authErr").textContent = er.message; }
+  });
+  $("logoutBtn").addEventListener("click", async () => { try { await call("/api/logout", {}); } catch (e) {} showAuth(); });
+
+  // ---- tabs
+  document.querySelectorAll("nav.tabs button").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll("nav.tabs button").forEach(x => x.setAttribute("aria-selected", String(x === b)));
+    ["map", "friends", "game"].forEach(t => { $("tab-" + t).hidden = t !== b.dataset.tab; });
+    if (b.dataset.tab === "friends") loadFriends();
+    if (b.dataset.tab === "game") loadGame();
+    if (b.dataset.tab === "map" && map) setTimeout(() => map.invalidateSize(), 50);
+  }));
+
+  // ---- map
+  function initMap() {
+    if (map || !window.L) {
+      if (!window.L) { $("map").classList.add("nomap"); $("map").textContent = "The map could not load. Everything below still works."; }
+      return;
+    }
+    map = L.map("map", { zoomControl: false, attributionControl: true }).setView([39.5, -98.35], 4);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(map);
+    layer = L.layerGroup().addTo(map);
+  }
+  function drawMap(f) {
+    if (!map) return;
+    layer.clearLayers();
+    const pts = [];
+    const dot = (lat, lon, color, label, r = 9) => {
+      L.circleMarker([lat, lon], { radius: r, color: "#fff", weight: 2, fillColor: color, fillOpacity: 1 }).bindTooltip(label).addTo(layer);
+      L.circle([lat, lon], { radius: 600, color, weight: 1, fillOpacity: .08 }).addTo(layer);   // the ~1 km area
+      pts.push([lat, lon]);
+    };
+    const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+    f.mine.forEach(r => dot(r.lat, r.lon, css("--route"), "You: " + r.label));
+    if (f.here) dot(f.here.lat, f.here.lon, css("--route"), "You are around here", 7);
+    f.friendsRoutes.forEach(r => dot(r.lat, r.lon, css("--friend"), r.display + ": " + r.label));
+    f.friendsHere.forEach(h => dot(h.lat, h.lon, css("--friend"), h.display + " is around here", 7));
+    if (pts.length === 1) map.setView(pts[0], 13);
+    else if (pts.length > 1) map.fitBounds(pts, { padding: [30, 30], maxZoom: 14 });
+  }
+
+  // ---- feed
+  async function loadFeed() {
+    let f;
+    try { f = await call("/api/feed"); } catch (e) { return; }
+    setGhost(f.ghost);
+    drawMap(f);
+    // pull-ups
+    const pl = $("pullList"); pl.textContent = "";
+    f.pullups.incoming.forEach(p => {
+      const acts = el("div", { className: "acts" });
+      if (p.status === "sent") {
+        acts.append(el("button", { className: "btn small friend", textContent: "I'm down", onclick: () => answer(p.id, "down") }),
+                    el("button", { className: "btn small alt", textContent: "Not now", onclick: () => answer(p.id, "notnow") }));
+      } else if (p.status === "down") {
+        acts.append(el("button", { className: "btn small", textContent: "We linked up", onclick: () => linkup(p.id) }));
+      } else acts.append(el("span", { className: "muted", textContent: "You said not now" }));
+      pl.append(el("li", { className: "item cross" }, el("div", {}, el("b", { textContent: p.display + " is pulling up" }),
+        el("span", { className: "muted", textContent: "“" + p.message + "” · " + ago(p.created) })), acts));
+    });
+    f.pullups.outgoing.forEach(p => {
+      const acts = el("div", { className: "acts" });
+      if (p.status === "down") acts.append(el("button", { className: "btn small", textContent: "We linked up", onclick: () => linkup(p.id) }));
+      pl.append(el("li", { className: "item" }, el("div", {}, el("b", { textContent: "You → " + p.display }),
+        el("span", { className: "muted", textContent: { sent: "Waiting for them", down: "They're down!", notnow: "Not now" }[p.status] + " · " + ago(p.created) })), acts));
+    });
+    $("pullCard").hidden = !(f.pullups.incoming.length + f.pullups.outgoing.length);
+    // friends' routes, crossings first
+    const fr = $("friendRoutes"); fr.textContent = "";
+    const rows = [...f.friendsRoutes.map(r => ({ ...r, kind: "route" })), ...f.friendsHere.map(h => ({ ...h, kind: "here", label: "around here", leave_at: f.now, expires: h.expires }))]
+      .sort((a, b) => (!!b.crossing - !!a.crossing) || ((a.km ?? 1e9) - (b.km ?? 1e9)));
+    rows.forEach(r => {
+      const head = el("b", { textContent: r.display + (r.kind === "here" ? " is around" : " → " + r.label) });
+      if (r.crossing) head.append(el("span", { className: "tag", textContent: "crossing paths" }));
+      const sub = (r.km != null ? r.km + " km away · " : "") + when(r.leave_at, r.expires) + (r.crossing ? " · near " + r.crossing : "");
+      const go = el("div", { className: "acts" },
+        el("button", { className: "btn small", textContent: "Pull up", onclick: () => pullUp(r.user_id, r.kind === "route" ? r.id : null, r.display) }),
+        el("a", { className: "btn small alt", textContent: "Directions", target: "_blank", rel: "noopener",
+                  href: "https://www.google.com/maps/dir/?api=1&destination=" + r.lat + "," + r.lon }));
+      fr.append(el("li", { className: "item" + (r.crossing ? " cross" : "") }, el("div", {}, head, el("span", { className: "muted", textContent: sub })), go));
+    });
+    $("friendRoutesEmpty").hidden = rows.length > 0;
+    // mine
+    const mr = $("myRoutes"); mr.textContent = "";
+    f.mine.forEach(r => mr.append(el("li", { className: "item" }, el("div", {}, el("b", { textContent: r.label }),
+      el("span", { className: "muted", textContent: when(r.leave_at, r.expires) })),
+      el("div", { className: "acts" }, el("button", { className: "btn small alt", textContent: "End", onclick: async () => { await call("/api/routes/end", { id: r.id }); loadFeed(); } })))));
+    $("myRoutesEmpty").hidden = f.mine.length > 0;
+    $("hereClear").hidden = !f.here;
+    $("hereBtn").textContent = f.here ? "Update my area" : "Share my area for 2 hours";
+    $("hereState").textContent = f.here ? "Friends can see your general area until " + new Date(f.here.expires).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + "."
+      : "Let friends see your general area for 2 hours, so they can pull up.";
+  }
+  async function answer(id, a) { try { await call("/api/pullup/respond", { id, answer: a }); toast(a === "down" ? "They know you're down" : "Sent"); loadFeed(); } catch (e) { toast(e.message); } }
+  async function linkup(id) { try { const r = await call("/api/linkup", { pullupId: id }); toast(r.result.startsWith("linked") ? "Linked up! " + (r.result.includes("bonus") ? "+35 points" : r.result.includes("already") ? "already counted today" : "+10 points") : "Waiting for them to confirm"); loadFeed(); loadScore(); } catch (e) { toast(e.message); } }
+  async function pullUp(toId, routeId, name) { try { await call("/api/pullup", { toId, routeId, message: "Pulling up 👋" }); toast("Pull-up sent to " + name); loadFeed(); } catch (e) { toast(e.message); } }
+
+  // ---- sharing
+  async function search() {
+    const q = $("placeQ").value.trim(); if (q.length < 3) return toast("Type at least 3 letters.");
+    $("placeGo").disabled = true;
+    try {
+      const { places } = await call("/api/geocode?q=" + encodeURIComponent(q));
+      const pl = $("placeList"); pl.textContent = "";
+      if (!places.length) pl.append(el("span", { className: "muted", textContent: "No places found. Try a nearby street or city name." }));
+      places.forEach(p => pl.append(el("button", { type: "button", textContent: p.name, onclick: e => choose(p, e.currentTarget) })));
+    } catch (e) { toast(e.message); } finally { $("placeGo").disabled = false; }
+  }
+  function choose(p, btn) {
+    picked = p;
+    document.querySelectorAll("#placeList button").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
+    if (!$("placeLabel").value) $("placeLabel").value = String(p.name).split(",")[0].slice(0, 60);
+    $("shareBtn").disabled = false;
+  }
+  $("placeGo").addEventListener("click", search);
+  $("placeQ").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); search(); } });
+  function locate() {
+    return new Promise((res, rej) => {
+      if (!navigator.geolocation) return rej(new Error("This browser cannot share a location."));
+      navigator.geolocation.getCurrentPosition(p => res({ lat: p.coords.latitude, lon: p.coords.longitude }),
+        () => rej(new Error("Location was not allowed. Search for the place instead.")), { enableHighAccuracy: false, timeout: 10000 });
+    });
+  }
+  $("useHere").addEventListener("click", async () => {
+    try { const p = await locate(); choose({ ...p, name: "Where I am now" }, null); $("placeList").textContent = ""; toast("Destination set to where you are"); }
+    catch (e) { toast(e.message); }
+  });
+  $("shareBtn").addEventListener("click", async () => {
+    if (!picked) return toast("Pick a place first.");
+    try {
+      await call("/api/routes", { label: $("placeLabel").value.trim() || "Somewhere", lat: picked.lat, lon: picked.lon,
+                                  leaveInMin: Number($("leaveIn").value), hours: Number($("stayFor").value) });
+      toast("Shared with your friends"); picked = null; $("shareBtn").disabled = true; $("placeLabel").value = "";
+      $("placeList").textContent = ""; $("placeQ").value = ""; loadFeed();
+    } catch (e) { toast(e.message); }
+  });
+  $("hereBtn").addEventListener("click", async () => {
+    try { const p = await locate(); await call("/api/here", { lat: p.lat, lon: p.lon, hours: 2 }); toast("Friends can see your area for 2 hours"); loadFeed(); }
+    catch (e) { toast(e.message); }
+  });
+  $("hereClear").addEventListener("click", async () => { await call("/api/here/clear", {}); toast("Stopped sharing your area"); loadFeed(); });
+
+  // ---- ghost
+  function setGhost(on) {
+    const b = $("ghostBtn"); b.setAttribute("aria-pressed", String(on));
+    b.textContent = on ? "Ghost on" : "Ghost off"; b.classList.toggle("ghost-on", on);
+  }
+  $("ghostBtn").addEventListener("click", async () => {
+    const on = $("ghostBtn").getAttribute("aria-pressed") !== "true";
+    try { await call("/api/ghost", { on }); setGhost(on); toast(on ? "Ghost mode: friends see nothing from you" : "Friends can see your shares again"); } catch (e) { toast(e.message); }
+  });
+
+  // ---- friends
+  async function loadFriends() {
+    const f = await call("/api/friends");
+    const list = (ul, rows, acts) => { const u = $(ul); u.textContent = ""; rows.forEach(r => u.append(el("li", { className: "item" },
+      el("div", {}, el("b", { textContent: r.display }), el("span", { className: "muted", textContent: "@" + r.username })), el("div", { className: "acts" }, ...acts(r))))); };
+    list("incoming", f.incoming, r => [el("button", { className: "btn small friend", textContent: "Accept", onclick: () => respond(r.id, true) }),
+                                        el("button", { className: "btn small alt", textContent: "Decline", onclick: () => respond(r.id, false) })]);
+    list("outgoing", f.outgoing, () => []);
+    list("friendList", f.friends, r => [el("button", { className: "btn small", textContent: "Pull up", onclick: () => pullUp(r.id, null, r.display) }),
+      el("button", { className: "btn small alt", textContent: "Remove", onclick: async () => { await call("/api/friends/remove", { userId: r.id }); loadFriends(); } }),
+      el("button", { className: "btn small alt", textContent: "Block", onclick: async () => { await call("/api/block", { userId: r.id }); toast("Blocked. They can't see or find you."); loadFriends(); } })]);
+    $("incomingCard").hidden = !f.incoming.length; $("outgoingCard").hidden = !f.outgoing.length; $("friendEmpty").hidden = f.friends.length > 0;
+  }
+  async function respond(userId, accept) { await call("/api/friends/respond", { userId, accept }); toast(accept ? "You're friends now" : "Declined"); loadFriends(); loadFeed(); }
+  $("addBtn").addEventListener("click", async () => {
+    const u = $("addName").value.trim(); if (!u) return;
+    try { const r = await call("/api/friends/request", { username: u }); toast({ requested: "Request sent", accepted: "You're friends now", "already friends": "Already friends" }[r.result] || r.result); $("addName").value = ""; loadFriends(); }
+    catch (e) { toast(e.message); }
+  });
+
+  // ---- game
+  async function loadScore() { try { const s = await call("/api/score"); $("pointsChip").textContent = s.me.points + " pts"; return s; } catch (e) { return null; } }
+  async function loadGame() {
+    const s = await loadScore(); if (!s) return;
+    $("gPoints").textContent = s.me.points; $("gLinkups").textContent = s.me.linkups; $("gPeople").textContent = s.me.friendsLinked; $("gStreak").textContent = s.me.streakWeeks;
+    const b = $("badges"); b.textContent = "";
+    s.me.badges.forEach(x => b.append(el("div", { className: "badge" + (x.earned ? " on" : "") }, el("b", { textContent: (x.earned ? "★ " : "☆ ") + x.name }), x.why)));
+    const bd = $("board"); bd.textContent = "";
+    s.board.forEach((r, i) => bd.append(el("li", { className: "item" + (r.me ? " cross" : "") },
+      el("div", {}, el("b", { textContent: (i + 1) + ". " + r.display + (r.me ? " (you)" : "") }), el("span", { className: "muted", textContent: r.linkups + " link-ups · " + r.streakWeeks + "-week streak" })),
+      el("b", { textContent: r.points + " pts" }))));
+  }
+
+  async function start() {
+    me = await call("/api/me");
+    $("authView").hidden = true; $("appView").hidden = false; $("myName").textContent = "@" + me.username;
+    initMap(); setGhost(me.ghost); loadFeed(); loadScore();
+    clearInterval(feedTimer); feedTimer = setInterval(() => { if (!document.hidden) loadFeed(); }, 20000);
+  }
+  call("/api/me").then(start, showAuth);
+})();
+</script>
+</body>
+</html>
