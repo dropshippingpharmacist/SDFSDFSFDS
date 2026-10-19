@@ -4,9 +4,8 @@
 // no scripts, no outside resources, no imports. Without a key, a layout is still picked from the brand so sites differ.
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
-import { parseBig, why } from "./llm.mjs";
+import { parseBig, why, tier } from "./llm.mjs";
 
-const MODEL = "claude-opus-5-5";
 export const LAYOUTS = ["classic", "poster", "split", "terminal", "magazine"];
 export const LAYOUT_NOTES = {
   classic: "left-aligned hero, card grid, the launch desk as a two-column panel",
@@ -76,7 +75,7 @@ export async function makeTheme(cfg, { client = null } = {}) {
   if (!client && !process.env.ANTHROPIC_API_KEY) return fallback;
   try {
     const c = client || new Anthropic();
-    const r = await parseBig(c, { model: MODEL, max_tokens: 30000, output_config: { effort: "high" }, system: SYSTEM,
+    const r = await parseBig(c, { ...tier("theme", "high"), max_tokens: 30000, system: SYSTEM,
       messages: [{ role: "user", content: `Brand: ${cfg.brand} ($${cfg.coin?.ticker}), emoji ${cfg.emoji}, palette: accent ${cfg.colors?.accent}, accent2 ${cfg.colors?.accent2}, accent3 ${cfg.colors?.accent3} (CSS: --accent, --accent2, --accent3), light ${cfg.colors?.light}, dark ${cfg.colors?.dark}, display font "${cfg.display}", vibe ${cfg.vibe}. Use all three accents.\n` +
         `Tagline: ${cfg.tagline}\nAbout: ${cfg.about}\nProduct: ${cfg.product?.kind} — ${cfg.product?.name}: ${cfg.product?.mechanic || ""}\nLore: ${(cfg.lore || []).join(" ")}\n\n` +
         `Layouts: ${LAYOUTS.map(l => `${l} (${LAYOUT_NOTES[l]})`).join("; ")}.\n\nThe skeleton:\n${SKELETON}` }] }, Theme);

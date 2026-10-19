@@ -154,6 +154,7 @@ early access, labeled "planned". They are never payouts, airdrops or staking.
 | variable | needed for | where to get it |
 |---|---|---|
 | `STUDIO_PASSWORD` | turning the Studio on | pick a long password; `/studio` asks for it |
+| `STUDIO_QUALITY` | optional: `1` = Opus everywhere with every pass (best, most expensive). Unset = **economy** (the default): Haiku for words, Sonnet for code, no game polish pass, free templates for the kit's pictures and video, the AI look only on Restyle | — |
 | `ANTHROPIC_API_KEY` | AI ideas, brands and copy, and the games/utilities | console.anthropic.com; without it a plain rule-based writer is used and there are no games |
 | `DEXTOOLS_API_KEY` | optional: DEXTools hot pools and gainers in Launch Intel | developer.dextools.io |
 | `TWITTERAPI_IO_KEY` | what X is saying, in Launch Intel and every idea | twitterapi.io → dashboard → **API key**. Pay as you go (roughly $0.15 per 1,000 posts read; the Studio reads about 3-4 searches every 30 minutes) |

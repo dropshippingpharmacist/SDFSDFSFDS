@@ -6,8 +6,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { productPlaybookText } from "./playbook.mjs";
+import { tier } from "./llm.mjs";
 
-const MODEL = "claude-opus-5-5";
 export const KINDS = ["launchpad", "game", "utility", "combo"];   // combo = game + utility + launchpad on one page
 const BANNED = /\b(donat\w*|charit\w*|partner(ed|ship|s)?|guarantee\w*|risk[- ]free|100x|1000x|moon(ing)?|passive income|profit\w*|dividend\w*|revenue share|airdrop\w*|staking|yield|apy|rewards? (in|paid))\b/i;
 const clean = (t, n = 300) => String(t || "").replace(/\s+/g, " ").trim().slice(0, n);
@@ -96,8 +96,7 @@ export async function makeIdeas(tr, { mem = null, n = 6, focus = "", intel = "",
     try {
       const c = client || new Anthropic();
       const response = await c.messages.parse({
-        model: MODEL, max_tokens: 16000,
-        output_config: { effort: "medium", format: zodOutputFormat(Ideas) },
+        ...tier("ideas", "medium", { format: zodOutputFormat(Ideas) }), max_tokens: 16000,
         system: SYSTEM,
         messages: [{ role: "user", content:
           `What is launching and trending on Solana right now:\n${trendText(tr) || "(no feed answered; use evergreen memecoin themes)"}\n\n` +

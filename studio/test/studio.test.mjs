@@ -8,6 +8,7 @@ import { deploy, checkDomain, configJs, templateFiles } from "../deploy.mjs";
 delete process.env.ANTHROPIC_API_KEY;
 delete process.env.VERCEL_TOKEN;
 
+process.env.STUDIO_QUALITY = "1";        // the model-specific tests below check the quality path; the economy test flips it
 const fakeClaude = parsed => ({ messages: { parse: async req => { fakeClaude.last = req; return { stop_reason: "end_turn", parsed_output: parsed }; } } });
 
 test("without a key the plain writer makes a complete, honest site", async () => {
@@ -821,4 +822,31 @@ test("colors and finish: the owner's picks become the palette, any finish rides 
   assert.deepEqual(c.colors.picked, ["#112233", "#445566", "#778899"]); assert.equal(c.finish, "galaxy");
   assert.equal(honest(rules("x"), "x", { finish: "glitter-bomb" }).config.finish, "", "unknown finishes are dropped");
   assert.ok(FINISHES.includes("matte") && FINISHES.includes("ombre") && FINISHES.includes("retro") && FINISHES.length >= 12);
+});
+
+
+// ---- the game follows the site's colors (2026-10-19) ---------------------------------------------------------------
+import { recolor, dominant, appFor } from "../recolor.mjs";
+test("recolor: the game's accent family moves to the new palette, greys stay, shades keep their offset", () => {
+  const html = "<style>.a{background:#ff6a2b}.b{color:#d94e12}.c{color:#222222}.d{color:#ffffff}.e{color:#2b9bff}</style><script>ctx.fillStyle='#FF6A2B'</script>";
+  const out = recolor(html, ["#ff6a2b"], ["#7c4dff"]);
+  assert.ok(!/#ff6a2b|#d94e12/i.test(out), "every orange is gone");
+  assert.ok(out.includes("#222222") && out.includes("#ffffff") && out.includes("#2b9bff"), "greys, white and unrelated colors stay");
+  assert.equal(dominant(html + html), "#ff6a2b");
+  assert.equal(appFor({ app: html, config: { colors: { accent: "#ff6a2b" }, appPalette: ["#ff6a2b"] } }), html, "no change, no rewrite");
+  assert.notEqual(appFor({ app: html, config: { colors: { accent: "#00d1b2" } } }), html, "older games without a remembered palette still follow");
+});
+
+
+// ---- economy mode (2026-10-19) ---------------------------------------------------------------------------------------
+import { tier } from "../llm.mjs";
+test("economy by default: Haiku for words, Sonnet for code, no effort on Haiku; STUDIO_QUALITY=1 is Opus everywhere", () => {
+  process.env.STUDIO_QUALITY = "1";
+  assert.deepEqual(tier("site", "medium"), { model: "claude-opus-5-5", output_config: { effort: "medium" } });
+  delete process.env.STUDIO_QUALITY;
+  try {
+    assert.deepEqual(tier("book", "high"), { model: "claude-haiku-5-5", output_config: {} });
+    assert.deepEqual(tier("game", "high"), { model: "claude-sonnet-5-5", output_config: { effort: "medium" } });
+    assert.equal(tier("kit", "high", { format: 1 }).output_config.format, 1);
+  } finally { process.env.STUDIO_QUALITY = "1"; }
 });

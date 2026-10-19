@@ -272,7 +272,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
   async function boot() {
     const s = await call("/api/studio/status");
     show(true);
-    $("aiPill").textContent = s.ai ? "AI writer: Claude" : "AI writer: off (plain writer)"; $("aiPill").className = "pill " + (s.ai ? "on" : "off");
+    $("aiPill").textContent = s.ai ? (s.economy ? "AI: Claude (economy)" : "AI: Claude") : "AI writer: off (plain writer)"; $("aiPill").className = "pill " + (s.ai ? "on" : "off");
     $("vcPill").textContent = s.vercel ? "Vercel: connected" : "Vercel: add VERCEL_TOKEN"; $("vcPill").className = "pill " + (s.vercel ? "on" : "off");
     $("xPill").textContent = s.x ? "X: " + s.x : "X: add TWITTERAPI_IO_KEY"; $("xPill").className = "pill " + (s.x ? "on" : "off");
     pumpPill(s.pump);

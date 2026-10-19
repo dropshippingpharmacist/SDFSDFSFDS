@@ -6,6 +6,19 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 
 const SMALL = 20000;
 
+// which model does which job. Economy is the DEFAULT: the cheapest model that does the job well — Haiku for words (site
+// copy, ideas, docs, the content kit's posts), Sonnet for code (the game, the look) — no game polish pass, and the free
+// templates for the content kit's pictures and video. STUDIO_QUALITY=1 switches to Opus everywhere with every pass.
+// Haiku runs without an effort setting.
+const HAIKU = "claude-haiku-5-5", SONNET = "claude-sonnet-5-5", OPUS = "claude-opus-5-5";
+const ECONOMY = { site: HAIKU, ideas: HAIKU, book: HAIKU, kit: HAIKU, visual: SONNET, theme: SONNET, design: SONNET, game: SONNET };
+export const economy = () => process.env.STUDIO_QUALITY !== "1";
+export function tier(task, effort, extra = {}) {
+  const model = (task === "game" && process.env.GAME_MODEL) || (economy() ? ECONOMY[task] || HAIKU : OPUS);
+  const e = model === HAIKU ? null : economy() && effort === "high" ? "medium" : effort;
+  return { model, output_config: { ...(e ? { effort: e } : {}), ...extra } };
+}
+
 // rate limits and overloads (429 / 529 / network blips) get three tries with growing waits; everything else surfaces
 export async function withRetry(fn, { tries = 3, waits = [8000, 25000] } = {}) {
   let last;

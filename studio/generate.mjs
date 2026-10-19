@@ -7,9 +7,9 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { memoryText } from "./ideas.mjs";
+import { tier } from "./llm.mjs";
 
 export const FONTS = ["Bagel Fat One", "Unbounded", "Fredoka", "Bungee", "Rubik", "Lilita One", "Chakra Petch"];
-const MODEL = "claude-opus-5-5";
 export const VIBES = ["arcade", "neon", "candy", "retro", "clean"];   // the mood of the page: borders, glows, motion
 
 // what every generated launchpad really does today (the "Live now" roadmap phase and the how-it-works facts)
@@ -243,9 +243,8 @@ export async function generate(idea, opts = {}, client = null) {
     try {
       const c = client || new Anthropic();
       const response = await c.messages.parse({
-        model: MODEL,
+        ...tier("site", "medium", { format: zodOutputFormat(Site) }),
         max_tokens: 16000,
-        output_config: { effort: "medium", format: zodOutputFormat(Site) },
         system: SYSTEM,
         messages: [{ role: "user", content: `The idea:\n${text}` +
           (opts.ticker ? `\nThe owner wants the ticker $${opts.ticker}.` : "") +

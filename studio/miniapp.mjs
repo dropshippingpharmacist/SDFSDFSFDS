@@ -3,9 +3,9 @@
 // Content-Security-Policy that blocks every network request, so it can never reach a wallet, a key or a server.
 import Anthropic from "@anthropic-ai/sdk";
 import { qualityText, CLASSICS, COMBOS } from "./playbook.mjs";
-import { withRetry, why } from "./llm.mjs";
+import { withRetry, why, tier } from "./llm.mjs";
 
-const MODEL = "claude-opus-5-5";
+// models come from tier() in llm.mjs (Opus, or the economy picks; GAME_MODEL overrides the game's)
 export const MAX_BYTES = 250 * 1024;
 const CSP = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; ` +
   `style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data: blob:; ` +
@@ -66,7 +66,7 @@ file, same rules as before. Keep what works; make it tighter, juicier and more a
 ${String(html).slice(0, MAX_BYTES)}
 \`\`\``;
   try {
-    const msg = await withRetry(() => c.messages.stream({ model: MODEL, max_tokens: 100000, output_config: { effort: "high" }, system: SYSTEM, messages: [{ role: "user", content: ask }] }).finalMessage());
+    const msg = await withRetry(() => c.messages.stream({ ...tier("game", "high"), max_tokens: 100000, system: SYSTEM, messages: [{ role: "user", content: ask }] }).finalMessage());
     if (msg.stop_reason !== "end_turn") return { error: msg.stop_reason === "refusal" ? "The model declined." : "The polished app came out too long. Try again." };
     const out = cleanHtml(msg.content.filter(b => b.type === "text").map(b => b.text).join(""));
     return out.error ? { error: `Not used: ${out.error}. Try again.` } : out;
@@ -91,7 +91,7 @@ export async function designMiniApp(concept, cfg, { client = null } = {}) {
   const c = client || new Anthropic();
   const brief = `Product: ${concept.name || cfg.brand} — a ${concept.kind || "game"} for ${cfg.brand} ($${cfg.coin?.ticker}).\nPitch: ${concept.pitch || ""}\nMechanic: ${concept.mechanic || ""}\nHolder perk: ${concept.holderPerk || "none"}\nBrand: emoji ${cfg.emoji}, vibe ${cfg.vibe}, accents ${cfg.colors?.accent}/${cfg.colors?.accent2}/${cfg.colors?.accent3}.`;
   try {
-    const msg = await c.messages.stream({ model: MODEL, max_tokens: 6000, output_config: { effort: "high" }, system: DESIGN_SYSTEM, messages: [{ role: "user", content: brief }] }).finalMessage();
+    const msg = await c.messages.stream({ ...tier("design", "high"), max_tokens: 6000, system: DESIGN_SYSTEM, messages: [{ role: "user", content: brief }] }).finalMessage();
     return msg.content.filter(b => b.type === "text").map(b => b.text).join("").slice(0, 12000);
   } catch { return ""; }
 }
@@ -113,10 +113,10 @@ export async function makeMiniApp(concept, cfg, { client = null, design = null }
     "Depth is the point: a first screen with mode select, a real run, an upgrade/shop screen, an achievements screen, a daily challenge, settings (sound, reduced motion), and persistent progress. Big file is fine.",
   ].filter(Boolean).join("\n");
   try {
-    let msg = await withRetry(() => c.messages.stream({ model: MODEL, max_tokens: 100000, output_config: { effort: "high" }, system: SYSTEM,
+    let msg = await withRetry(() => c.messages.stream({ ...tier("game", "high"), max_tokens: 100000, system: SYSTEM,
                                         messages: [{ role: "user", content: brief }] }).finalMessage());
     if (msg.stop_reason === "max_tokens") {                                  // once more, tighter
-      msg = await c.messages.stream({ model: MODEL, max_tokens: 100000, output_config: { effort: "high" }, system: SYSTEM,
+      msg = await c.messages.stream({ ...tier("game", "high"), max_tokens: 100000, system: SYSTEM,
         messages: [{ role: "user", content: brief + "\n\nKeep the whole file under 1,500 lines: fewer modes, same polish." }] }).finalMessage();
     }
     if (msg.stop_reason === "refusal") return { error: "The model declined to build this one." };
