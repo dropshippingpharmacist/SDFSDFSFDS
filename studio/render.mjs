@@ -86,8 +86,14 @@ export async function renderImage(html, { width, height }) {
   });
 }
 
-// a soft synthesized backing track so the clip is not silent (owners can swap in music when they post)
-const AUDIO = "aevalsrc='0.10*sin(2*PI*110*t)*(0.6+0.4*sin(2*PI*0.5*t))+0.07*sin(2*PI*220*t)+0.05*sin(2*PI*330*t)*(0.5+0.5*sin(2*PI*2*t))+0.03*sin(2*PI*440*t)*(0.5+0.5*sin(2*PI*4*t))+0.025*random(0)*lt(mod(t,0.5),0.03)':s=44100";
+// the soundtrack: a 120 BPM track synthesized by ffmpeg, timed to the video (the video's beats land on the same grid):
+// a 2-second noise riser, then the drop: a pitched kick on every beat, a snare on 2 and 4, off-beat hats, a plucked
+// bassline and a chord pad through A-F-C-G (two seconds each), an arpeggio on top; it cuts clean 0.4 s before the end.
+// A compressor and a limiter glue it and keep it loud without clipping.
+export const BPM = 120, DROP = 2;
+const TRACK = "gte(t,2)*lt(t,D-0.4)*(1.0*sin(2*PI*(42+150*exp(-40*mod(t,0.5)))*mod(t,0.5))*exp(-7*mod(t,0.5))+0.32*(random(0)*2-1)*exp(-18*mod(t-0.5,1))*gte(mod(t,1),0.5)*lt(mod(t,1),0.75)+0.17*sin(2*PI*(55*if(lt(mod(floor(t/2),4),1),1,if(lt(mod(floor(t/2),4),2),0.7937,if(lt(mod(floor(t/2),4),3),1.1892,0.8909))))*t)*(1-exp(-25*mod(t,0.25)))*exp(-3*mod(t,0.25)))+0.07*(random(1)*2-1)*exp(-90*mod(t+0.25,0.5))*lt(t,D-0.4)+lt(t,2)*0.06*(random(3)*2-1)*t*t+0.035*(sin(2*PI*220*if(lt(mod(floor(t/2),4),1),1,if(lt(mod(floor(t/2),4),2),0.7937,if(lt(mod(floor(t/2),4),3),1.1892,0.8909)))*t)+sin(2*PI*277.18*if(lt(mod(floor(t/2),4),1),1,if(lt(mod(floor(t/2),4),2),0.7937,if(lt(mod(floor(t/2),4),3),1.1892,0.8909)))*t)+sin(2*PI*329.63*if(lt(mod(floor(t/2),4),1),1,if(lt(mod(floor(t/2),4),2),0.7937,if(lt(mod(floor(t/2),4),3),1.1892,0.8909)))*t))*(0.6+0.4*sin(2*PI*2*t))*lt(t,D-0.4)+0.05*sin(2*PI*880*if(lt(mod(floor(t/0.25),8),1),1,if(lt(mod(floor(t/0.25),8),3),1.2599,if(lt(mod(floor(t/0.25),8),5),1.4983,1.1892)))*t)*exp(-14*mod(t,0.25))*gte(t,2)*lt(t,D-0.4)";
+export const soundtrack = dur => `aevalsrc='${TRACK.replace(/D/g, String(dur))}':s=44100`;
+export const MASTER = "acompressor=threshold=-18dB:ratio=2:attack=10:release=120,alimiter=limit=0.95,volume=1.2";
 
 export async function renderVideo(html, { width = 1080, height = 1080, fps = 30, seconds = 20, out }) {
   const ff = ffmpegPath();
@@ -101,9 +107,9 @@ export async function renderVideo(html, { width = 1080, height = 1080, fps = 30,
     const dur = Math.min(60, Math.max(3, Number(await page.evaluate(() => window.DURATION)) || seconds));
     const frames = Math.round(dur * fps);
     const args = ["-y", "-loglevel", "error", "-f", "image2pipe", "-framerate", String(fps), "-i", "pipe:0",
-                  "-f", "lavfi", "-t", String(dur), "-i", AUDIO,
-                  "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "medium", "-crf", "20", "-movflags", "+faststart",
-                  "-c:a", "aac", "-b:a", "128k", "-shortest", out];
+                  "-f", "lavfi", "-t", String(dur), "-i", soundtrack(dur),
+                  "-map", "0:v", "-map", "1:a", "-af", MASTER, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "medium", "-crf", "18", "-movflags", "+faststart",
+                  "-c:a", "aac", "-b:a", "192k", "-shortest", out];
     const proc = spawn(ff, args, { stdio: ["pipe", "ignore", "pipe"] });
     let errText = ""; proc.stderr.on("data", d => { errText += d; });
     const done = new Promise((res, rej) => { proc.on("close", c => c === 0 ? res() : rej(new Error("ffmpeg failed: " + errText.slice(0, 300)))); proc.on("error", rej); });

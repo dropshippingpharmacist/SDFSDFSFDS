@@ -370,7 +370,7 @@ async function makeKit(id) {
       }
       case "/api/studio/generate": {
         if (limited("studio:gen", 30, 36e5)) throw err(429, "30 sites an hour is the limit. Try again later.");
-        const g = await generate(b.idea, { ticker: b.ticker, x: b.x, telegram: b.telegram, accent: b.accent, mem: memory(), intel: intelText(playbook(db)) });
+        const g = await generate(b.idea, { ticker: b.ticker, x: b.x, telegram: b.telegram, accent: b.accent, colors: b.colors, finish: b.finish, mem: memory(), intel: intelText(playbook(db)) });
         const meta = { domains: g.domains, tickerBackups: g.tickerBackups, source: g.source, note: g.note, removed: g.removed };
         const r = db.prepare("INSERT INTO studio_drafts (idea, config, meta, created, updated) VALUES (?, ?, ?, ?, ?)")
           .run(g.idea, JSON.stringify(g.config), JSON.stringify(meta), t, t);
@@ -389,12 +389,12 @@ async function makeKit(id) {
         // the owner's edits pass the same honesty filter; tokenomics and the live roadmap stay facts
         // a new brand or ticker flows through every piece of copy first
         const c = rename(b.config || {}, { brand: d.config.brand, ticker: d.config.coin?.ticker }, { brand: clean24(b.config?.brand), ticker: tick(b.config?.coin?.ticker) });
-        const re = honest({ brand: c.brand, tagline: c.tagline, about: c.about, emoji: c.emoji, accent: c.colors?.accent,
+        const re = honest({ brand: c.brand, tagline: c.tagline, about: c.about, emoji: c.emoji, accent: c.colors?.accent, accent2: c.colors?.accent2, accent3: c.colors?.accent3, light: c.colors?.light, dark: c.colors?.dark,
           display: c.display, ticker: c.coin?.ticker, lore: c.lore, how: c.how,
           next: (c.roadmap || []).find(x => x.status === "next")?.items, ideas: (c.roadmap || []).find(x => x.status === "idea")?.items,
           faq: (c.faq || []).filter(f => !/^Do I need \$|^Is this financial advice/.test(f.q || "")),
           kind: c.product?.kind, product_name: c.product?.name, mechanic: c.product?.mechanic, holder_perk: c.product?.holderPerk }, d.idea,
-          { x: c.coin?.x, telegram: c.coin?.telegram, launchDesk: c.launchDesk, buyUrl: c.coin?.buyUrl, launchedOn: c.coin?.launchedOn, docsUrl: c.docsUrl });
+          { x: c.coin?.x, telegram: c.coin?.telegram, launchDesk: c.launchDesk, buyUrl: c.coin?.buyUrl, launchedOn: c.coin?.launchedOn, docsUrl: c.docsUrl, colors: c.colors?.picked, finish: c.finish });
         // the owner's own split, when it adds up; otherwise the writer's / the kind's default stays
         const tnIn = c.tokenomics || {};
         re.config.tokenomics = tokenomics({ kind: re.config.product.kind, allocation: tnIn.allocation, fee_source: tnIn.source, dev_buy_policy: tnIn.devBuyPolicy });

@@ -131,7 +131,9 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
           <textarea id="idea" maxlength="500"></textarea></label>
         <div class="grid2">
           <label for="wantTicker">Ticker <small>optional</small><input id="wantTicker" maxlength="10" placeholder="ROUTE"></label>
-          <label for="wantAccent">Color <small>optional</small><input id="wantAccent" type="color" value="#ff6a2b"></label>
+          <div style="grid-column:1/-1;display:grid;gap:6px"><b style="font-size:13px">Colors <small style="font-weight:400;color:var(--muted)">pick up to five, or leave them and Claude picks a scheme</small></b>
+            <div class="row" id="wantColors"></div>
+            <label for="wantFinish">Finish<select id="wantFinish" class="sel"></select></label></div>
           <label for="wantX">X link <small>optional</small><input id="wantX" type="url" placeholder="https://x.com/…"></label>
           <label for="wantTg">Telegram <small>optional</small><input id="wantTg" type="url" placeholder="https://t.me/…"></label>
         </div>
@@ -189,6 +191,9 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
         </div>
         <label for="eMech">How the game / tool works<textarea id="eMech" maxlength="500"></textarea></label>
         <label for="ePerk">Holder perk <small>badge, cosmetic, leaderboard spot — never payouts</small><input id="ePerk" maxlength="200"></label>
+        <div style="display:grid;gap:6px"><b style="font-size:13px">Colors <small style="font-weight:400;color:var(--muted)">up to five; the first is the main one</small></b>
+          <div class="row" id="eColors"></div>
+          <label for="eFinish">Finish<select id="eFinish" class="sel"></select></label></div>
         <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="eDesk" style="width:auto"> Show the pump.fun launch desk on the site <small>(off = the site is the coin's home and its product; you launch the token wherever you launch)</small></label>
         <label for="eLore">Lore <small>paragraphs separated by a blank line</small><textarea id="eLore" rows="5"></textarea></label>
         <label for="eHow">How it works <small>one step per line: Title: sentence</small><textarea id="eHow" rows="4"></textarea></label>
@@ -332,7 +337,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     $("genErr").textContent = ""; $("genBtn").disabled = true; $("genBtn").textContent = "Writing the site…";
     try {
       const r = await call("/api/studio/generate", { idea: $("idea").value, ticker: $("wantTicker").value.trim(),
-        x: $("wantX").value.trim(), telegram: $("wantTg").value.trim(), accent: $("wantAccent").value });
+        x: $("wantX").value.trim(), telegram: $("wantTg").value.trim(), colors: pickedColors("wantColors"), finish: $("wantFinish").value });
       open(r); loadDrafts();
     } catch (e) { $("genErr").textContent = e.message; }
     finally { $("genBtn").disabled = false; $("genBtn").textContent = "Generate the site"; }
@@ -550,6 +555,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     const pr = c.product || {};
     $("eKind").value = pr.kind || "launchpad"; $("eProd").value = pr.name || ""; $("eMech").value = pr.mechanic || ""; $("ePerk").value = pr.holderPerk || "";
     $("eDesk").checked = c.launchDesk !== false;
+    const cl = c.colors || {}; setColors("eColors", cl.picked && cl.picked.length ? cl.picked : [cl.accent, cl.accent2, cl.accent3].filter(Boolean)); $("eFinish").value = c.finish || "";
     $("eCa").value = c.coin.ca || ""; $("eDev").value = c.coin.devBuyPercent ?? ""; $("eX").value = c.coin.x || ""; $("eTg").value = c.coin.telegram || "";
     $("eBuy").value = c.coin.buyUrl || ""; $("eOn").value = c.coin.launchedOn || ""; $("eDocs").value = c.docsUrl || "";
     const tn = c.tokenomics || {};
@@ -558,6 +564,25 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     launchFields(c);
   }
   const lines = id => $(id).value.split("\n").map(s => s.trim()).filter(Boolean);
+  // colors: five slots, each a swatch you switch on by clicking it; finishes: how the colors are laid on
+  const FINISHES = [["", "Claude decides"], ["matte", "Matte"], ["galaxy", "Galaxy"], ["ombre", "Ombre"], ["retro", "Retro"], ["neon", "Neon"], ["pastel", "Pastel"], ["holographic", "Holographic"],
+                    ["sunset", "Sunset"], ["ocean", "Ocean"], ["monochrome", "Monochrome"], ["candy", "Candy stripes"], ["earthy", "Earthy"], ["y2k", "Y2K chrome"], ["vaporwave", "Vaporwave"]];
+  ["wantFinish", "eFinish"].forEach(id => FINISHES.forEach(([v, t]) => $(id).append(el("option", { value: v, textContent: t }))));
+  const DEFAULTS = ["#ff6a2b", "#7c4dff", "#00d1b2", "#ffd23f", "#ff4fa3"];
+  function setColors(id, list) {
+    const box = $(id); box.textContent = "";
+    for (let i = 0; i < 5; i++) {
+      const on = !!list[i], inp = el("input", { type: "color", value: list[i] || DEFAULTS[i], title: "Color " + (i + 1) });
+      inp.style.cssText = "width:44px;height:36px;padding:2px;border-radius:10px;cursor:pointer;opacity:" + (on ? 1 : .35);
+      inp.dataset.on = on ? "1" : "";
+      inp.addEventListener("input", () => { inp.dataset.on = "1"; inp.style.opacity = 1; });
+      inp.addEventListener("contextmenu", e => { e.preventDefault(); inp.dataset.on = ""; inp.style.opacity = .35; });
+      box.append(inp);
+    }
+    box.append(el("button", { type: "button", className: "btn alt small", textContent: "Clear", onclick: () => setColors(id, []) }));
+  }
+  const pickedColors = id => [...$(id).querySelectorAll("input[type=color]")].filter(i => i.dataset.on).map(i => i.value);
+  setColors("wantColors", []);
   // the fields the launch form of any platform asks for, ready to copy
   function launchFields(c) {
     const box = $("launchFields"); box.textContent = "";
@@ -595,6 +620,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     c.roadmap = [{ status: "next", items: lines("eNext") }, { status: "idea", items: lines("eIdeas") }];
     c.product = { ...(c.product || {}), kind: $("eKind").value, name: $("eProd").value, mechanic: $("eMech").value, holderPerk: $("ePerk").value };
     c.launchDesk = $("eDesk").checked;
+    c.colors = { ...(c.colors || {}), picked: pickedColors("eColors") }; c.finish = $("eFinish").value;
     c.faq = lines("eFaq").map(l => { const [q, ...a] = l.split("|"); return { q: q.trim(), a: a.join("|").trim() }; });
     $("saveBtn").disabled = true;
     try {

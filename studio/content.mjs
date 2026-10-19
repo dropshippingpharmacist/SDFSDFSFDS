@@ -168,52 +168,122 @@ export function templateImage(kind, cfg) {
 // the template video: scenes from the plan, drawn on a canvas by render(t)
 export function templateVideo(video, cfg) {
   const [w, h] = SIZES.video;
+  const [, m1, m2] = MARKS[markIndex(cfg)];
   const data = JSON.stringify({ scenes: video.scenes, end: video.endCard, brand: cfg.brand, ticker: "$" + (cfg.coin?.ticker || ""), emoji: cfg.emoji || "🚀",
-                                acc: cfg.colors?.accent || "#ff6a2b", ink: cfg.colors?.dark || "#140f22", light: cfg.colors?.light || "#fff8f1", display: cfg.display || "Bagel Fat One" });
-  const total = video.scenes.reduce((n, s) => n + s.seconds, 0) + 3;
+                                acc: cfg.colors?.accent || "#ff6a2b", acc2: cfg.colors?.accent2 || cfg.colors?.accent || "#ffd23f", acc3: cfg.colors?.accent3 || cfg.colors?.accent || "#36d399",
+                                ink: cfg.colors?.dark || "#140f22", light: cfg.colors?.light || "#fff8f1", display: cfg.display || "Bagel Fat One", m1, m2: m2 || "" });
+  // 2 s build-up, the scenes, a 3 s end card: the same grid as the soundtrack (120 BPM, the drop at 2 s)
+  const total = 2 + video.scenes.reduce((n, s) => n + s.seconds, 0) + 3;
   return `<!doctype html><html><head><meta charset="utf-8">${font(cfg)}<style>html,body{margin:0;background:#000}canvas{display:block}</style></head>
 <body><canvas id="c" width="${w}" height="${h}"></canvas><script>
 const D = ${data}; const W = ${w}, H = ${h}; const c = document.getElementById("c"), x = c.getContext("2d");
 window.DURATION = ${total};
-const ease = t => t < 0 ? 0 : t > 1 ? 1 : 1 - Math.pow(1 - t, 3);
-function elastic(t) { t = Math.max(0, Math.min(1, t)); return 1 - Math.pow(2, -8 * t) * Math.cos(t * 10) * (1 - t); }
-const hash = n => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };   // deterministic scatter
-const parts = Array.from({ length: 70 }, (_, i) => ({ x: hash(i), y: hash(i + 100), z: 0.3 + hash(i + 200) * 0.7, s: 0.5 + hash(i + 300), e: i % 5 === 0 }));
-function wrap(text, maxW, size) { x.font = "800 " + size + "px Figtree, 'DejaVu Sans', system-ui"; const words = String(text).split(" "), lines = []; let l = "";
-  for (const wd of words) { const t = l ? l + " " + wd : wd; if (x.measureText(t).width > maxW && l) { lines.push(l); l = wd; } else l = t; } if (l) lines.push(l); return lines; }
-function scene(t) { let a = 0; for (const s of D.scenes) { if (t < a + s.seconds) return { s, local: t - a }; a += s.seconds; } return { s: null, local: t - a }; }
-window.render = function (t) {
-  const g = x.createLinearGradient(0, 0, W, H); g.addColorStop(0, D.acc); g.addColorStop(1, shade(D.acc, -0.35)); x.fillStyle = g; x.fillRect(0, 0, W, H);
-  for (const p of parts) { const py = ((p.y - t * 0.03 * p.s * p.z) % 1 + 1) % 1, px = (p.x + Math.sin(t * 0.5 + p.x * 9) * 0.01 * p.z);
-    x.save(); x.globalAlpha = 0.12 + p.z * 0.4; x.translate(px * W, py * H); x.rotate(Math.sin(t * p.s + p.x * 6) * 0.5);
-    if (p.e) { x.font = Math.round(60 * p.z) + "px system-ui"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(D.emoji, 0, 0); }
-    else { x.fillStyle = D.light; x.beginPath(); x.arc(0, 0, 5 * p.z, 0, 6.3); x.fill(); } x.restore(); }
-  const { s, local } = scene(t);
-  x.textAlign = "center"; x.textBaseline = "middle";
-  if (s) {
-    const k = elastic(local / 0.6), out = s.seconds - local < 0.4 ? ease((s.seconds - local) / 0.4) : 1;
-    x.save(); x.globalAlpha = out; x.translate(W / 2, H * 0.42); x.scale(0.6 + 0.4 * k, 0.6 + 0.4 * k);
-    x.font = Math.round(210 + Math.sin(t * 2) * 6) + "px system-ui"; x.fillText(D.emoji, 0, -250);
-    x.fillStyle = D.light; x.font = '400 ' + fit(s.headline, 920, 112) + 'px "' + D.display + '", "Arial Black", "DejaVu Sans", sans-serif'; x.shadowColor = "rgba(0,0,0,.25)"; x.shadowBlur = 24; x.shadowOffsetY = 8;
-    x.fillText(s.headline, 0, 0); x.shadowBlur = 0; x.shadowOffsetY = 0;
-    x.fillStyle = D.light; x.globalAlpha = out * ease((local - 0.25) / 0.5);
-    const lines = wrap(s.sub, 880, 44); lines.forEach((l, i) => x.fillText(l, 0, 110 + i * 56));
+const BEAT = 0.5, DROP = 2, END = ${total} - 3;
+const clamp = v => v < 0 ? 0 : v > 1 ? 1 : v;
+const ease = t => 1 - Math.pow(1 - clamp(t), 3), easeIn = t => Math.pow(clamp(t), 3);
+const back = t => { t = clamp(t); const k = 1.70158; return 1 + (k + 1) * Math.pow(t - 1, 3) + k * Math.pow(t - 1, 2); };
+const elastic = t => { t = clamp(t); return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * (2 * Math.PI / 3)) + 1; };
+const hash = n => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };
+const PAL = [D.acc, D.acc2, D.acc3];
+const DISP = 'px "' + D.display + '", "Arial Black", "DejaVu Sans", sans-serif', BODY = "px Figtree, 'DejaVu Sans', system-ui";
+const mark1 = new Path2D(D.m1), mark2 = D.m2 ? new Path2D(D.m2) : null, filled = /Z$/.test(D.m1);
+// the scenes on the timeline
+const SC = []; { let t = DROP; for (const s of D.scenes) { SC.push({ ...s, at: t }); t += s.seconds; } }
+const parts = Array.from({ length: 90 }, (_, i) => ({ x: hash(i), y: hash(i + 100), z: 0.3 + hash(i + 200) * 0.7, s: 0.4 + hash(i + 300), k: i % 3, shape: i % 4 }));
+const conf = Array.from({ length: 120 }, (_, i) => ({ a: hash(i + 500) * Math.PI * 2, v: 500 + hash(i + 600) * 900, r: hash(i + 700) * 6.28, k: i % 3, w: 10 + hash(i + 800) * 14 }));
+function lines(text, maxW, font) { x.font = font; const out = []; let l = ""; for (const w of String(text).split(" ").filter(Boolean)) { const t = l ? l + " " + w : w; if (x.measureText(t).width > maxW && l) { out.push(l); l = w; } else l = t; } if (l) out.push(l); return out; }
+function fitSize(text, maxW, maxLines, start, min, fam) { for (let s = start; s >= min; s -= 4) { const ls = lines(text, maxW, "400 " + s + fam); if (ls.length <= maxLines) return [s, ls]; } return [min, lines(text, maxW, "400 " + min + fam)]; }
+function drawMark(cx, cy, size, prog, color) {
+  x.save(); x.translate(cx - size / 2, cy - size / 2); x.scale(size / 200, size / 200);
+  x.lineCap = "round"; x.lineJoin = "round"; x.strokeStyle = color; x.fillStyle = color; x.lineWidth = filled ? 8 : 26;
+  x.setLineDash([700, 700]); x.lineDashOffset = 700 * (1 - prog);
+  x.stroke(mark1); if (mark2) x.stroke(mark2); if (filled && prog >= 1) x.fill(mark1);
+  x.restore();
+}
+function bg(t, pulse) {
+  // a slow-turning three-color field, a beat pulse from the center, rotating rays
+  const a = t * 0.35, g = x.createLinearGradient(W / 2 + Math.cos(a) * W, H / 2 + Math.sin(a) * H, W / 2 - Math.cos(a) * W, H / 2 - Math.sin(a) * H);
+  g.addColorStop(0, D.acc); g.addColorStop(0.55, D.acc2); g.addColorStop(1, D.acc3);
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  x.fillStyle = "rgba(0,0,0,.28)"; x.fillRect(0, 0, W, H);
+  x.save(); x.translate(W / 2, H / 2); x.rotate(t * 0.25); x.globalAlpha = 0.08 + 0.1 * pulse; x.fillStyle = D.light;
+  for (let i = 0; i < 16; i++) { x.rotate(Math.PI / 8); x.beginPath(); x.moveTo(0, 0); x.lineTo(1100, -60); x.lineTo(1100, 60); x.fill(); }
+  x.restore();
+  const r = x.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, 700); r.addColorStop(0, "rgba(255,255,255," + (0.25 * pulse) + ")"); r.addColorStop(1, "rgba(255,255,255,0)");
+  x.fillStyle = r; x.fillRect(0, 0, W, H);
+  for (const p of parts) {
+    const py = ((p.y - t * 0.05 * p.s * p.z) % 1 + 1) % 1, px = p.x + Math.sin(t * 0.8 + p.x * 9) * 0.015 * p.z, sc = p.z * (1 + 0.35 * pulse);
+    x.save(); x.translate(px * W, py * H); x.rotate(t * p.s + p.x * 6); x.globalAlpha = 0.25 + p.z * 0.5; x.fillStyle = PAL[p.k]; x.strokeStyle = D.light;
+    if (p.shape === 0) { x.beginPath(); x.arc(0, 0, 7 * sc, 0, 6.3); x.fill(); }
+    else if (p.shape === 1) x.fillRect(-7 * sc, -7 * sc, 14 * sc, 14 * sc);
+    else if (p.shape === 2) { x.beginPath(); x.moveTo(0, -10 * sc); x.lineTo(9 * sc, 8 * sc); x.lineTo(-9 * sc, 8 * sc); x.fill(); }
+    else { x.globalAlpha *= 0.6; drawMark(0, 0, 46 * sc, 1, D.light); }
     x.restore();
-    chip(t, 1);
-  } else {
-    const k = elastic(local / 0.7);
-    x.save(); x.translate(W / 2, H / 2); x.scale(k, k);
-    x.fillStyle = D.light; x.beginPath(); x.roundRect(-420, -300, 840, 600, 48); x.fill();
-    x.fillStyle = D.ink; x.font = "200px system-ui"; x.fillText(D.emoji, 0, -120);
-    x.font = '400 ' + fit(D.brand, 760, 96) + 'px "' + D.display + '", "Arial Black", "DejaVu Sans", sans-serif'; x.fillText(D.brand, 0, 60);
-    x.font = "800 44px Figtree, 'DejaVu Sans', system-ui"; x.fillText(D.end, 0, 170); x.restore();
-    chip(t, k);
   }
+}
+function chip(t, a, pulse) {
+  const s = 1 + 0.08 * pulse;
+  x.save(); x.globalAlpha = a; x.translate(W / 2, H - 100); x.scale(s, s);
+  x.fillStyle = D.ink; x.beginPath(); x.roundRect(-200, -44, 400, 88, 44); x.fill();
+  x.strokeStyle = D.acc2; x.lineWidth = 5; x.stroke();
+  x.fillStyle = D.light; x.font = "800 42" + BODY; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(D.ticker, 0, 3); x.restore();
+}
+window.render = function (t) {
+  const beatPhase = ((t - DROP) % BEAT + BEAT) % BEAT, pulse = t >= DROP && t < END + 3 - 0.4 ? Math.exp(-beatPhase * 9) : 0;
+  const shake = t >= DROP ? pulse * 7 : 0, sx = (hash(Math.floor(t * 30)) - 0.5) * shake, sy = (hash(Math.floor(t * 30) + 9) - 0.5) * shake;
+  x.save(); x.translate(sx, sy);
+  bg(t, pulse);
+  x.textAlign = "center"; x.textBaseline = "middle";
+  if (t < DROP) {
+    // the build-up: the mark draws itself, a countdown ticks, the screen tightens toward the drop
+    const k = t / DROP; drawMark(W / 2, H / 2 - 40, 360 + 120 * easeIn(k), ease(k * 1.2), D.light);
+    x.fillStyle = D.light; x.font = "800 54" + BODY; x.globalAlpha = 0.9; x.fillText(String(Math.max(1, 3 - Math.floor(t / (DROP / 3)))), W / 2, H - 200);
+    x.globalAlpha = easeIn(k) * 0.9; x.fillStyle = "#fff"; x.fillRect(0, 0, W, H);
+  } else if (t < END) {
+    const sc = SC.findLast ? SC.findLast(s => t >= s.at) : SC.filter(s => t >= s.at).pop(), local = t - sc.at, left = sc.seconds - local, first = sc === SC[0];
+    // the scene: the mark slams in on the first beat, the headline pops word by word on the eighth notes, the line underneath types out
+    const inK = back(local / 0.45), outK = left < 0.3 ? ease(left / 0.3) : 1;
+    if (first) drawMark(W / 2, 250, 200 * inK, 1, D.light);
+    const [size, hl] = fitSize(String(sc.headline).toUpperCase(), 940, 2, 128, 56, DISP);
+    let wi = 0;
+    const lineH = size * 1.02, top = (first ? 520 : 420) - (hl.length - 1) * lineH / 2;
+    hl.forEach((line, li) => {
+      x.font = "400 " + size + DISP; const ws = line.split(" "), total = x.measureText(line).width; let cx = W / 2 - total / 2;
+      ws.forEach(word => {
+        const ww = x.measureText(word + " ").width, appear = local - wi * 0.25, k = elastic(appear / 0.5);
+        if (appear > 0) {
+          x.save(); x.translate(cx + x.measureText(word).width / 2, top + li * lineH); x.scale(k * outK, k * outK); x.rotate((1 - k) * 0.3 * (wi % 2 ? 1 : -1));
+          x.fillStyle = D.ink; x.fillText(word, 6, 8);
+          x.fillStyle = wi % 3 === 1 ? D.acc2 : D.light; x.fillText(word, 0, 0);
+          x.restore();
+        }
+        cx += ww; wi++;
+      });
+    });
+    const subLines = lines(sc.sub, 900, "800 44" + BODY), chars = Math.max(0, Math.floor((local - 0.6) * 45));
+    let shown = 0; x.font = "800 44" + BODY; x.globalAlpha = outK;
+    subLines.slice(0, 3).forEach((l, i) => { const part = l.slice(0, Math.max(0, chars - shown)); shown += l.length;
+      if (part) { x.fillStyle = "rgba(0,0,0,.35)"; x.fillText(part, W / 2 + 3, top + hl.length * lineH + 60 + i * 58 + 3); x.fillStyle = D.light; x.fillText(part, W / 2, top + hl.length * lineH + 60 + i * 58); } });
+    x.globalAlpha = 1;
+    chip(t, ease((t - DROP) / 0.4), pulse);
+    // a white flash on every cut
+    const cut = Math.min(local, 0.18); x.globalAlpha = (0.18 - cut) / 0.18 * 0.85; x.fillStyle = "#fff"; x.fillRect(0, 0, W, H); x.globalAlpha = 1;
+  } else {
+    // the end card: confetti bursts, the mark and the name, the call to action
+    const local = t - END, k = back(local / 0.5);
+    for (const p of conf) { const d = p.v * local, gy = 500 * local * local;
+      x.save(); x.translate(W / 2 + Math.cos(p.a) * d, H / 2 + Math.sin(p.a) * d + gy); x.rotate(p.r + local * 8); x.globalAlpha = clamp(1.6 - local * 0.5); x.fillStyle = PAL[p.k]; x.fillRect(-p.w / 2, -p.w / 4, p.w, p.w / 2); x.restore(); }
+    x.save(); x.translate(W / 2, H / 2 - 30); x.scale(k, k);
+    x.fillStyle = D.ink; x.beginPath(); x.roundRect(-430, -330, 860, 600, 56); x.fill(); x.strokeStyle = D.acc2; x.lineWidth = 8; x.stroke();
+    x.restore();
+    drawMark(W / 2, H / 2 - 190, 200 * k, 1, D.acc);
+    const [bs] = fitSize(D.brand, 760, 1, 120, 48, DISP);
+    x.save(); x.translate(W / 2, H / 2 + 20); x.scale(k, k); x.font = "400 " + bs + DISP; x.fillStyle = D.light; x.fillText(D.brand, 0, 0);
+    x.font = "800 46" + BODY; x.fillStyle = D.acc2; x.fillText(D.end, 0, 120); x.restore();
+    chip(t, 1, pulse);
+  }
+  x.restore();
 };
-function chip(t, a) { x.save(); x.globalAlpha = a; x.translate(W / 2, H - 110); x.fillStyle = D.ink; x.beginPath(); x.roundRect(-190, -42, 380, 84, 42); x.fill();
-  x.fillStyle = D.light; x.font = "800 40px Figtree, 'DejaVu Sans', system-ui"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(D.ticker, 0, 2); x.restore(); }
-function fit(text, maxW, size) { for (let s = size; s > 40; s -= 4) { x.font = '400 ' + s + 'px "' + D.display + '", "DejaVu Sans", sans-serif'; if (x.measureText(text).width <= maxW) return s; } return 40; }
-function shade(hex, k) { const n = parseInt(hex.slice(1), 16); const f = v => Math.max(0, Math.min(255, Math.round(v * (1 + k)))); return "rgb(" + f(n >> 16) + "," + f((n >> 8) & 255) + "," + f(n & 255) + ")"; }
 </script></body></html>`;
 }
 
