@@ -28,6 +28,42 @@ export async function quote(domain, o = {}) {
   return { domain: d, available: true, years: pr.years, price: Number(pr.purchasePrice), renewal: Number(pr.renewalPrice) };
 }
 
+// many domains at once (Vercel takes up to 50 per call): available or not, then prices for the available ones
+export async function availability(domains, o = {}) {
+  const { fetchImpl, token, team } = env(o); need(token);
+  const list = [...new Set(domains.map(cleanDomain).filter(valid))].slice(0, 50);
+  if (!list.length) return [];
+  try {
+    const r = await v(fetchImpl, token, "POST", `/v1/registrar/domains/availability${q(team)}`, { domains: list });
+    return list.map(d => ({ domain: d, available: !!(r.results || []).find(x => x.domain === d)?.available }));
+  } catch {
+    // one unsupported name can fail the whole batch: ask one by one
+    return Promise.all(list.map(d => v(fetchImpl, token, "GET", `/v1/registrar/domains/${encodeURIComponent(d)}/availability${q(team)}`)
+      .then(x => ({ domain: d, available: !!x.available })).catch(e => ({ domain: d, available: null, error: e.message }))));
+  }
+}
+async function prices(domains, o) {
+  const { fetchImpl, token, team } = env(o);
+  return Promise.all(domains.map(d => v(fetchImpl, token, "GET", `/v1/registrar/domains/${encodeURIComponent(d)}/price${q(team)}`)
+    .then(p => ({ domain: d, price: Number(p.purchasePrice), renewal: Number(p.renewalPrice), years: p.years })).catch(() => ({ domain: d, price: null }))));
+}
+// names a coin could live at, cheapest first: the brand and the ticker across the TLDs people use for coins
+export const TLDS = ["fun", "xyz", "lol", "app", "gg", "io", "com", "club", "site", "online", "tech", "wtf", "meme", "world"];
+export function candidates(brand, ticker) {
+  const b = String(brand || "").toLowerCase().replace(/[^a-z0-9]/g, ""), t = String(ticker || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const names = [...new Set([b, t, b && "get" + b, b && "play" + b, b && b + "hq", b && b + "coin", t && t + "coin", b && b + "app"].filter(n => n && n.length >= 3))];
+  const out = [];
+  for (const n of names.slice(0, 3)) for (const tld of TLDS) out.push(`${n}.${tld}`);
+  for (const n of names.slice(3)) for (const tld of TLDS.slice(0, 4)) out.push(`${n}.${tld}`);
+  return out.slice(0, 50);
+}
+export async function suggest(brand, ticker, o = {}) {
+  const av = await availability(candidates(brand, ticker), o);
+  const free = av.filter(x => x.available).map(x => x.domain).slice(0, 20);
+  const priced = (await prices(free, o)).filter(x => Number.isFinite(x.price) && x.price > 0);
+  return priced.sort((a, b) => a.price - b.price).slice(0, 12);
+}
+
 export const CONTACT_FIELDS = ["firstName", "lastName", "email", "phone", "city", "state", "zip", "country"];
 export function checkContact(c = {}) {
   const missing = CONTACT_FIELDS.filter(k => !String(c[k] || "").trim());

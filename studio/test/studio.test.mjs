@@ -886,3 +886,16 @@ test("docs links refresh for free: Official links rebuilt, the old address swapp
   assert.equal(out[0].markdown, "Play at https://vendo.fun today.");
   assert.match(out[1].markdown, /Site: https:\/\/vendo\.fun/); assert.match(out[1].markdown, /X: https:\/\/x\.com\/vendo/);
 });
+
+test("domain suggestions: brand and ticker across coin TLDs, Vercel availability in one call, the free ones priced, cheapest first", async () => {
+  const { candidates, suggest } = await import("../domains.mjs");
+  const c = candidates("Vendo", "VENDOX");
+  assert.ok(c.includes("vendo.fun") && c.includes("vendox.xyz") && c.includes("getvendo.fun") && c.length <= 50);
+  const api = async (u, init) => { const p = String(u).replace("https://api.vercel.com", ""); const j = o => new Response(JSON.stringify(o), { status: 200 });
+    if (p === "/v1/registrar/domains/availability") { const ds = JSON.parse(init.body).domains; return j({ results: ds.map(d => ({ domain: d, available: /\.(fun|xyz)$/.test(d) && !d.startsWith("vendo.") })) }); }
+    if (p.endsWith("/price")) return j({ years: 1, purchasePrice: p.includes(".xyz") ? 2.5 : 9, renewalPrice: 20 });
+    return new Response("{}", { status: 404 }); };
+  const s = await suggest("Vendo", "VENDOX", { fetchImpl: api, token: "t" });
+  assert.ok(s.length > 0 && s.every(x => /\.(fun|xyz)$/.test(x.domain) && x.domain !== "vendo.fun"));
+  assert.ok(s[0].price <= s[s.length - 1].price, "cheapest first"); assert.equal(s[0].price, 2.5);
+});

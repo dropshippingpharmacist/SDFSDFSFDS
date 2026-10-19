@@ -15,7 +15,7 @@ import { makeIdeas, ideaPrompt } from "../studio/ideas.mjs";
 import { makeMiniApp, polishMiniApp, designMiniApp } from "../studio/miniapp.mjs";
 import { createPumpLive } from "../studio/pumplive.mjs";
 import { appFor } from "../studio/recolor.mjs";
-import { quote as domainQuote, buy as domainBuy, attach as domainAttach, checkContact, cleanDomain } from "../studio/domains.mjs";
+import { quote as domainQuote, buy as domainBuy, attach as domainAttach, checkContact, cleanDomain, availability as domainAvailability, suggest as domainSuggest } from "../studio/domains.mjs";
 import { makeTheme, rulesLayout } from "../studio/theme.mjs";
 import { planContent, makeVisual, templateImage, templateVideo, SIZES, VIDEOS, IMAGES, HOW_TO_POST } from "../studio/content.mjs";
 import { renderImage, renderVideo, renderStatus, saveHtml, fontCheck } from "../studio/render.mjs";
@@ -458,8 +458,20 @@ async function makeKit(id) {
         return send(res, 200, { config: re.config, removed: re.removed });
       }
       case "/api/studio/domains": {
+        // Vercel's registrar answers when there is a token (the same source a purchase uses); RDAP is the fallback
         const names = (Array.isArray(b.domains) ? b.domains : []).slice(0, 8);
-        return send(res, 200, { domains: await Promise.all(names.map(n => checkDomain(n))) });
+        if (process.env.VERCEL_TOKEN) {
+          try {
+            const av = await domainAvailability(names);
+            return send(res, 200, { source: "vercel", domains: av.map(x => ({ domain: x.domain, status: x.available === true ? "available" : x.available === false ? "taken" : "unknown" })) });
+          } catch (e) { /* fall through to RDAP */ }
+        }
+        return send(res, 200, { source: "rdap", domains: await Promise.all(names.map(n => checkDomain(n))) });
+      }
+      case "/api/studio/domain/suggest": {
+        const d = draft(b.id);
+        if (limited("studio:suggest", 30, 36e5)) throw err(429, "Too many searches. Try again later.");
+        return send(res, 200, { domains: await domainSuggest(b.name || d.config.brand, d.config.coin?.ticker) });
       }
       case "/api/studio/owner": {
         // the domain owner's details (every registrar needs them), kept on this server only
