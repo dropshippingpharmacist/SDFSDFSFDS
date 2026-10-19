@@ -169,8 +169,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
 
       <section class="card" id="kitCard" hidden>
         <div class="row" style="justify-content:space-between"><h2>Content kit</h2><button class="btn" id="kitBtn" type="button">Make the content kit</button></div>
-        <p class="muted">The X profile picture, banner and the coin's launch picture, three videos (intro, the product, why now), the posts to go
-          with them and exactly how to post. Claude writes and designs it all; the server renders the MP4s. It takes several minutes.</p>
+        <p class="muted">The X profile picture, the X banner, one intro video for X, the posts to go with them and exactly how to post. Claude writes and designs it all; the server renders the MP4s. It takes several minutes.</p>
         <p class="err" id="kitErr" role="alert"></p>
         <p class="muted" id="kitState"></p>
         <div class="kit" id="kit"></div>
@@ -508,7 +507,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     const box = $("kit"); box.textContent = ""; const id = cur.id, f = k.files || {};
     const url = n => "/studio/c/" + id + "/" + n;
     const files = el("div", { className: "files" });
-    [["pfp", "Profile picture 400×400"], ["banner", "Banner 1500×500"], ["launch", "Launch picture 1000×1000"]].forEach(([key, title]) => {
+    [["pfp", "X profile picture 400×400"], ["banner", "X banner 1500×500"]].forEach(([key, title]) => {
       const x = f[key]; if (!x) return;
       files.append(el("div", {}, el("b", { textContent: title }), x.png ? el("img", { src: url(x.png) + "?t=" + k.at, alt: title }) : "",
         el("div", { className: "row" }, x.png ? el("a", { className: "btn alt small", href: url(x.png), download: "", textContent: "Download PNG" }) : "",

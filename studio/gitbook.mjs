@@ -9,7 +9,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { docSections } from "./docs.mjs";
-import { parseBig } from "./llm.mjs";
+import { parseBig, why } from "./llm.mjs";
 
 const MODEL = "claude-opus-5-5";
 const clean = (t, n = 400) => String(t || "").replace(/[ \t]+/g, " ").trim().slice(0, n);
@@ -87,7 +87,7 @@ export async function makeBook(cfg, { client = null } = {}) {
       if (r.stop_reason === "refusal") note = "The model declined; the plain book was used.";
       else if (r.parsed) { pages = r.parsed.pages; source = "claude"; }
       else note = "The model's answer could not be read; the plain book was used.";
-    } catch (e) { note = e instanceof Anthropic.APIError ? `Claude answered ${e.status}; the plain book was used.` : "Claude could not be reached; the plain book was used."; }
+    } catch (e) { note = `${why(e)}; the plain book was used.`; }
   }
   const out = (pages || rulesBook(cfg)).map(p => ({ title: clean(p.title, 60), slug: String(p.slug || p.title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "page",
                                                    description: clean(p.description, 160), markdown: dropClaims(String(p.markdown || "").replace(/<[^>]+>/g, "").replace(/\{%[^%]*%\}/g, "")).trim().slice(0, 9000) }))
