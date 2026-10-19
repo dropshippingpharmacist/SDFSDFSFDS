@@ -1,0 +1,11 @@
+{
+  "name": "route",
+  "private": true,
+  "type": "module",
+  "description": "Route: see where your friends are headed and cross paths on purpose. App + $ROUTE coin site + pump.fun launchpad.",
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning route/server.mjs",
+    "test": "node --disable-warning=ExperimentalWarning --test route/test/route.test.mjs"
+  },
+  "engines": { "node": ">=22.13" }
+}
