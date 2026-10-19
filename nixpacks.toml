@@ -1,8 +1,9 @@
-# Railway build: Node 22 plus a headless Chromium and ffmpeg, so the Studio can render the content kit's pictures and
-# videos on the server. Remove the two packages if you never want videos; the Studio then hands you HTML pages instead.
+# Railway build: Node 22 plus a headless Chromium, ffmpeg and fonts, so the Studio can render the content kit's pictures
+# and videos on the server (text needs real fonts: without them Chromium draws blank where the words should be).
 [phases.setup]
-nixPkgs = ["nodejs_22", "chromium", "ffmpeg"]
+nixPkgs = ["nodejs_22", "chromium", "ffmpeg", "fontconfig", "dejavu_fonts", "noto-fonts", "noto-fonts-color-emoji"]
 
 [variables]
 CHROMIUM_PATH = "chromium"
 PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1"
+FONTCONFIG_FILE = "/app/render/fonts.conf"

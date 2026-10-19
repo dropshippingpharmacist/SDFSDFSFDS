@@ -20,7 +20,7 @@ export async function withRetry(fn, { tries = 3, waits = [8000, 25000] } = {}) {
   }
   throw last;
 }
-export const why = e => (e?.status ? `Claude answered ${e.status}` : `Claude could not be reached (${String(e?.message || e).slice(0, 160)})`);
+export const why = e => (e?.status ? `Claude answered ${e.status} (${String(e?.error?.error?.message || e?.message || "").replace(/\s+/g, " ").slice(0, 200)})` : `Claude could not be reached (${String(e?.message || e).slice(0, 160)})`);
 
 export async function parseBig(client, req, schema) {
   const format = zodOutputFormat(schema);
