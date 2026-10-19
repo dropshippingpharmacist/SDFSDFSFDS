@@ -147,8 +147,8 @@ export function markSvg(cfg, { size = 200, color = "#ffffff", ground = null } = 
 const esc = s => String(s || "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const font = cfg => `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(cfg.display || "Bagel Fat One").replace(/%20/g, "+")}&family=Figtree:wght@600;800&display=swap">`;
 const base = (cfg, w, h, body, css = "") => `<!doctype html><html><head><meta charset="utf-8">${font(cfg)}<style>
-html{margin:0;background:#15121c;min-height:100%}body{margin:0;width:${w}px;height:${h}px;overflow:hidden;position:relative;background:${cfg.colors?.accent || "#ff6a2b"};color:${cfg.colors?.dark || "#140f22"};font-family:Figtree,system-ui,sans-serif;box-shadow:0 0 0 1px #000}
-.d{font-family:"${esc(cfg.display || "Bagel Fat One")}","Arial Black",sans-serif}${css}</style></head><body>${body}</body></html>`;
+html{margin:0;background:#15121c;min-height:100%}body{margin:0;width:${w}px;height:${h}px;overflow:hidden;position:relative;background:${cfg.colors?.accent || "#ff6a2b"};color:${cfg.colors?.dark || "#140f22"};font-family:Figtree,"DejaVu Sans",system-ui,sans-serif;box-shadow:0 0 0 1px #000}
+.d{font-family:"${esc(cfg.display || "Bagel Fat One")}","Arial Black","DejaVu Sans",sans-serif}${css}</style></head><body>${body}</body></html>`;
 
 export function templateImage(kind, cfg) {
   const [w, h] = SIZES[kind], ink = cfg.colors?.dark || "#140f22", acc = cfg.colors?.accent || "#ff6a2b", light = cfg.colors?.light || "#fff8f1";
@@ -178,7 +178,7 @@ const ease = t => t < 0 ? 0 : t > 1 ? 1 : 1 - Math.pow(1 - t, 3);
 function elastic(t) { t = Math.max(0, Math.min(1, t)); return 1 - Math.pow(2, -8 * t) * Math.cos(t * 10) * (1 - t); }
 const hash = n => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };   // deterministic scatter
 const parts = Array.from({ length: 70 }, (_, i) => ({ x: hash(i), y: hash(i + 100), z: 0.3 + hash(i + 200) * 0.7, s: 0.5 + hash(i + 300), e: i % 5 === 0 }));
-function wrap(text, maxW, size) { x.font = "800 " + size + "px Figtree, system-ui"; const words = String(text).split(" "), lines = []; let l = "";
+function wrap(text, maxW, size) { x.font = "800 " + size + "px Figtree, \"DejaVu Sans\", system-ui"; const words = String(text).split(" "), lines = []; let l = "";
   for (const wd of words) { const t = l ? l + " " + wd : wd; if (x.measureText(t).width > maxW && l) { lines.push(l); l = wd; } else l = t; } if (l) lines.push(l); return lines; }
 function scene(t) { let a = 0; for (const s of D.scenes) { if (t < a + s.seconds) return { s, local: t - a }; a += s.seconds; } return { s: null, local: t - a }; }
 window.render = function (t) {
@@ -193,7 +193,7 @@ window.render = function (t) {
     const k = elastic(local / 0.6), out = s.seconds - local < 0.4 ? ease((s.seconds - local) / 0.4) : 1;
     x.save(); x.globalAlpha = out; x.translate(W / 2, H * 0.42); x.scale(0.6 + 0.4 * k, 0.6 + 0.4 * k);
     x.font = Math.round(210 + Math.sin(t * 2) * 6) + "px system-ui"; x.fillText(D.emoji, 0, -250);
-    x.fillStyle = D.light; x.font = '400 ' + fit(s.headline, 920, 112) + 'px "' + D.display + '", "Arial Black", sans-serif'; x.shadowColor = "rgba(0,0,0,.25)"; x.shadowBlur = 24; x.shadowOffsetY = 8;
+    x.fillStyle = D.light; x.font = '400 ' + fit(s.headline, 920, 112) + 'px "' + D.display + '", "Arial Black", "DejaVu Sans", sans-serif'; x.shadowColor = "rgba(0,0,0,.25)"; x.shadowBlur = 24; x.shadowOffsetY = 8;
     x.fillText(s.headline, 0, 0); x.shadowBlur = 0; x.shadowOffsetY = 0;
     x.fillStyle = D.light; x.globalAlpha = out * ease((local - 0.25) / 0.5);
     const lines = wrap(s.sub, 880, 44); lines.forEach((l, i) => x.fillText(l, 0, 110 + i * 56));
@@ -204,14 +204,14 @@ window.render = function (t) {
     x.save(); x.translate(W / 2, H / 2); x.scale(k, k);
     x.fillStyle = D.light; x.beginPath(); x.roundRect(-420, -300, 840, 600, 48); x.fill();
     x.fillStyle = D.ink; x.font = "200px system-ui"; x.fillText(D.emoji, 0, -120);
-    x.font = '400 ' + fit(D.brand, 760, 96) + 'px "' + D.display + '", "Arial Black", sans-serif'; x.fillText(D.brand, 0, 60);
-    x.font = "800 44px Figtree, system-ui"; x.fillText(D.end, 0, 170); x.restore();
+    x.font = '400 ' + fit(D.brand, 760, 96) + 'px "' + D.display + '", "Arial Black", "DejaVu Sans", sans-serif'; x.fillText(D.brand, 0, 60);
+    x.font = "800 44px Figtree, \"DejaVu Sans\", system-ui"; x.fillText(D.end, 0, 170); x.restore();
     chip(t, k);
   }
 };
 function chip(t, a) { x.save(); x.globalAlpha = a; x.translate(W / 2, H - 110); x.fillStyle = D.ink; x.beginPath(); x.roundRect(-190, -42, 380, 84, 42); x.fill();
-  x.fillStyle = D.light; x.font = "800 40px Figtree, system-ui"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(D.ticker, 0, 2); x.restore(); }
-function fit(text, maxW, size) { for (let s = size; s > 40; s -= 4) { x.font = '400 ' + s + 'px "' + D.display + '", sans-serif'; if (x.measureText(text).width <= maxW) return s; } return 40; }
+  x.fillStyle = D.light; x.font = "800 40px Figtree, \"DejaVu Sans\", system-ui"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(D.ticker, 0, 2); x.restore(); }
+function fit(text, maxW, size) { for (let s = size; s > 40; s -= 4) { x.font = '400 ' + s + 'px "' + D.display + '", "DejaVu Sans", sans-serif'; if (x.measureText(text).width <= maxW) return s; } return 40; }
 function shade(hex, k) { const n = parseInt(hex.slice(1), 16); const f = v => Math.max(0, Math.min(255, Math.round(v * (1 + k)))); return "rgb(" + f(n >> 16) + "," + f((n >> 8) & 255) + "," + f(n & 255) + ")"; }
 </script></body></html>`;
 }
