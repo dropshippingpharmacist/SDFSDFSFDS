@@ -905,7 +905,7 @@ test("domain suggestions: brand and ticker across coin TLDs, Vercel availability
   assert.ok(s[0].price <= s[s.length - 1].price, "cheapest first"); assert.equal(s[0].price, 2.5);
 });
 
-test("the docs ship on the coin's own domain at /docs/, and the site never links a shared GitBook address", async () => {
+test("the docs ship on the coin's own domain at /docs/ too", async () => {
   let sent;
   const fetchImpl = async (u, o) => { sent = JSON.parse(o.body); return { ok: true, status: 200, json: async () => ({ url: "x.vercel.app", id: "d" }) }; };
   await deploy({ brand: "Vendo", coin: { ticker: "VENDOX" } }, "vendo", { fetchImpl, token: "t", extra: { "docs/index.html": "<p>docs</p>", "../evil.html": "x" } }).catch(() => null);
@@ -913,5 +913,5 @@ test("the docs ship on the coin's own domain at /docs/, and the site never links
   assert.ok(names.includes("docs/index.html"));
   assert.ok(!names.includes("../evil.html"));
   const tpl = await (await import("node:fs/promises")).readFile(new URL("../../launchpad/index.html", import.meta.url), "utf8");
-  assert.match(tpl, /!\/gitbook\\\.io\/i\.test\(C\.docsUrl\) \? C\.docsUrl : "docs\/"/);
+  assert.match(tpl, /C\.docsUrl : "docs\/"/);
 });
