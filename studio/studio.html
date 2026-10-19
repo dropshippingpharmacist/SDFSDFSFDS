@@ -758,7 +758,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     } catch (e) { $("genErr").textContent = e.message; } finally { $("checkBtn").disabled = false; }
   });
 
-  function setLive(url) { const l = $("liveUrl"); l.hidden = false; l.textContent = ""; l.append("Live: ", el("a", { href: url, textContent: url, target: "_blank", rel: "noopener" })); }
+  function setLive(url) { if (cur && cur.config && cur.config.domain) url = "https://" + cur.config.domain; const l = $("liveUrl"); l.hidden = false; l.textContent = ""; l.append("Live: ", el("a", { href: url, textContent: url, target: "_blank", rel: "noopener" })); }
   $("deployBtn").addEventListener("click", async () => {
     if (!cur) return;
     $("deployErr").textContent = ""; $("deployBtn").disabled = true; $("deployBtn").textContent = "Deploying…";
