@@ -73,6 +73,10 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
 .rate { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .rate button[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--card)); }
 .stat { font: 600 12px var(--mono); color: var(--ok); }
+.intel { display: grid; gap: 8px; font-size: 13px; } .intel b { font-weight: 700; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; } .chip { font-size: 12px; border: 1.5px solid var(--line); border-radius: 999px; padding: 3px 9px; }
+.xpost { border-left: 3px solid var(--accent); padding: 4px 10px; font-size: 13px; } .xpost a { color: var(--muted); font-size: 12px; }
+.check { display: grid; gap: 4px; font-size: 13px; } .check span::before { content: "○ "; color: var(--muted); } .check span.done::before { content: "● "; color: var(--ok); }
 @media (max-width: 980px) { .bench { grid-template-columns: minmax(0, 1fr); } .frame { position: static; } iframe { height: 70vh; } }
 @media (max-width: 460px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
 </style>
@@ -89,14 +93,22 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
 <div id="appView" hidden>
   <header class="bar">
     <div class="logo">Launchpad <span>Studio</span></div>
-    <div class="pills"><span class="pill" id="aiPill">AI</span><span class="pill" id="vcPill">Vercel</span></div>
+    <div class="pills"><span class="pill" id="aiPill">AI</span><span class="pill" id="vcPill">Vercel</span><span class="pill" id="xPill">X</span></div>
   </header>
   <div class="bench">
     <div class="col">
       <section class="card">
+        <div class="row" style="justify-content:space-between"><h2>Launch Intel</h2><button class="btn alt small" id="intelBtn" type="button">Read the market</button></div>
+        <p class="muted">Every coin the feeds show (DexScreener, GeckoTerminal, pump.fun, DEXTools) is kept for good, plus what X is talking
+          about with <code>X_BEARER_TOKEN</code>. It refreshes itself every 30 minutes and every idea and site is written from it.</p>
+        <p class="err" id="intelErr" role="alert"></p>
+        <div class="intel" id="intel" hidden></div>
+      </section>
+
+      <section class="card">
         <h2>Idea Maker</h2>
-        <p class="muted">Reads what's launching and trending right now (DexScreener, GeckoTerminal, pump.fun, DEXTools with a key) and
-          what you liked and launched before, then invents original launchpads, games and utilities.</p>
+        <p class="muted">Reads what's launching and trending right now, the Launch Intel, what X is saying and what you liked and
+          launched before, then invents original launchpads, games and utilities.</p>
         <div class="row"><input id="focus" placeholder="Optional: steer it (cats, AI agents, sports-free, games only…)" aria-label="Steer the ideas">
           <button class="btn" id="ideasBtn" type="button">Find ideas</button></div>
         <p class="muted" id="ideaSrc"></p>
@@ -127,7 +139,12 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
         <div class="domains" id="domains"></div>
         <button class="btn alt small" id="checkBtn" type="button">Check availability</button>
         <p class="muted" id="tickerLine"></p>
-        <div class="row"><button class="btn" id="appBtn" type="button">Make the game / tool</button><span class="muted" id="appState"></span></div>
+        <div class="domains" id="tickers"></div>
+        <div class="row" id="appRow"><button class="btn" id="appBtn" type="button">Make the game / tool</button><span class="muted" id="appState"></span></div>
+        <div><b>Launch checklist</b></div>
+        <div class="check" id="checklist"></div>
+        <div class="row"><a class="btn" id="launchBtn" target="_blank" rel="noopener">Launch this coin</a>
+          <span class="muted">Opens the launchpad with the name, ticker, links and intro filled in. The address comes back here on its own.</span></div>
         <div class="rate">
           <button class="btn alt small" id="rateUp" type="button" aria-pressed="false">👍 Good one</button>
           <button class="btn alt small" id="rateDown" type="button" aria-pressed="false">👎 Not it</button>
@@ -174,7 +191,8 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
 
     <div class="frame">
       <section class="card" id="deployCard" hidden>
-        <div class="row">
+        <p class="muted" id="builtinNote" hidden></p>
+        <div class="row" id="deployRow">
           <label for="slug" style="flex:1">Vercel project name<input id="slug" maxlength="40"></label>
           <button class="btn" id="deployBtn" type="button">Deploy to Vercel</button>
         </div>
@@ -210,8 +228,39 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     show(true);
     $("aiPill").textContent = s.ai ? "AI writer: Claude" : "AI writer: off (plain writer)"; $("aiPill").className = "pill " + (s.ai ? "on" : "off");
     $("vcPill").textContent = s.vercel ? "Vercel: connected" : "Vercel: add VERCEL_TOKEN"; $("vcPill").className = "pill " + (s.vercel ? "on" : "off");
+    $("xPill").textContent = s.x ? "X: connected" : "X: add X_BEARER_TOKEN"; $("xPill").className = "pill " + (s.x ? "on" : "off");
     loadDrafts();
   }
+
+  const usd = n => "$" + Math.round(n || 0).toLocaleString();
+  $("intelBtn").addEventListener("click", async () => {
+    $("intelErr").textContent = ""; $("intelBtn").disabled = true; $("intelBtn").textContent = "Reading…";
+    try {
+      const r = await call("/api/studio/intel", { focus: $("focus").value.trim(), refresh: true });
+      const pb = r.playbook, box = $("intel"); box.textContent = ""; box.hidden = false;
+      const line = (b, t) => el("div", {}, el("b", { textContent: b + " " }), t);
+      const chips = list => { const c = el("div", { className: "chips" }); list.forEach(x => c.append(el("span", { className: "chip", textContent: x }))); return c; };
+      box.append(line("Tracked:", pb.launches + " coins in " + pb.days + " days · " + pb.seen24h + " seen today · " + pb.winners + " passed $1M · " + pb.graduated + " graduated" +
+        " · read now: " + (r.sources.join(", ") || "nothing") + (r.failed.length ? " · not read: " + r.failed.join(", ") : "")));
+      if (pb.themes.length) box.append(line("Themes:", ""), chips(pb.themes.map(t => t.name + " " + t.share + "%")));
+      if (pb.winnerThemes.length) box.append(line("Themes of the $1M+ coins:", ""), chips(pb.winnerThemes.map(t => t.name + " ×" + t.n)));
+      if (pb.kinds.length) box.append(line("Kinds:", pb.kinds.map(k => k.name + " " + k.share + "%").join(" · ")));
+      if (pb.launches) box.append(line("Links:", pb.links.all.website + "% have a website, " + pb.links.all.x + "% an X, " + pb.links.all.telegram + "% a Telegram" +
+        (pb.winners ? " · the $1M+ ones: " + pb.links.winners.website + "% / " + pb.links.winners.x + "% / " + pb.links.winners.telegram + "%" : "") +
+        " · median name " + (pb.nameLen ?? "?") + " letters, ticker " + (pb.tickerLen ?? "?")));
+      if (pb.bestHoursUtc.length) box.append(line("Busiest launch hours (UTC):", pb.bestHoursUtc.map(h => h.h + ":00 (" + h.n + ")").join(", ")));
+      if (pb.survivors.length) box.append(line("Still around after a day:", pb.survivors.slice(0, 8).map(x => (x.name || x.symbol) + " · " + x.theme + " · peak " + usd(x.peakMc) + " · " + x.hours + "h").join(" | ")));
+      if (pb.top.length) box.append(line("Biggest seen:", pb.top.slice(0, 8).map(x => (x.name || x.symbol) + " " + usd(x.peakMc)).join(" · ")));
+      if (r.x.ok) {
+        box.append(line("X right now:", "the posts about Solana launches with the most traction" + (pb.x.themes.length ? " · themes: " + pb.x.themes.map(t => t.name).join(", ") : "")));
+        r.x.posts.slice(0, 8).forEach(p => box.append(el("div", { className: "xpost" }, el("div", { textContent: p.text }),
+          el("a", { href: p.url, target: "_blank", rel: "noopener", textContent: (p.author ? "@" + p.author + " · " : "") + p.likes + " likes · " + p.reposts + " reposts" + (p.views ? " · " + p.views.toLocaleString() + " views" : "") }))));
+      } else box.append(line("X:", r.x.reason === "no X_BEARER_TOKEN" ? "add X_BEARER_TOKEN on Railway to read X." : "could not read X (" + (r.x.reason || "no posts") + ")."));
+      const d = el("details", {}, el("summary", { textContent: "How pump.fun launches really work" }));
+      pb.lessons.forEach(l => d.append(el("p", { className: "muted", textContent: "· " + l }))); box.append(d);
+    } catch (e) { $("intelErr").textContent = e.message; }
+    finally { $("intelBtn").disabled = false; $("intelBtn").textContent = "Read the market"; }
+  });
 
   $("ideasBtn").addEventListener("click", async () => {
     $("ideaErr").textContent = ""; $("ideasBtn").disabled = true; $("ideasBtn").textContent = "Reading the trends…";
@@ -262,15 +311,49 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     const ds = $("domains"); ds.textContent = "";
     (r.domains || []).forEach(d => ds.append(el("div", { className: "dom" }, el("code", { textContent: d }),
       el("span", { className: "st", id: "st-" + d, textContent: "not checked" }))));
-    $("tickerLine").textContent = "Ticker $" + c.coin.ticker + ((r.tickerBackups || []).length ? " · backups: " + r.tickerBackups.map(t => "$" + t).join(", ") : "") +
-      ". Search pump.fun for it before you launch.";
+    $("tickerLine").textContent = "Ticker $" + c.coin.ticker + ((r.tickerBackups || []).length ? " · backups: " + r.tickerBackups.map(t => "$" + t).join(", ") : "") + " · checked on DexScreener:";
+    checkTickers([c.coin.ticker, ...(r.tickerBackups || [])]);
     fill(c);
     $("slug").value = (c.brand || "launchpad").toLowerCase().replace(/[^a-z0-9]+/g, "-");
     $("liveUrl").hidden = !r.url; if (r.url) setLive(r.url);
-    $("preview").src = "/studio/p/" + r.id + "/?t=" + Date.now();
+    $("preview").src = r.preview + "?t=" + Date.now();
+    const builtin = r.builtin === "route";
+    $("builtinNote").hidden = !builtin; $("deployRow").hidden = builtin; $("appRow").hidden = builtin;
+    $("builtinNote").textContent = builtin ? "Route runs on this server at /route and deploys with the repo. Save the contract address and links here after you launch; /route updates on its own." : "";
+    checklist();
     $("appState").textContent = r.hasApp ? "This site has its " + (c.product?.kind === "game" ? "game" : "tool") + ". Make it again to replace it." : "";
     $("appBtn").textContent = (c.product?.kind === "game" ? "Make the game" : c.product?.kind === "utility" ? "Make the tool" : "Make a companion tool");
     setRate(r.rating || 0); $("rateNote").value = r.note || "";
+  }
+  async function checkTickers(list) {
+    const box = $("tickers"); box.textContent = "";
+    list.forEach(t => box.append(el("div", { className: "dom" }, el("code", { textContent: "$" + t }), el("span", { className: "st", id: "tk-" + t, textContent: "checking…" }))));
+    try {
+      const r = await call("/api/studio/ticker", { tickers: list });
+      r.tickers.forEach(x => {
+        const s = $("tk-" + x.ticker); if (!s) return;
+        const top = x.coins[0];
+        s.textContent = x.status === "free" ? "free" : x.status === "taken" ? "taken: " + (top.name || "") + " · MC " + usd(top.mcUsd) + " · liq " + usd(top.liqUsd)
+          : x.status === "dead" ? "used before, dead now (" + x.coins.length + ")" : "couldn't check";
+        s.className = "st " + (x.status === "free" ? "available" : x.status === "taken" ? "taken" : "unknown");
+        if (cur && x.ticker === cur.config.coin.ticker) { cur.tickerStatus = x.status; checklist(); }
+      });
+    } catch (e) { list.forEach(t => { const s = $("tk-" + t); if (s) s.textContent = "couldn't check"; }); }
+  }
+  function checklist() {
+    if (!cur) return;
+    const c = cur.config, box = $("checklist"); box.textContent = "";
+    const items = [
+      ["Ticker free on DexScreener", cur.tickerStatus === "free" || cur.tickerStatus === "dead"],
+      ["Site online", !!cur.url], ["X link", !!c.coin.x], ["Telegram link", !!c.coin.telegram],
+      [c.product && c.product.kind !== "launchpad" ? "The " + c.product.kind + " is built" : "Companion tool (optional)", !!cur.hasApp || cur.builtin === "route"],
+      ["Launched (contract address)", !!c.coin.ca],
+    ];
+    items.forEach(([t, ok]) => box.append(el("span", { className: ok ? "done" : "", textContent: t })));
+    const q = new URLSearchParams({ draft: cur.id, name: c.brand || "", symbol: c.coin.ticker || "", description: (c.tagline || "") + (c.about ? " " + c.about : ""),
+      twitter: c.coin.x || "", telegram: c.coin.telegram || "", website: cur.url && /^https?:/.test(cur.url) ? cur.url : "" });
+    $("launchBtn").href = "/launch/?" + q.toString();
+    $("launchBtn").textContent = c.coin.ca ? "Launched · open the launchpad" : "Launch this coin";
   }
   function setRate(v) { $("rateUp").setAttribute("aria-pressed", String(v > 0)); $("rateDown").setAttribute("aria-pressed", String(v < 0)); }
   async function rate(v) {
@@ -288,7 +371,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
       const r = await call("/api/studio/app", { id: cur.id });
       cur.config = r.config; cur.hasApp = true; fill(r.config);
       $("appState").textContent = "Built (" + Math.round(r.bytes / 1024) + " KB). It's on the site under its own section.";
-      $("preview").src = "/studio/p/" + cur.id + "/?t=" + Date.now() + "#product";
+      $("preview").src = cur.preview + "?t=" + Date.now() + "#product"; checklist();
     } catch (e) { $("appState").textContent = e.message; } finally { $("appBtn").disabled = false; }
   });
   $("resultsBtn").addEventListener("click", async () => {
@@ -324,7 +407,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
       cur.config = r.config; cur.removed = r.removed; fill(r.config);
       $("resRemoved").hidden = !r.removed.length; $("resRemoved").textContent = r.removed.length ? "Removed " + r.removed.length + " sentence(s) that promised donations, partners or profits." : "";
       $("resBrand").textContent = (r.config.emoji || "") + " " + r.config.brand + "  ·  $" + r.config.coin.ticker;
-      $("preview").src = "/studio/p/" + cur.id + "/?t=" + Date.now();
+      $("preview").src = cur.preview + "?t=" + Date.now(); checklist();
     } catch (e) { $("genErr").textContent = e.message; } finally { $("saveBtn").disabled = false; }
   });
 
@@ -347,7 +430,7 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
   $("deployBtn").addEventListener("click", async () => {
     if (!cur) return;
     $("deployErr").textContent = ""; $("deployBtn").disabled = true; $("deployBtn").textContent = "Deploying…";
-    try { const r = await call("/api/studio/deploy", { id: cur.id, slug: $("slug").value }); cur.url = r.url; setLive(r.url); loadDrafts(); }
+    try { const r = await call("/api/studio/deploy", { id: cur.id, slug: $("slug").value }); cur.url = r.url; setLive(r.url); checklist(); loadDrafts(); }
     catch (e) { $("deployErr").textContent = e.message; }
     finally { $("deployBtn").disabled = false; $("deployBtn").textContent = "Deploy to Vercel"; }
   });
@@ -360,12 +443,17 @@ details.trends summary { cursor: pointer; font-weight: 700; font-size: 14px; }
         : x.ca ? (x.stats ? "not trading" : "launched · press Refresh results") : "";
       d.append(el("button", { type: "button", onclick: async () => open(await call("/api/studio/get", { id: x.id })) },
         el("b", { textContent: (x.rating > 0 ? "👍 " : x.rating < 0 ? "👎 " : "") + x.brand + " · $" + x.ticker + (x.app ? " · " + (x.kind === "game" ? "game" : "tool") : "") }),
-        el("div", { className: "muted", textContent: (x.url ? "Live · " : "Draft · ") + x.idea.slice(0, 70) }),
+        el("div", { className: "muted", textContent: (x.builtin === "route" ? "Live on this server · " : x.url ? "Live · " : "Draft · ") + x.idea.slice(0, 70) }),
         st ? el("div", { className: "stat", textContent: st }) : ""));
     });
     $("draftsEmpty").hidden = list.length > 0;
   }
 
+  // back from the launchpad tab: pick up the contract address it reported
+  window.addEventListener("focus", async () => {
+    if (!cur || cur.config.coin.ca) return;
+    try { const r = await call("/api/studio/get", { id: cur.id }); if (r.config.coin.ca) { cur.config = r.config; fill(r.config); checklist(); loadDrafts(); } } catch (e) {}
+  });
   call("/api/studio/status").then(boot, () => show(false));
 })();
 </script>

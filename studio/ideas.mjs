@@ -19,8 +19,10 @@ const Ideas = z.object({ ideas: z.array(z.object({
 
 const SYSTEM = `You invent memecoin product concepts for a builder who launches on pump.fun (Solana). Each concept is a
 coin plus a small real product people can use on its website: a launchpad (themed pump.fun launch site), a browser
-game, or a utility (a tool, calculator, generator, tracker). You are given what is launching and trending right now and
-what this builder liked, disliked and launched before.
+game, or a utility (a tool, calculator, generator, tracker). You are given what is launching and trending right now, the
+Studio's Launch Intel (weeks of tracked launches: themes, winners, survivors, what X is talking about, how pump.fun
+works) and what this builder liked, disliked and launched before. Use all of it: the best concept rides a live narrative
+with an original angle, has a product people come back to, and is launch-ready (one-line pitch, unique ticker).
 
 Rules:
 - Original. Learn from the patterns in the trends (themes, mascots, jokes, mechanics), never reuse a live coin's name,
@@ -76,7 +78,7 @@ export function trendText(tr) {
   }).join("\n");
 }
 
-export async function makeIdeas(tr, { mem = null, n = 6, focus = "", client = null } = {}) {
+export async function makeIdeas(tr, { mem = null, n = 6, focus = "", intel = "", client = null } = {}) {
   let ideas = null, source = "rules", note = null;
   if (client || process.env.ANTHROPIC_API_KEY) {
     try {
@@ -87,6 +89,7 @@ export async function makeIdeas(tr, { mem = null, n = 6, focus = "", client = nu
         system: SYSTEM,
         messages: [{ role: "user", content:
           `What is launching and trending on Solana right now:\n${trendText(tr) || "(no feed answered; use evergreen memecoin themes)"}\n\n` +
+          (intel ? `${intel}\n\n` : "") +
           (memoryText(mem) ? `This builder's history:\n${memoryText(mem)}\n\n` : "") +
           (focus ? `They want ideas around: ${clean(focus, 200)}\n\n` : "") + `Give ${n} concepts.` }],
       });
