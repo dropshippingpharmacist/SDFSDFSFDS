@@ -471,7 +471,7 @@ test("content kit: the plan passes the honesty filter, the templates are complet
   const intro = plan.videos.find(v => v.key === "intro");
   assert.equal(intro.scenes.length, 1, "a scene whose headline is a promise is dropped; seconds are capped");
   assert.equal(plan.videos.length, 1, "one video: the intro");
-  assert.ok(rulesPlan(cfg).posts.length === 4 && HOW_TO_POST.length >= 5);
+  assert.ok(rulesPlan(cfg).posts.length === 3 && HOW_TO_POST.length >= 5, "three tweets, written out");
   for (const k of ["pfp", "banner"]) assert.match(templateImage(k, cfg), /<!doctype html>/);
   assert.match(templateImage("pfp", cfg), /<svg[^>]*><path d="M/, "the profile picture is a drawn mark, not the emoji");
   assert.ok(!templateImage("pfp", cfg).includes("🐸"));
@@ -520,7 +520,7 @@ test("content kit over HTTP: files land on the volume, are served to the owner o
     assert.equal(job.state, "done", job.error);
     const k = { content: (await post("/api/studio/content/get", { id: g.id })).content };
     assert.equal(k.content.source, "rules");
-    assert.ok(k.content.files.pfp.html === "pfp.html" && k.content.files.intro.html === "intro.html" && k.content.plan.posts.length === 4);
+    assert.ok(k.content.files.pfp.html === "pfp.html" && k.content.files.intro.html === "intro.html" && k.content.plan.posts.length === 3);
     const page = await fetch(base + `/studio/c/${g.id}/pfp.html`, { headers: { cookie } });
     assert.equal(page.status, 200); assert.match(await page.text(), /<!doctype html>/);
     assert.equal((await fetch(base + `/studio/c/${g.id}/pfp.html`)).status, 401, "the owner's files");

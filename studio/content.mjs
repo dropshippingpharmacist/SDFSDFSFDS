@@ -43,9 +43,11 @@ Rules you never break:
   words) and a short sub line (one sentence max). "visual" says what moves on screen (mascot, particles, chart-shaped
   joke, the product's UI). Hook in the first 2 seconds; the product and the ticker in the middle; end card: the site's
   call to action (never a price).
-- Posts: exactly 4, in order: 1 the intro video (launch day, before the token goes live), 2 a product post with a
-  screenshot of the game / tool (a few hours after, once the contract address exists), 3 a "why now" post (next
-  day), 4 a text-only community post (day 2-3).
+- Posts: exactly 3 tweets, written out word for word, ready to paste: 1 the launch tweet with the intro video
+  (launch day, the moment the token goes live: what it is, the ticker, "site in bio"), 2 the product tweet with a
+  screenshot of the game / tool a few hours later (what you do in it, that it is free, the holder perk), 3 the
+  community tweet the next day (a challenge: post your score / card, the best get pinned). Each under 260 characters,
+  punchy, in a real person's voice; "when" says the exact moment to post it, "media" what to attach.
   Each post text under 260 characters, no hashtags spam (at most 2), no "$" tickers except the coin's own, written like a
   person, not a brand. "media" names which video or image goes with it.
 - pinned: the pinned post text (under 260 chars) with [CA] where the contract address will be pasted and [SITE] for the
@@ -97,8 +99,7 @@ export function rulesPlan(cfg) {
     posts: [
       { when: "Launch day, 1 hour before the token goes live", media: "intro video", text: `${b} ${cfg.emoji} is live. ${cfg.tagline} ${what.charAt(0).toUpperCase() + what.slice(1)}. Site in bio.` },
       { when: "Launch day, a few hours after the contract address exists", media: "a screenshot of the product", text: `${p.name || b}: ${clean(p.mechanic || cfg.about, 150)} Free. On the site.` },
-      { when: "Day 2", media: "none", text: `Why ${b} exists: ${clean((cfg.lore || [])[0] || cfg.about, 150)}` },
-      { when: "Day 2-3", media: "none", text: `Post your ${kind === "game" ? "best score" : "card"} from the ${b} site below. Top ones get pinned.` },
+      { when: "Day 2", media: "none", text: `Post your ${kind === "game" ? "best score" : "card"} from the ${b} site below. Top ones get pinned.` },
     ],
     pinned: `${b} ${cfg.emoji}\n${cfg.tagline}\nSite: [SITE]\nCA: [CA]`,
     reply_with_ca: `CA: [CA]\nOnly buy from this address. Site: [SITE]`,
@@ -116,7 +117,7 @@ function honestPlan(raw, cfg) {
     bio: dropClaims(clean(raw.bio, 160)), nameOnX: clean(raw.name_on_x, 50) || cfg.brand,
     briefs: { pfp: clean(raw.pfp_brief, 300), banner: clean(raw.banner_brief, 300), launch: clean(raw.launch_image_brief, 300) },
     videos: vids,
-    posts: (raw.posts || []).slice(0, 4).map(p => ({ when: clean(p.when, 120), media: clean(p.media, 40), text: dropClaims(clean(p.text, 270)) })).filter(p => p.text),
+    posts: (raw.posts || []).slice(0, 3).map(p => ({ when: clean(p.when, 120), media: clean(p.media, 40), text: dropClaims(clean(p.text, 270)) })).filter(p => p.text),
     pinned: dropClaims(clean(raw.pinned, 300)), replyWithCa: dropClaims(clean(raw.reply_with_ca, 200)),
   };
 }
@@ -268,8 +269,8 @@ export const HOW_TO_POST = [
   "Profile: set the display name, the bio (paste the site link where it says [SITE]), the profile picture (400x400) and the banner (1500x500). Do this before anything is posted.",
   "Pin: post the pinned text with the site link; after the token is live, edit nothing: reply to it with the contract address, then pin it.",
   "Post 1, launch day, about an hour before the token goes live: upload the intro MP4 (X takes MP4 up to 140 seconds), paste post 1's text, post. The first reply is the reply_with_ca text as soon as the address exists.",
-  "Post 2, a few hours later: the product video with post 2's text. Quote post 1 instead of a fresh post if post 1 is doing well.",
-  "Post 3, the next day: the why video with post 3's text. Post 4 a day or two later as text only, and reply to everyone who answers.",
+  "Post 2, a few hours later: the product tweet with a screenshot of the game or tool. Quote tweet 1 instead of a fresh post if tweet 1 is doing well.",
+  "Post 3, the next day: the community tweet, text only; reply to everyone who answers with the site link.",
   "Every video: upload the MP4 itself, never a link to it; add your own music in the X composer or a free editor if you want more than the built-in backing track.",
   "Keep replying with the site link, not the chart. Screenshots of people's scores or cards from the site are the best follow-up content.",
 ];
