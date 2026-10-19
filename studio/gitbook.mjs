@@ -95,6 +95,16 @@ export async function makeBook(cfg, { client = null } = {}) {
   return { pages: out.length ? out : rulesBook(cfg), source, note };
 }
 
+// the coin's links changed (site, domain, X, Telegram, the address): the "Official links" page is rebuilt from the config
+// and every page swaps the old site address for the new one. No AI, no cost; the rest of the book stays as written.
+export function refreshLinks(pages, cfg, oldSite = "") {
+  const links = rulesBook(cfg).find(p => p.slug === "official-links");
+  const swap = md => (oldSite && cfg.siteUrl && oldSite !== cfg.siteUrl) ? md.split(oldSite).join(cfg.siteUrl) : md;
+  const out = pages.map(p => /official|links/i.test(p.slug) && links ? { ...p, markdown: links.markdown } : { ...p, markdown: swap(p.markdown) });
+  if (links && !out.some(p => /official|links/i.test(p.slug))) out.push(links);
+  return out;
+}
+
 // ---- Markdown -> HTML (the subset the book uses), with everything escaped first
 const esc = s => String(s || "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const inline = s => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/`(.+?)`/g, "<code>$1</code>").replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" rel="noopener">$1</a>');
