@@ -10,7 +10,10 @@ async function v(fetchImpl, token, method, path, body) {
   const r = await fetchImpl(API + path, { method, headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
                                            body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(30000) });
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw Object.assign(new Error(j?.error?.message || j?.message || `Vercel answered ${r.status}`), { status: r.status >= 500 ? 502 : 400, code: j?.error?.code || j?.code });
+  const raw = String(j?.error?.message || j?.message || `Vercel answered ${r.status}`);
+  const phone = /E\.?164|phone/i.test(raw) ? "The phone number needs the country code, like +13868981854." : null;
+  const msg = phone || (raw.length > 240 ? raw.split(/\n|└─/).map(s => s.trim()).filter(Boolean).pop().slice(0, 240) : raw);
+  if (!r.ok) throw Object.assign(new Error(msg), { status: r.status >= 500 ? 502 : 400, code: j?.error?.code || j?.code });
   return j;
 }
 const env = o => ({ fetchImpl: o.fetchImpl || fetch, token: o.token ?? process.env.VERCEL_TOKEN, team: o.team ?? process.env.VERCEL_TEAM_ID });
@@ -68,7 +71,21 @@ export const CONTACT_FIELDS = ["firstName", "lastName", "email", "phone", "city"
 export function checkContact(c = {}) {
   const missing = CONTACT_FIELDS.filter(k => !String(c[k] || "").trim());
   if (missing.length) throw Object.assign(new Error("Fill in the domain owner details first: " + missing.join(", ") + "."), { status: 400 });
-  return Object.fromEntries([...CONTACT_FIELDS, "companyName"].filter(k => c[k]).map(k => [k, String(c[k]).trim().slice(0, 120)]));
+  const out = Object.fromEntries([...CONTACT_FIELDS, "companyName"].filter(k => c[k]).map(k => [k, String(c[k]).trim().slice(0, 120)]));
+  out.country = out.country.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 2);
+  out.phone = e164(out.phone, out.country);
+  if (!/^\+[1-9]\d{6,14}$/.test(out.phone)) throw Object.assign(new Error("The phone number needs the country code, like +13868981854."), { status: 400 });
+  return out;
+}
+// registrars want E.164: "+", the country code, the number, nothing else. (386) 898-1854 in the US -> +13868981854
+const CC = { US: "1", CA: "1", GB: "44", AU: "61", DE: "49", FR: "33", ES: "34", IT: "39", NL: "31", IN: "91", BR: "55", MX: "52", NG: "234", PH: "63", AE: "971", SG: "65", JP: "81", KR: "82", ZA: "27", IE: "353", NZ: "64" };
+export function e164(phone, country) {
+  const raw = String(phone || "").trim(), digits = raw.replace(/\D/g, "");
+  if (raw.startsWith("+")) return "+" + digits;
+  if (raw.startsWith("00")) return "+" + digits.slice(2);
+  const cc = CC[country] || "";
+  if (cc === "1" && digits.length === 11 && digits.startsWith("1")) return "+" + digits;
+  return "+" + (digits.startsWith(cc) && digits.length > 10 ? digits : cc + digits.replace(/^0+/, ""));
 }
 
 export async function buy(domain, expectedPrice, contact, o = {}) {
