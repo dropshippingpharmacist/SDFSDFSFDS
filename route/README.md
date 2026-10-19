@@ -9,6 +9,7 @@ One server runs all three parts:
 | `/` | the $ROUTE coin site: hero, contract address + copy, Buy / Chart / X, lore, how it works, the game, how to buy, tokenomics, roadmap, safety, FAQ, socials |
 | `/app` | the Route app: accounts, mutual friends, "I'm heading to…", "I'm around here", crossing paths, pull-ups, ghost mode, blocking, and the link-up game |
 | `/launch/` | the launchpad: anyone launches a real pump.fun coin from their own wallet |
+| `/studio` | Launchpad Studio (yours only, behind `STUDIO_PASSWORD`): an idea in, a branded launchpad site out, deployed to Vercel. See `studio/README.md` |
 
 ## The app's rules
 

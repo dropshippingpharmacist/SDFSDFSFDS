@@ -94,7 +94,33 @@ section.mine h3 { font: 400 26px/1 var(--display); margin: 0 0 14px; }
 .mine li b { font-weight: 800; } .mine li span { color: var(--muted); font-size: 14px; }
 footer { padding-block: 32px 40px; color: var(--muted); font-size: 14px; max-width: 75ch; }
 footer p { margin: 0 0 8px; }
-@media (max-width: 820px) { .desk { grid-template-columns: minmax(0, 1fr); } .preview { position: static; } }
+/* the optional site sections (Launchpad Studio fills them; a plain launchpad leaves them out) */
+nav.links-top { display: flex; gap: 14px; flex-wrap: wrap; font-weight: 600; font-size: 15px; }
+nav.links-top a { color: var(--muted); text-decoration: none; } nav.links-top a:hover { color: var(--ink); }
+.tickchip { display: inline-block; font: 800 15px/1 var(--body); border: 2px solid var(--line); border-radius: 999px; padding: 7px 12px; margin-bottom: 14px; }
+.cabar { display: grid; gap: 8px; margin-top: 20px; max-width: 640px; }
+.cabar small { font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-size: 12px; }
+.cabar .carow { display: flex; gap: 8px; align-items: center; background: var(--card); border: 3px solid var(--line); border-radius: 14px; padding: 6px 6px 6px 14px; }
+.cabar code { font: 500 14px/1.4 var(--mono); flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.hero .ctas { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.btn[aria-disabled="true"] { opacity: .5; pointer-events: none; }
+.site { display: grid; gap: 44px; padding-block: 44px 8px; }
+.site h2 { font: 400 clamp(28px, 4vw, 40px)/1.05 var(--display); margin: 0 0 14px; }
+.site p { max-width: 64ch; margin: 0 0 12px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.cards > div { background: var(--card); border: 3px solid var(--line); border-radius: 16px; padding: 16px; }
+.cards b { display: block; font-size: 17px; margin-bottom: 4px; } .cards span { color: var(--muted); font-size: 15px; }
+.kv { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); border: 3px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--card); max-width: 760px; }
+.kv > div { padding: 12px 16px; border-bottom: 2px solid var(--line); } .kv > div:nth-child(odd) { font-weight: 800; }
+.kv > div:nth-child(even) { color: var(--muted); } .kv > div:nth-last-child(-n+2) { border-bottom: 0; }
+.phase { border-left: 6px solid var(--line); padding-left: 14px; margin-bottom: 16px; }
+.phase.live { border-color: var(--ok); } .phase.next { border-color: var(--accent); }
+.phase .st { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.phase.live .st { color: var(--ok); } .phase h3 { margin: 2px 0 4px; font-size: 19px; } .phase ul { margin: 4px 0 0; padding-left: 18px; color: var(--muted); }
+details { background: var(--card); border: 3px solid var(--line); border-radius: 14px; padding: 12px 16px; max-width: 760px; }
+details + details { margin-top: 10px; } summary { font-weight: 800; cursor: pointer; } details p { color: var(--muted); margin: 8px 0 0; }
+.socials { display: flex; gap: 10px; flex-wrap: wrap; }
+@media (max-width: 820px) { .desk { grid-template-columns: minmax(0, 1fr); } .preview { position: static; } .kv { grid-template-columns: minmax(0, 1fr); } .kv > div:nth-child(odd) { border-bottom: 0; padding-bottom: 0; } }
 @media (max-width: 520px) { .row { grid-template-columns: minmax(0, 1fr); } }
 @media (prefers-reduced-motion: reduce) { .btn:hover:not(:disabled) { transform: none; } }
 </style>
@@ -106,12 +132,25 @@ footer p { margin: 0 0 8px; }
     <button class="btn ghost" type="button" id="connectBtn">Connect wallet</button>
   </header>
 
+  <nav class="links-top" id="siteNav" aria-label="Sections" hidden></nav>
   <section class="hero">
+    <span class="tickchip" id="heroTick" hidden></span>
     <h1 id="tagline"></h1>
     <p id="about"></p>
+    <div class="cabar" id="caBar" hidden>
+      <small>Contract address</small>
+      <div class="carow"><code id="siteCa">Launching soon</code><button class="btn" type="button" id="siteCopy">Copy</button></div>
+      <div class="ctas">
+        <a class="btn" id="siteBuy" target="_blank" rel="noopener">Buy on pump.fun</a>
+        <a class="btn ghost" id="siteChart" target="_blank" rel="noopener">Chart</a>
+        <a class="btn ghost" id="siteX" target="_blank" rel="noopener">X</a>
+        <a class="btn ghost" id="siteTg" target="_blank" rel="noopener">Telegram</a>
+        <a class="btn ghost" href="#launch">Launch a coin</a>
+      </div>
+    </div>
   </section>
 
-  <div class="desk">
+  <div class="desk" id="launch">
     <div class="panel">
       <form id="launchForm" novalidate>
         <label class="drop" for="image" id="drop">
@@ -165,6 +204,8 @@ footer p { margin: 0 0 8px; }
     </aside>
   </div>
 
+  <div class="site" id="site" hidden></div>
+
   <section class="mine" aria-labelledby="mineTitle">
     <h3 id="mineTitle">Launched from this browser</h3>
     <ul id="mineList"></ul>
@@ -197,6 +238,60 @@ footer p { margin: 0 0 8px; }
   const maxBuy = Number(C.maxDevBuySol ?? 5);
   $("devBuy").value = String(C.defaultDevBuySol ?? 0); $("devBuy").max = String(maxBuy);
   set("devBuyHint", `0 to ${maxBuy}; 0 = launch without buying`);
+
+  // ---- the site sections (only when config.js has them: Launchpad Studio writes them)
+  (function site() {
+    const coin = C.coin;
+    const mk = (tag, props = {}, ...kids) => { const e = Object.assign(document.createElement(tag), props); kids.forEach(k => e.append(k)); return e; };
+    if (C.display) {
+      const allowed = ["Bagel Fat One", "Unbounded", "Fredoka", "Bungee", "Rubik", "Lilita One", "Chakra Petch"];
+      if (allowed.includes(C.display)) {
+        const l = mk("link", { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=" + encodeURIComponent(C.display).replace(/%20/g, "+") + ":wght@400;700&display=swap" });
+        document.head.append(l);
+        root.setProperty("--display", '"' + C.display + '", "Arial Rounded MT Bold", system-ui, sans-serif');
+      }
+    }
+    if (!coin) return;
+    const tk = "$" + coin.ticker;
+    set("heroTick", tk); $("heroTick").hidden = false; $("caBar").hidden = false;
+    const off = a => { a.setAttribute("aria-disabled", "true"); a.removeAttribute("href"); };
+    const ca = String(coin.ca || "").trim();
+    if (ca) {
+      set("siteCa", ca);
+      $("siteBuy").href = "https://pump.fun/coin/" + encodeURIComponent(ca);
+      $("siteChart").href = "https://dexscreener.com/solana/" + encodeURIComponent(ca);
+    } else { $("siteCopy").disabled = true; off($("siteBuy")); off($("siteChart")); $("siteBuy").textContent = "Buy at launch"; }
+    if (coin.x) $("siteX").href = coin.x; else $("siteX").hidden = true;
+    if (coin.telegram) $("siteTg").href = coin.telegram; else $("siteTg").hidden = true;
+    $("siteCopy").addEventListener("click", () => {
+      try { navigator.clipboard.writeText(ca).then(() => say("Contract address copied.", "ok"), () => say(ca)); } catch (e) { say(ca); }
+    });
+
+    const site = $("site"), nav = $("siteNav"), secs = [];
+    const section = (id, title, ...kids) => { const s = mk("section", { id }, mk("h2", { textContent: title }), ...kids); site.append(s); secs.push([id, title]); };
+    if ((C.lore || []).length) section("lore", "The lore", ...C.lore.map(t => mk("p", { textContent: t })));
+    if ((C.how || []).length) section("how", "How " + (C.brand || "it") + " works",
+      mk("div", { className: "cards" }, ...C.how.map(c => mk("div", {}, mk("b", { textContent: c.title }), mk("span", { textContent: c.text })))));
+    section("buy", "How to buy " + tk, mk("div", { className: "cards" },
+      mk("div", {}, mk("b", { textContent: "1. Get a Solana wallet" }), mk("span", { textContent: "Phantom or Solflare, on your phone or as a browser extension." })),
+      mk("div", {}, mk("b", { textContent: "2. Add SOL" }), mk("span", { textContent: "Buy SOL in the wallet app or send it from an exchange." })),
+      mk("div", {}, mk("b", { textContent: "3. Swap on pump.fun" }), mk("span", { textContent: "Use the Buy button at the top. Check the contract address matches this page first." }))));
+    // tokenomics are FACTS about a pump.fun launch, never generated text
+    const kv = [["Total supply", "1,000,000,000"], ["Launched on", "pump.fun, bonding curve"],
+      ["Team allocation", coin.devBuyPercent != null ? `None held back. The dev bought ${coin.devBuyPercent}% at launch, public on-chain.` : "None held back. The dev's launch buy is public on-chain."],
+      ["Tax", "0% buy, 0% sell"], ["Liquidity", "Moves to PumpSwap automatically if the bonding curve completes"],
+      ["Utility", tk + " is the community coin of " + (C.brand || "this launchpad") + ". The launchpad works without it."]];
+    section("tokenomics", "Tokenomics", mk("div", { className: "kv" }, ...kv.flatMap(([k, v]) => [mk("div", { textContent: k }), mk("div", { textContent: v })])));
+    if ((C.roadmap || []).length) section("roadmap", "Roadmap", ...C.roadmap.map(ph => mk("div", { className: "phase " + (ph.status || "") },
+      mk("span", { className: "st", textContent: { live: "Live now", next: "Building next", idea: "Ideas, not promises" }[ph.status] || ph.status }),
+      mk("h3", { textContent: ph.title }), mk("ul", {}, ...(ph.items || []).map(i => mk("li", { textContent: i }))))));
+    if ((C.faq || []).length) section("faq", "FAQ", ...C.faq.map(f => mk("details", {}, mk("summary", { textContent: f.q }), mk("p", { textContent: f.a }))));
+    const so = [["X", coin.x], ["Telegram", coin.telegram], ["Chart", ca && "https://dexscreener.com/solana/" + ca], ["pump.fun", ca && "https://pump.fun/coin/" + ca]].filter(x => x[1]);
+    if (so.length) section("socials", "Socials", mk("div", { className: "socials" }, ...so.map(([t, h]) => mk("a", { className: "btn ghost", textContent: t, href: h, target: "_blank", rel: "noopener" }))));
+    site.hidden = false;
+    nav.append(mk("a", { href: "#launch", textContent: "Launch" }), ...secs.map(([id, t]) => mk("a", { href: "#" + id, textContent: t.replace(/^How to buy .*/, "Buy").replace(/^How .* works$/, "How it works") })));
+    nav.hidden = false;
+  })();
 
   // ---- wallet
   let wallet = null, owner = null;

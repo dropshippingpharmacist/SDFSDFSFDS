@@ -6,7 +6,10 @@ import http from "node:http";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import crypto from "node:crypto";
 import { openDb, makeApi, err } from "./db.mjs";
+import { generate, honest } from "../studio/generate.mjs";
+import { deploy, checkDomain, configJs, slugify } from "../studio/deploy.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(HERE, "public");
@@ -14,6 +17,7 @@ const LAUNCH = path.join(HERE, "..", "launchpad");
 const DATA = process.env.DATA_DIR || process.env.RAILWAY_VOLUME_MOUNT_PATH || path.join(HERE, "data");
 const NOMINATIM = (process.env.NOMINATIM_URL || "https://nominatim.openstreetmap.org").replace(/\/$/, "");
 const COOKIE = "route_s";
+const STUDIO = path.join(HERE, "..", "studio");
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".mjs": "text/javascript",
                 ".css": "text/css", ".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml",
                 ".json": "application/json", ".ico": "image/x-icon", ".webp": "image/webp" };
@@ -29,6 +33,17 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now } =
     return arr.length > n;
   };
   const geoCache = new Map();
+  db.exec(`CREATE TABLE IF NOT EXISTS studio_drafts (id INTEGER PRIMARY KEY, idea TEXT NOT NULL, config TEXT NOT NULL,
+            meta TEXT NOT NULL, url TEXT, created INTEGER NOT NULL, updated INTEGER NOT NULL)`);
+  // the Studio is the owner's tool: one password (STUDIO_PASSWORD), a cookie derived from it
+  const studioToken = () => process.env.STUDIO_PASSWORD
+    ? crypto.createHmac("sha256", process.env.STUDIO_PASSWORD).update("launchpad-studio").digest("base64url") : null;
+  const studioOk = req => { const t = studioToken(); return !!t && cookies(req).studio_s === t; };
+  const draft = id => {
+    const r = db.prepare("SELECT * FROM studio_drafts WHERE id = ?").get(Number(id));
+    if (!r) throw err(404, "No such draft.");
+    return { ...r, config: JSON.parse(r.config), meta: JSON.parse(r.meta) };
+  };
   let lastGeo = 0;
 
   async function body(req) {
@@ -106,6 +121,64 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now } =
     throw err(404, "No such endpoint.");
   }
 
+  async function handleStudio(req, res, p) {
+    if (req.method !== "POST" || req.headers["x-route"] !== "1") throw err(403, "Missing the app header.");
+    const b = await body(req);
+    if (p === "/api/studio/login") {
+      if (limited(ip(req) + ":studio", 10, 15 * 6e4)) throw err(429, "Too many tries. Wait 15 minutes.");
+      const t = studioToken();
+      if (!t) throw err(503, "Set STUDIO_PASSWORD on the server to turn the Studio on.");
+      const a = Buffer.from(String(b.password || "")), w = Buffer.from(process.env.STUDIO_PASSWORD);
+      if (a.length !== w.length || !crypto.timingSafeEqual(a, w)) throw err(401, "Wrong password.");
+      res.setHeader("Set-Cookie", `studio_s=${t}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${30 * 86400}${secure(req) ? "; Secure" : ""}`);
+      return send(res, 200, { ok: true });
+    }
+    if (!studioOk(req)) throw err(401, "Sign in to the Studio first.");
+    const t = Date.now();
+    switch (p) {
+      case "/api/studio/status":
+        return send(res, 200, { ai: !!process.env.ANTHROPIC_API_KEY, vercel: !!process.env.VERCEL_TOKEN });
+      case "/api/studio/generate": {
+        if (limited("studio:gen", 30, 36e5)) throw err(429, "30 sites an hour is the limit. Try again later.");
+        const g = await generate(b.idea, { ticker: b.ticker, x: b.x, telegram: b.telegram, accent: b.accent });
+        const meta = { domains: g.domains, tickerBackups: g.tickerBackups, source: g.source, note: g.note, removed: g.removed };
+        const r = db.prepare("INSERT INTO studio_drafts (idea, config, meta, created, updated) VALUES (?, ?, ?, ?, ?)")
+          .run(g.idea, JSON.stringify(g.config), JSON.stringify(meta), t, t);
+        return send(res, 200, { id: Number(r.lastInsertRowid), config: g.config, ...meta });
+      }
+      case "/api/studio/save": {
+        const d = draft(b.id);
+        // the owner's edits pass the same honesty filter; tokenomics and the live roadmap stay facts
+        const c = b.config || {};
+        const re = honest({ brand: c.brand, tagline: c.tagline, about: c.about, emoji: c.emoji, accent: c.colors?.accent,
+          display: c.display, ticker: c.coin?.ticker, lore: c.lore, how: c.how,
+          next: (c.roadmap || []).find(x => x.status === "next")?.items, ideas: (c.roadmap || []).find(x => x.status === "idea")?.items,
+          faq: (c.faq || []).filter(f => !/^Do I need \$|^Is this financial advice/.test(f.q || "")) }, d.idea,
+          { x: c.coin?.x, telegram: c.coin?.telegram });
+        re.config.coin.ca = String(c.coin?.ca || "").trim().replace(/[^1-9A-HJ-NP-Za-km-z]/g, "").slice(0, 44);
+        const pct = Number(c.coin?.devBuyPercent);
+        re.config.coin.devBuyPercent = c.coin?.devBuyPercent === "" || c.coin?.devBuyPercent == null || !Number.isFinite(pct) ? null : Math.max(0, Math.min(100, pct));
+        db.prepare("UPDATE studio_drafts SET config = ?, updated = ? WHERE id = ?").run(JSON.stringify(re.config), t, d.id);
+        return send(res, 200, { config: re.config, removed: re.removed });
+      }
+      case "/api/studio/domains": {
+        const names = (Array.isArray(b.domains) ? b.domains : []).slice(0, 8);
+        return send(res, 200, { domains: await Promise.all(names.map(n => checkDomain(n))) });
+      }
+      case "/api/studio/deploy": {
+        const d = draft(b.id);
+        const out = await deploy(d.config, b.slug || d.config.brand);
+        db.prepare("UPDATE studio_drafts SET url = ?, updated = ? WHERE id = ?").run(out.url, t, d.id);
+        return send(res, 200, out);
+      }
+      case "/api/studio/list":
+        return send(res, 200, { drafts: db.prepare("SELECT id, idea, config, url, updated FROM studio_drafts ORDER BY updated DESC LIMIT 50").all()
+          .map(r => ({ id: r.id, idea: r.idea, brand: JSON.parse(r.config).brand, ticker: JSON.parse(r.config).coin?.ticker, url: r.url, updated: r.updated })) });
+      case "/api/studio/get": { const d = draft(b.id); return send(res, 200, { id: d.id, idea: d.idea, config: d.config, url: d.url, ...d.meta }); }
+    }
+    throw err(404, "No such endpoint.");
+  }
+
   async function launchApi(req, res, name) {
     const mod = await import(path.join(LAUNCH, "api", name + ".js"));
     req.body = await body(req);
@@ -127,7 +200,19 @@ export function createServer({ dbFile = path.join(DATA, "route.sqlite"), now } =
     try {
       res.setHeader("x-content-type-options", "nosniff");
       res.setHeader("referrer-policy", "same-origin");
+      if (p.startsWith("/api/studio/")) return await handleStudio(req, res, p);
       if (p.startsWith("/api/")) return await handleApi(req, res, p);
+      if (p === "/studio") return await serveFile(res, path.join(STUDIO, "studio.html"), STUDIO);
+      const sp = /^\/studio\/p\/(\d+)\/(.*)$/.exec(p);
+      if (sp) {
+        if (!studioOk(req)) { res.writeHead(401, { "content-type": "text/plain" }); return res.end("Sign in to the Studio first."); }
+        const d = draft(sp[1]), rel = sp[2] || "index.html";
+        const sa = /^api\/(metadata|create|send)$/.exec(rel);
+        if (sa) return await launchApi(req, res, sa[1]);
+        if (rel === "config.js") { res.writeHead(200, { "content-type": "text/javascript; charset=utf-8", "cache-control": "no-store" }); return res.end(configJs(d.config)); }
+        if (rel.startsWith("api/") || rel === "dev.mjs" || rel === "package.json") { res.writeHead(404); return res.end(); }
+        return await serveFile(res, path.join(LAUNCH, rel), LAUNCH);
+      }
       const la = /^\/launch\/api\/(metadata|create|send)$/.exec(p);
       if (la) return await launchApi(req, res, la[1]);
       if (p === "/launch") { res.writeHead(301, { location: "/launch/" }); return res.end(); }
