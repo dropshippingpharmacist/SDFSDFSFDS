@@ -2,7 +2,7 @@
 
 See where your friends are headed. Cross paths on purpose.
 
-One server runs all three parts:
+One server runs all four parts:
 
 | path | what |
 |---|---|
