@@ -870,6 +870,10 @@ test("domains: price, buy with the confirmed price and the owner's details, wait
   assert.equal((await dQuote("taken.fun", o)).available, false);
   await assert.rejects(() => dQuote("not a domain", o), /not a domain/);
   assert.throws(() => checkContact({ firstName: "A" }), /lastName, email/);
+  const { e164 } = await import("../domains.mjs");
+  assert.deepEqual(["3868981854", "(386) 898-1854", "+1.386.898.1854", "1 386 898 1854", "+13868981854"].map(p => e164(p, "US")), Array(5).fill("+13868981854"), "any way it is typed");
+  assert.equal(e164("07911 123456", "GB"), "+447911123456");
+  assert.equal(checkContact({ firstName: "A", lastName: "B", email: "a@b.co", phone: "386-898-1854", city: "X", state: "FL", zip: "32114", country: "us" }).phone, "+13868981854");
   const owner = { firstName: "A", lastName: "B", email: "a@b.co", phone: "+1.5555551234", city: "X", state: "CA", zip: "90001", country: "US" };
   assert.deepEqual(await dBuy("vendo.fun", 4.99, owner, o), { domain: "vendo.fun", orderId: "o1" });
   const order = calls.find(c => c[1].endsWith("/buy?teamId=t1"));
