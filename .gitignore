@@ -1,3 +1,6 @@
 route/data/
 node_modules/
 *.sqlite*
+*_roster.json
+dominance_hist.json
+selfcheck_sent.json
