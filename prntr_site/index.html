@@ -86,6 +86,38 @@
     footer p { margin-bottom: 0.6rem; }
     .sticky { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 40; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     body { padding-bottom: 70px; }
+
+    /* SIGNAL TRACKER */
+    .tracker { background: linear-gradient(180deg, rgba(31,43,92,0.55), rgba(2,1,7,0.9)); border: 1px solid var(--line); border-radius: 28px; padding: 1.3rem 1.1rem 1.1rem; opacity: 0; transform: translateY(14px); transition: opacity .9s ease, transform .9s ease; }
+    .tracker.in { opacity: 1; transform: none; }
+    .tk-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin: 0.9rem 0 1rem; }
+    .tk-stat { background: rgba(0,0,0,0.35); border-radius: 16px; padding: 0.7rem; text-align: center; }
+    .tk-stat b { display: block; font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+    .tk-stat span { font-size: 0.72rem; color: var(--mute); letter-spacing: .04em; text-transform: uppercase; }
+    .tk-stage { position: relative; min-height: 352px; }
+    .tk-card { position: absolute; inset: 0; opacity: 0; transition: opacity 1s ease; pointer-events: none; }
+    .tk-card.show { opacity: 1; pointer-events: auto; }
+    .tk-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; margin-bottom: 0.4rem; }
+    .tk-sym { font-weight: 800; font-size: 1.05rem; }
+    .tk-meta { font-size: 0.75rem; color: var(--mute); }
+    .tk-pill { font-size: 0.72rem; font-weight: 800; letter-spacing: .06em; padding: 0.2rem 0.7rem; border-radius: 30px; }
+    .tk-pill.win { background: rgba(38,166,154,0.18); color: #3fd1b4; border: 1px solid rgba(63,209,180,0.5); }
+    .tk-pill.loss { background: rgba(239,83,80,0.15); color: #ff7a73; border: 1px solid rgba(255,122,115,0.5); }
+    .tk-pill.open { background: rgba(42,171,227,0.15); color: var(--cyan); border: 1px solid var(--line); }
+    .tk-canvas { width: 100%; height: 230px; display: block; border-radius: 14px; background: rgba(0,0,0,0.35); }
+    .tk-levels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; margin-top: 0.5rem; font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+    .tk-levels div { background: rgba(0,0,0,0.3); border-radius: 10px; padding: 0.35rem 0.5rem; }
+    .tk-levels i { font-style: normal; color: var(--mute); display: block; font-size: 0.68rem; }
+    .tk-ex { margin-top: 0.5rem; font-size: 0.85rem; text-align: center; }
+    .tk-ex b.pos { color: #3fd1b4; } .tk-ex b.neg { color: #ff7a73; }
+    .tk-dots { display: flex; justify-content: center; gap: 6px; margin-top: 0.8rem; flex-wrap: wrap; }
+    .tk-dots button { width: 8px; height: 8px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.25); padding: 0; cursor: pointer; }
+    .tk-dots button.on { background: var(--cyan); }
+    .tk-list { margin-top: 1rem; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+    .tk-row { display: grid; grid-template-columns: 1.3fr 0.7fr 0.6fr 0.9fr; gap: 0.4rem; padding: 0.45rem 0.2rem; border-top: 1px solid var(--line); align-items: center; }
+    .tk-row .w { color: #3fd1b4; font-weight: 700; } .tk-row .l { color: #ff7a73; font-weight: 700; } .tk-row .o { color: var(--cyan); font-weight: 700; }
+    .tk-empty { text-align: center; color: var(--mute); padding: 3rem 1rem; }
+    @media (prefers-reduced-motion: reduce) { .tracker, .tk-card { transition: none; } }
     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.94); z-index: 50; align-items: center; justify-content: center; cursor: zoom-out; }
     .modal img { max-width: 92%; max-height: 92%; border-radius: 16px; border: 2px solid var(--cyan); }
   </style>
@@ -113,6 +145,22 @@
     <a href="#work-with-me" class="btn btn-main">See the ways to join</a>
     <a href="https://discord.gg/MX8hdHWgcE" target="_blank" class="btn btn-discord">Join the free community</a>
   </div>
+
+
+  <!-- SIGNAL TRACKER -->
+  <section class="tracker" id="tracker">
+    <h2>Every Grade A signal, tracked</h2>
+    <p class="center mute small">Each one from the moment it was sent: the entry, the stop, the take profit, and where price went. Wins and losses.</p>
+    <div class="tk-stats">
+      <div class="tk-stat"><b id="tkRate">–</b><span>Win rate</span></div>
+      <div class="tk-stat"><b id="tkWL">–</b><span>Wins / losses</span></div>
+      <div class="tk-stat"><b id="tkTotal">–</b><span id="tkTotalLbl">$1,000 per signal</span></div>
+    </div>
+    <div class="tk-stage" id="tkStage"><div class="tk-empty">Loading the latest signals…</div></div>
+    <div class="tk-dots" id="tkDots"></div>
+    <div class="tk-list" id="tkList"></div>
+    <p class="small mute" id="tkNote" style="margin-top:0.8rem;"></p>
+  </section>
 
   <!-- DOCTOR STORY -->
   <section class="box glow doctor center">
@@ -277,15 +325,68 @@
   <!-- TESTIMONIALS -->
   <section>
     <h2>From real members</h2>
-    <p class="center mute small">Every screenshot is from a real member. Tap any to see it full size.</p>
+    <p class="center mute small">60 screenshots from real members. Tap any to see it full size.</p>
     <div class="thumbs">
-      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/L.png?v=1776827514" alt="Member testimonial" data-zoom>
-      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/J.jpg?v=1776827512" alt="Member testimonial" data-zoom>
-      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/I.png?v=1776827502" alt="Member testimonial" data-zoom>
-      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/C.webp?v=1776827493" alt="Member testimonial" data-zoom>
-      <!-- PASTE THE REST OF YOUR TESTIMONIAL IMAGES HERE, one line each, like this:
-      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/FILENAME" alt="Member testimonial" data-zoom>
-      -->
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/L.png?v=1776827514" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/J.jpg?v=1776827512" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/I.png?v=1776827502" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/C.webp?v=1776827493" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/A.png?v=1776827392" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/Q.jpg?v=1776827351" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/p.jpg?v=1776827351" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/O.jpg?v=1776827351" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/B.jpg?v=1776827351" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/F.jpg?v=1776827351" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/G.jpg?v=1776827351" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/D.jpg?v=1776827351" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/K.webp?v=1776827351" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R1.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R2.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R3.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R4.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R5.jpg?v=1776870145" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R6.jpg?v=1776870145" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R7.jpg?v=1776870145" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R8.jpg?v=1776870145" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R9.jpg?v=1776870145" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R10.jpg?v=1776870145" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R11.jpg?v=1776870145" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R12.jpg?v=1776870145" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R13.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R14.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R15.jpg?v=1776870145" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R16.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R17.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R18.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R19.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R20.jpg?v=1776870145" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R21.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R22.jpg?v=1776870145" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R23.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R24.jpg?v=1776870145" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R25.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R26.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R27.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R28.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R29.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R30.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R31.jpg?v=1776870145" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R32.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R33.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R34.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R35.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R36.jpg?v=1776870145" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R37.jpg?v=1776870145" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R38.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R39.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R40.jpg?v=1776870145" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R41.jpg?v=1776870145" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R42.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R43.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R44.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R45.jpg?v=1776870145" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R46.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/R47.jpg?v=1776870146" alt="Member result" loading="lazy" data-zoom>
     </div>
   </section>
 
@@ -322,6 +423,100 @@
       document.getElementById('modal').style.display = 'flex';
     });
   });
+
+  (function () {
+    var API = 'https://excellentnqtct-va.onrender.com/api/public/track';
+    var sec = document.getElementById('tracker');
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (es, ob) { es.forEach(function (e) { if (e.isIntersecting) { sec.classList.add('in'); ob.disconnect(); } }); }, { threshold: 0.15 }).observe(sec);
+    } else { sec.classList.add('in'); }
+    function money(v) { var a = Math.abs(v); return (v < 0 ? '−$' : '+$') + a.toLocaleString(undefined, { maximumFractionDigits: 0 }); }
+    function px(v) { if (v == null) return '–'; var a = Math.abs(v); return v.toLocaleString(undefined, { maximumFractionDigits: a >= 1000 ? 1 : a >= 1 ? 4 : 8 }); }
+    function day(ms) { return ms ? new Date(ms).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : ''; }
+    function draw(cv, t) {
+      var dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+      cv.width = w * dpr; cv.height = h * dpr;
+      var g = cv.getContext('2d'); g.scale(dpr, dpr);
+      var b = t.bars || [];
+      if (!b.length) { g.fillStyle = '#B9C3D6'; g.font = '13px Inter, sans-serif'; g.textAlign = 'center'; g.fillText('Chart not available for this signal', w / 2, h / 2); return; }
+      var lo = Math.min(t.stop, t.tp, t.entry), hi = Math.max(t.stop, t.tp, t.entry);
+      b.forEach(function (r) { lo = Math.min(lo, r[3]); hi = Math.max(hi, r[2]); });
+      var pad = (hi - lo) * 0.08 || 1; lo -= pad; hi += pad;
+      var L = 6, R = 6, T = 8, B = 8, cw = (w - L - R) / b.length;
+      function y(p) { return T + (hi - p) / (hi - lo) * (h - T - B); }
+      function x(i) { return L + cw * (i + 0.5); }
+      var iIn = b.findIndex(function (r) { return r[0] >= (t.opened || 0); }); if (iIn < 0) iIn = 0;
+      var iOut = t.closed ? b.findIndex(function (r) { return r[0] >= t.closed; }) : b.length - 1; if (iOut < 0) iOut = b.length - 1;
+      var x0 = x(iIn) - cw / 2, x1 = x(iOut) + cw / 2;
+      g.fillStyle = 'rgba(63,209,180,0.10)'; g.fillRect(x0, Math.min(y(t.entry), y(t.tp)), x1 - x0, Math.abs(y(t.tp) - y(t.entry)));
+      g.fillStyle = 'rgba(255,122,115,0.10)'; g.fillRect(x0, Math.min(y(t.entry), y(t.stop)), x1 - x0, Math.abs(y(t.stop) - y(t.entry)));
+      var bw = Math.max(1, cw * 0.62);
+      b.forEach(function (r, i) {
+        var up = r[4] >= r[1], c = up ? '#26a69a' : '#ef5350';
+        g.strokeStyle = c; g.fillStyle = c; g.lineWidth = 1;
+        g.beginPath(); g.moveTo(x(i), y(r[2])); g.lineTo(x(i), y(r[3])); g.stroke();
+        var top = y(Math.max(r[1], r[4])), bot = y(Math.min(r[1], r[4]));
+        g.fillRect(x(i) - bw / 2, top, bw, Math.max(1, bot - top));
+      });
+      function line(p, col, dash, label) {
+        g.setLineDash(dash); g.strokeStyle = col; g.lineWidth = 1.3;
+        g.beginPath(); g.moveTo(x0, y(p)); g.lineTo(w - R, y(p)); g.stroke(); g.setLineDash([]);
+        g.fillStyle = col; g.font = '600 10px Inter, sans-serif'; g.textAlign = 'right';
+        g.fillText(label, w - R - 2, y(p) - 4);
+      }
+      line(t.tp, '#3fd1b4', [], 'Take profit');
+      line(t.entry, '#ffffff', [5, 4], 'Entry');
+      line(t.stop, '#ff7a73', [], 'Stop loss');
+      if (t.result !== 'open' && t.exit != null) {
+        g.fillStyle = t.result === 'win' ? '#3fd1b4' : '#ff7a73';
+        g.beginPath(); g.arc(x(iOut), y(t.exit), 4.5, 0, Math.PI * 2); g.fill();
+      }
+    }
+    function card(t) {
+      var el = document.createElement('div'); el.className = 'tk-card';
+      var res = t.result === 'win' ? 'WIN' : t.result === 'loss' ? 'LOSS' : 'OPEN';
+      var ex = t.example == null ? '' : '<div class="tk-ex">Example: $1,000 at ' + t.leverage + 'x → <b class="' + (t.example >= 0 ? 'pos' : 'neg') + '">' + money(t.example) + '</b></div>';
+      el.innerHTML = '<div class="tk-head"><div><span class="tk-sym">' + t.symbol + '</span> <span class="tk-meta">' + (t.side === 'long' ? 'Long' : 'Short') + ' · ' + t.tf + ' · ' + day(t.opened) + '</span></div><span class="tk-pill ' + t.result + '">' + res + '</span></div>' +
+        '<canvas class="tk-canvas"></canvas>' +
+        '<div class="tk-levels"><div><i>Entry</i>' + px(t.entry) + '</div><div><i>Stop loss</i>' + px(t.stop) + '</div><div><i>Take profit</i>' + px(t.tp) + '</div></div>' + ex;
+      return el;
+    }
+    fetch(API).then(function (r) { return r.json(); }).then(function (d) {
+      var tr = (d.trades || []).filter(function (t) { return t.bars && t.bars.length; }), st = d.stats || {};
+      document.getElementById('tkRate').textContent = st.win_rate == null ? '–' : st.win_rate + '%';
+      document.getElementById('tkWL').textContent = (st.wins || 0) + ' / ' + (st.losses || 0);
+      var tot = document.getElementById('tkTotal'); tot.textContent = st.example_total == null ? '–' : money(st.example_total);
+      tot.style.color = (st.example_total || 0) >= 0 ? '#3fd1b4' : '#ff7a73';
+      document.getElementById('tkNote').textContent = d.note || '';
+      var stage = document.getElementById('tkStage'), dots = document.getElementById('tkDots');
+      if (!tr.length) { stage.innerHTML = '<div class="tk-empty">The first Grade A signals are being tracked now. Every one will appear here, win or loss.</div>'; return; }
+      stage.innerHTML = '';
+      var cards = tr.slice(0, 20).map(function (t, i) {
+        var c = card(t); stage.appendChild(c);
+        var b = document.createElement('button'); b.setAttribute('aria-label', 'Show signal ' + (i + 1));
+        b.onclick = function () { show(i); restart(); }; dots.appendChild(b);
+        return { el: c, t: t, drawn: false, dot: b };
+      });
+      var cur = -1, timer = null;
+      function show(i) {
+        if (cur >= 0) { cards[cur].el.classList.remove('show'); cards[cur].dot.classList.remove('on'); }
+        cur = i; var k = cards[i];
+        k.el.classList.add('show'); k.dot.classList.add('on');
+        if (!k.drawn) { draw(k.el.querySelector('canvas'), k.t); k.drawn = true; }
+      }
+      function restart() { clearInterval(timer); timer = setInterval(function () { show((cur + 1) % cards.length); }, 6500); }
+      stage.onmouseenter = function () { clearInterval(timer); }; stage.onmouseleave = restart;
+      show(0); restart();
+      var list = document.getElementById('tkList');
+      list.innerHTML = '<div class="tk-row mute"><span>Market</span><span>Result</span><span>Date</span><span>$1,000 example</span></div>' +
+        (d.trades || []).slice(0, 12).map(function (t) {
+          var c = t.result === 'win' ? 'w' : t.result === 'loss' ? 'l' : 'o';
+          return '<div class="tk-row"><span>' + t.symbol + ' · ' + (t.side === 'long' ? 'Long' : 'Short') + '</span><span class="' + c + '">' + t.result.toUpperCase() + '</span><span>' + day(t.opened) + '</span><span>' + (t.example == null ? '–' : money(t.example) + ' <span class="mute">(' + t.leverage + 'x)</span>') + '</span></div>';
+        }).join('');
+    }).catch(function () {
+      document.getElementById('tkStage').innerHTML = '<div class="tk-empty">The tracker is updating. Check back in a minute.</div>';
+    });
+  })();
 </script>
 </body>
 </html>
