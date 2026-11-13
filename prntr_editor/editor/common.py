@@ -2,7 +2,7 @@ import json, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ASSETS = os.path.join(HERE, "assets")
-FONT_DIR = "/usr/share/fonts/opentype/inter"
+FONT_DIR = os.path.join(ASSETS, "fonts")   # Inter Display (SIL Open Font License), bundled so every machine renders the same
 FONT_BLACK = os.path.join(FONT_DIR, "InterDisplay-Black.otf")
 FONT_BOLD = os.path.join(FONT_DIR, "InterDisplay-Bold.otf")
 if not os.path.exists(FONT_BLACK):

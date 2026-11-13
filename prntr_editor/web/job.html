@@ -1,0 +1,36 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PRNTR Editor</title>
+<link rel="stylesheet" href="/static/base.css"></head><body><div class="wrap">
+<header><a class="logo" href="/" style="color:inherit;text-decoration:none">PRNTR<span>.</span>EDITOR</a><div class="tag"><a href="/">All videos</a></div></header>
+<div class="card"><h1 id="t">Your video</h1><p class="sub" id="stage">Loading…</p><div class="bar"><i id="pb"></i></div>
+<p class="err" id="err"></p><details><summary class="hint" style="cursor:pointer;margin-top:12px">What the editor is doing</summary><div class="log" id="log"></div></details></div>
+<div id="result" hidden>
+ <div class="card"><h2>Final video</h2><video id="v" controls preload="metadata"></video>
+  <p style="margin-top:14px"><a class="btn" id="dlv">Download video</a></p></div>
+ <div class="card"><h2>Thumbnails</h2><div class="thumbs"><div><img id="ta" alt="Thumbnail A"><p><a class="btn ghost" id="dla">Download A</a></p></div>
+  <div><img id="tb" alt="Thumbnail B"><p><a class="btn ghost" id="dlb">Download B</a></p></div></div></div>
+ <div class="card"><h2>Title, description, chapters</h2><pre class="pack" id="pack"></pre><button class="ghost" id="cp">Copy all</button></div>
+ <form class="card" id="rv"><h2>Want changes?</h2><p class="sub">Say what to change and it re-edits the video. e.g. "Cut the part about my laptop, make the hook about the $1M coin, show the chart longer."</p>
+  <textarea name="notes" required></textarea><p><button>Re-edit</button></p></form>
+</div>
+<p><button class="ghost" id="del">Delete this video</button></p>
+</div>
+<script>
+const id='{{jid}}',$=s=>document.querySelector(s);let shown=false;
+async function tick(){const r=await fetch('/api/jobs/'+id);if(r.status==401){location='/';return}const j=await r.json();
+ $('#t').textContent=j.title||j.name||'Your video';
+ const st={queued:j.queue_position>1?`In line (#${j.queue_position})`:'Starting…',running:j.stage,done:'Done',error:'Something went wrong'}[j.state];
+ $('#stage').textContent=st+(j.state=='running'?` · ${Math.round(j.progress*100)}%`:'');$('#pb').style.width=(j.state=='done'?100:j.progress*100)+'%';
+ $('#err').textContent=j.state=='error'?(j.error||'')+' — you can try "Re-edit" below or upload again.':'';
+ $('#log').textContent=(j.log||[]).join('\n');
+ if(j.files.includes('final.mp4')&&(j.state=='done'||j.state=='error')&&!shown){shown=true;$('#result').hidden=false;const q='?v='+Date.now();
+  $('#v').src='/files/'+id+'/final.mp4'+q;$('#dlv').href='/files/'+id+'/final.mp4?dl=1';
+  $('#ta').src='/files/'+id+'/thumbnail_A.png'+q;$('#tb').src='/files/'+id+'/thumbnail_B.png'+q;
+  $('#dla').href='/files/'+id+'/thumbnail_A.png?dl=1';$('#dlb').href='/files/'+id+'/thumbnail_B.png?dl=1';$('#pack').textContent=j.pack}
+ if(j.state=='error'&&j.log&&!j.files.includes('final.mp4'))$('#result').hidden=true;
+ if(j.state=='queued'||j.state=='running'){shown=false;setTimeout(tick,3000)}}
+tick();
+$('#cp').onclick=()=>{navigator.clipboard.writeText($('#pack').textContent);$('#cp').textContent='Copied'};
+$('#rv').onsubmit=async e=>{e.preventDefault();const r=await fetch('/api/jobs/'+id+'/revise',{method:'POST',body:new FormData($('#rv'))});
+ if(r.ok){$('#result').hidden=true;$('#rv').reset();tick()}else alert((await r.json()).detail)};
+$('#del').onclick=async()=>{if(confirm('Delete this video and its files?')){await fetch('/api/jobs/'+id,{method:'DELETE'});location='/'}};
+</script></body></html>

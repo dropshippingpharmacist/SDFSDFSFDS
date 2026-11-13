@@ -11,30 +11,27 @@ W, H = 1280, 720
 
 # ---------------- face: find it, cut it out, grade it ----------------
 def face_candidates(video, work, n=6, step=None):
-    import cv2
+    """One decode pass at low res, face detection on each sample, then full-res grabs of the best few."""
+    import cv2, glob, shutil
     info = probe(video)
-    step = step or max(1.0, info["duration"] / 90)
+    step = step or max(1.0, info["duration"] / 120)
+    tmp = os.path.join(work, "_faces"); shutil.rmtree(tmp, ignore_errors=True); os.makedirs(tmp)
+    run(["ffmpeg", "-v", "error", "-y", "-i", video, "-vf", f"fps=1/{step:.3f},scale=640:-2", "-q:v", "4", os.path.join(tmp, "%05d.jpg")])
     det = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
     scored = []
-    t = 0.5
-    tmp = os.path.join(work, "_f.jpg")
-    while t < info["duration"]:
-        run(["ffmpeg", "-v", "error", "-y", "-ss", f"{t:.2f}", "-i", video, "-frames:v", "1", tmp])
-        img = cv2.imread(tmp)
-        if img is not None:
-            g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            faces = det.detectMultiScale(g, 1.15, 6, minSize=(int(g.shape[0] * 0.12),) * 2)
-            for (x, y, w, h) in faces[:1]:
-                sharp = cv2.Laplacian(g[y:y + h, x:x + w], cv2.CV_64F).var()
-                area = w * h / (g.shape[0] * g.shape[1])
-                scored.append((area * min(sharp, 400) / 400, t))
-        t += step
-    if os.path.exists(tmp):
-        os.remove(tmp)
+    for k, f in enumerate(sorted(glob.glob(os.path.join(tmp, "*.jpg")))):
+        g = cv2.imread(f, cv2.IMREAD_GRAYSCALE)
+        if g is None:
+            continue
+        faces = det.detectMultiScale(g, 1.15, 6, minSize=(int(g.shape[0] * 0.12),) * 2)
+        for (x, y, w, h) in faces[:1]:
+            sharp = cv2.Laplacian(g[y:y + h, x:x + w], cv2.CV_64F).var()
+            scored.append((w * h / (g.shape[0] * g.shape[1]) * min(sharp, 400) / 400, (k + 0.5) * step))
+    shutil.rmtree(tmp, ignore_errors=True)
     scored.sort(reverse=True)
     picks = []
     for s, t in scored:
-        if all(abs(t - p) > step * 2 for p in picks):
+        if all(abs(t - p) > step * 3 for p in picks):
             picks.append(t)
         if len(picks) >= n:
             break

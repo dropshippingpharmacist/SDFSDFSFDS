@@ -10,23 +10,24 @@ from .captions import build_ass
 
 # ---------------- time map: source seconds -> output seconds ----------------
 class TimeMap:
+    """Kept ranges may be out of order (a cold open plays a later line first, and it plays again in its place)."""
     def __init__(self, keep):
         self.segs, o = [], 0.0
         for s, e in keep:
             self.segs.append((s, e, o)); o += e - s
         self.total = o
-        self.starts = [s for s, _, _ in self.segs]
+
+    def out_all(self, t):
+        return [o + (t - s) for s, e, o in self.segs if s <= t < e]
 
     def out(self, t, snap=True):
-        i = bisect.bisect_right(self.starts, t) - 1
-        if i >= 0:
-            s, e, o = self.segs[i]
-            if t < e:
-                return o + (t - s)
+        hit = self.out_all(t)
+        if hit:
+            return hit[-1]          # the main occurrence, not the cold-open teaser
         if not snap:
             return None
-        j = i + 1   # inside a removed gap: snap to the next kept moment
-        return self.segs[j][2] if j < len(self.segs) else self.total
+        nxt = [(s, o) for s, e, o in self.segs if s > t]
+        return min(nxt)[1] if nxt else self.total
 
 
 def _sfx_files():
@@ -121,8 +122,10 @@ def build_overlays(plan, tm, W, H, scale):
         ov["texts"].append((t0, t1, _rgba(img), x, y)); ov["sfx"].append((t0, "pop"))
     for p in plan.get("pointers", []):
         t0 = tm.out(p["t"]); t1 = t0 + p.get("dur", 3)
-        frames = [_rgba(f) for f in G.pointer_frames(p, W, H)]
-        ov["pointers"].append((t0, t1, frames)); ov["sfx"].append((t0, "pop"))
+        pf = G.pointer_frames(p, W, H)
+        bb = pf[-1].getbbox() or (0, 0, 2, 2)          # keep only the box the graphic covers (saves memory)
+        frames = [_rgba(f.crop(bb)) for f in pf]
+        ov["pointers"].append((t0, t1, frames, bb[0], bb[1])); ov["sfx"].append((t0, "pop"))
     for z in plan.get("zooms", []):
         t0 = tm.out(z["t"]); t1 = t0 + z.get("dur", 2)
         ov["zooms"].append((t0, t1, z.get("scale", 1.15), z.get("x", 0.5) * W, z.get("y", 0.45) * H, z.get("ease", 0.35)))
@@ -133,7 +136,7 @@ def build_overlays(plan, tm, W, H, scale):
         ov["sfx"].append((t0, "whoosh"))
     hk = plan.get("hook")
     if hk and hk.get("text"):
-        t0 = tm.out(hk.get("t", 0)); ov["hook"] = (t0, t0 + hk.get("dur", 3), _rgba(G.hook_card(hk["text"], hk.get("sub", ""), W, H)))
+        t0 = hk["ot"] if "ot" in hk else tm.out(hk.get("t", 0)); ov["hook"] = (t0, t0 + hk.get("dur", 3), _rgba(G.hook_card(hk["text"], hk.get("sub", ""), W, H)))
         ov["sfx"].append((t0, "whoosh"))
     return ov
 
@@ -167,11 +170,11 @@ def compose(frame, t, ov, W, H, total, plan):
                 cv2.rectangle(frame, (bx - 4, by - 4), (bx + pw + 3, by + ph + 3), (255, 255, 255), -1)
                 frame[by:by + ph, bx:bx + pw] = small
             break
-    for (t0, t1, frames) in ov["pointers"]:
+    for (t0, t1, frames, px, py) in ov["pointers"]:
         a = _env(t, t0, t1, 0.001, 0.25)
         if a > 0:
             k = min(len(frames) - 1, int((t - t0) / 0.035))
-            _blend(frame, frames[k], 0, 0, a)
+            _blend(frame, frames[k], px, py, a)
     for (t0, t1, img, x, y) in ov["texts"]:
         a = _env(t, t0, t1, 0.08, 0.18)
         if a > 0:
@@ -193,7 +196,7 @@ def compose(frame, t, ov, W, H, total, plan):
 
 
 # ---------------- step 3: the whole render ----------------
-def render(plan, work, out=None, preview=False):
+def render(plan, work, out=None, preview=False, progress=None):
     W, H, fps = plan.get("width", 1920), plan.get("height", 1080), plan.get("fps", 30)
     if preview:
         W, H = 960, int(960 * H / W) // 2 * 2
@@ -208,9 +211,9 @@ def render(plan, work, out=None, preview=False):
     words = []
     for s in tr["segments"]:
         for w in s["words"]:
-            o = tm.out(w["s"], snap=False)
-            if o is not None:
+            for o in tm.out_all(w["s"]):
                 words.append({"w": w["w"], "s": o, "e": o + (w["e"] - w["s"])})
+    words.sort(key=lambda w: w["s"])
     cap = plan.get("captions", {})
     if cap.get("on", True) and words:
         build_ass(words, W, H, cap, ass)
@@ -248,7 +251,7 @@ def render(plan, work, out=None, preview=False):
     script = os.path.join(work, "final_filter.txt")
     open(script, "w").write(";\n".join([vf] + af))
     enc = ["ffmpeg", "-v", "error", "-y"] + inputs + ["-filter_complex_script", script, "-map", "[vout]", "-map", "[aout]",
-           "-c:v", "libx264", "-preset", "ultrafast" if preview else "medium", "-crf", "26" if preview else "18",
+           "-c:v", "libx264", "-preset", "ultrafast" if preview else os.environ.get("RENDER_PRESET", "medium"), "-crf", "26" if preview else "18",
            "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", os.path.abspath(out)]
     reader = subprocess.Popen(["ffmpeg", "-v", "error", "-i", cut_path, "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
                               stdout=subprocess.PIPE)
@@ -263,6 +266,8 @@ def render(plan, work, out=None, preview=False):
             frame = compose(frame, n / fps, ov, W, H, total, plan)
             writer.stdin.write(frame.tobytes())
             n += 1
+            if progress and n % 30 == 0:
+                progress(min(1.0, n / fps / max(total, 0.1)))
     finally:
         writer.stdin.close()
         err = writer.stderr.read().decode()

@@ -3,7 +3,7 @@ import os, tempfile
 from .common import run, save, fmt_ts
 
 
-def transcribe(video, work, model="small.en", language=None):
+def transcribe(video, work, model="small.en", language=None, progress=None):
     os.makedirs(work, exist_ok=True)
     wav = os.path.join(work, "audio16k.wav")
     run(["ffmpeg", "-v", "error", "-y", "-i", video, "-vn", "-ac", "1", "-ar", "16000", wav])
@@ -13,6 +13,8 @@ def transcribe(video, work, model="small.en", language=None):
                               vad_parameters={"min_silence_duration_ms": 300})
     out = []
     for s in segs:
+        if progress and info.duration:
+            progress(min(1.0, s.end / info.duration))
         words = [{"w": w.word.strip(), "s": round(w.start, 3), "e": round(w.end, 3), "p": round(w.probability, 3)}
                  for w in (s.words or []) if w.word.strip()]
         out.append({"start": round(s.start, 3), "end": round(s.end, 3), "text": s.text.strip(), "words": words})
