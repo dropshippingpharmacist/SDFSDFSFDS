@@ -51,6 +51,18 @@ You don't read a script. For each lesson, answer the questions out loud as if a 
 
 **SHOW:** one coin's chart from launch to peak to now, explaining each stage.
 
+## Lesson 2b · Front-running the calendar (screen)
+
+1. Why are dated events (elections, the Super Bowl, the World Cup) the easiest narratives to front-run?
+2. Walk through one event coin you caught: when you bought, the market cap, your % of supply, when you sold.
+3. How do you build your list of names to search for an event?
+4. Show how you search a name on Pump.fun and on FOMO and find the first one (the OG).
+5. How do you check it's really the OG and not a copy or a scam?
+6. How much do you put into each event coin, and when do you sell?
+7. How do you find traders who already do this, and what do you look for in their holdings?
+
+**SHOW:** searching an upcoming event's names on Pump.fun and FOMO, sorting by oldest, and checking the OG on a Solana explorer.
+
 ## Lesson 3 · Finding wallets that keep winning (screen)
 
 1. What does a "winning wallet" mean to you? What numbers do you look at?
@@ -64,6 +76,8 @@ You don't read a script. For each lesson, answer the questions out loud as if a 
 ## Lesson 4 · Checking a wallet before you copy it (screen)
 
 1. What's your checklist before you trust a wallet? Go point by point.
+1b. On FOMO, show a trader with a consistent pattern (one buy, several sells, repeated) and one with a scattered pattern. Why do you only copy the first?
+1c. How do you read their current holdings: low market cap, a big share of supply, a narrative that fits?
 2. How far back do you look at its history?
 3. What red flags make you drop a wallet straight away?
 4. How do you check whether it sells well, not only buys well?

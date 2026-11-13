@@ -53,6 +53,7 @@ async function icon(name, color) {
 
   // ---------- helpers ----------
   let sec = "Start";
+  let les = 0;
   const icons = {};
   async function ic(name, col) { const k = name + col; if (!icons[k]) icons[k] = await icon(name, col); return icons[k]; }
 
@@ -98,6 +99,7 @@ async function icon(name, color) {
       { isTextBox: true, x, y, w, h, fontSize: size || 14, color: C.background1, margin: 0, valign: "top", paraSpaceAfter: 6 });
   }
   function section(num, title, sub) {
+    les += 1; num = les;
     sec = title;
     pres.addSection({ title });
     const s = pres.addSlide({ masterName: "PRNTR Section", sectionTitle: sec });
@@ -127,12 +129,12 @@ async function icon(name, color) {
   s = content("How this course works", "Start here");
   await iconRows(s, [
     ["FaShieldHalved", "Lessons 1–2: safety and the game", "Wallets that can't take your savings with them, and how memecoin money is really made and lost."],
-    ["FaFire", "Lessons 3–4: narratives and attention", "Spot the theme the market is about to care about, and get in before the crowd does."],
-    ["FaMagnifyingGlass", "Lessons 5–6: find and vet the wallet", "Use DEX Screener's top traders to find who bought early, then check they're skilled, not lucky."],
-    ["FaRobot", "Lessons 7–9: copy, size, take profit", "Put the wallet in a copy-trading bot, size every trade small, and pay yourself on the way up."],
+    ["FaFire", "Lessons 3–5: narratives, events and attention", "Spot the theme the market is about to care about, front-run dated events, and get in before the crowd."],
+    ["FaMagnifyingGlass", "Lessons 6–7: find and vet the wallet", "DEX Screener's top traders, FOMO transaction patterns, and what they hold right now."],
+    ["FaRobot", "Lessons 8–11: copy, size, profit, the loop", "Copy the wallet with a bot, size small, take profit, and move it into leverage and your safe stack."],
   ], 0.5, 1.45, 5.6, 0.92);
   card(s, 6.4, 1.45, 3.1, 3.55, "The promise", "Not that you'll win every coin. Most lose. You'll lose small on the losers, take real money off the winners, and move it somewhere safer every time.", { tcol: C.accent4 });
-  s.addNotes("Overview of the 10 lessons. Lesson 10 is the money loop into leverage.");
+  s.addNotes("Overview of the 11 lessons. Lesson 4 is front-running events; Lesson 11 is the money loop into leverage.");
 
   s = content("Read this before you start", "The honest warning");
   bigStat(s, 0.5, 1.5, 2.9, "Most", "memecoins go to zero. Some are built to steal from buyers.", C.accent5);
@@ -144,13 +146,13 @@ async function icon(name, color) {
 
   // ---------- 1 SECURITY ----------
   section(1, "Wallets and security", "Set up three wallets so a scam, a bad bot or a mistake can never reach the money you keep.");
-  s = content("The three-wallet setup", "Lesson 1");
+  s = content("The three-wallet setup", "Lesson " + les);
   card(s, 0.5, 1.45, 2.85, 3.4, "Vault", "Your savings and profits. Hardware wallet if you can. Never connects to a site, never goes near a bot. You only send money in.", { tcol: C.accent2 });
   card(s, 3.575, 1.45, 2.85, 3.4, "Trading wallet", "For hand trades on DEXs. Holds only this week's trading money. Connects to sites, so treat it as exposed.");
   card(s, 6.65, 1.45, 2.85, 3.4, "Bot wallet", "Created inside the copy-trading bot. The bot holds its key, so only fund what you're willing to lose. Withdraw profits often.", { tcol: C.accent4 });
   s.addNotes("Why three wallets: each layer limits the damage of a drain or a bad bot.");
 
-  s = content("Scams to spot before you buy", "Lesson 1");
+  s = content("Scams to spot before you buy", "Lesson " + les);
   await iconRows(s, [
     ["FaBan", "Honeypots", "You can buy but can't sell. Check that other wallets have sold successfully."],
     ["FaUnlock", "Unlocked liquidity / dev holding a lot", "The creator can pull the money or dump a big bag on you."],
@@ -161,7 +163,7 @@ async function icon(name, color) {
 
   // ---------- 2 THE GAME ----------
   section(2, "How memecoin money is made", "The life cycle of a coin, and where in it the money changes hands.");
-  s = content("The life of a memecoin", "Lesson 2");
+  s = content("The life of a memecoin", "Lesson " + les);
   steps(s, [
     ["Launch", "Creator, snipers and insiders get the first supply."],
     ["Early attention", "Smart wallets and early callers buy. Volume starts rising."],
@@ -171,14 +173,14 @@ async function icon(name, color) {
   ], 1.45, 3.1);
   s.addNotes("Our money is made by buying in stage 2 and selling into stages 3 and 4.");
 
-  s = content("Where you want to be", "Lesson 2");
+  s = content("Where you want to be", "Lesson " + les);
   card(s, 0.5, 1.45, 4.4, 3.4, "Buy here: stage 2", "After launch chaos settles and before the crowd arrives. Real wallets are buying, volume is rising, the narrative is just starting to spread.", { tcol: C.accent2 });
   card(s, 5.1, 1.45, 4.4, 3.4, "Sell here: stages 3–4", "Into the crowd. When your timeline is full of it and strangers are asking about it, you're selling to them, not buying from them.", { tcol: C.accent4 });
   s.addNotes("The core rule: get in before the crowd, get out into the crowd.");
 
   // ---------- 3 NARRATIVES ----------
   section(3, "Finding and front-running narratives", "A narrative is the story the market is about to care about. Find it early and the coins come to you.");
-  s = content("What a narrative is", "Lesson 3");
+  s = content("What a narrative is", "Lesson " + les);
   s.addText("A theme that pulls attention, and money, to a group of coins at the same time.", { isTextBox: true, x: 0.5, y: 1.35, w: 9, h: 0.45, fontSize: 16, color: C.background2, margin: 0 });
   const nar = [["FaMicrochip", "Tech", "AI agents, new apps"], ["FaLandmark", "Politics and news", "Elections, viral headlines"], ["FaStar", "Celebrity and culture", "A post, a meme, a moment"],
                ["FaCalendarDays", "Scheduled events", "Launches, listings, big days"], ["FaPaw", "Animal and meme metas", "The next dog, cat, frog"], ["FaArrowsRotate", "New platforms", "A new launchpad or chain trend"]];
@@ -191,7 +193,7 @@ async function icon(name, color) {
   }
   check(s, "Which narratives have made you the most money? Add 2–3 real examples with dates so this slide uses your own stories.");
 
-  s = content("Where narratives start", "Lesson 3");
+  s = content("Where narratives start", "Lesson " + les);
   await iconRows(s, [
     ["FaXTwitter", "X (Twitter)", "Lists of the accounts that are early to new metas. Watch what they start talking about together."],
     ["FaTelegram", "Telegram groups and callers", "Where coins get shared first. Track which callers are early, not loud."],
@@ -200,7 +202,7 @@ async function icon(name, color) {
   ], 0.5, 1.45, 9, 0.9);
   check(s, "Which X accounts, Telegram groups and tools do you watch? I'll name them, or keep them for the mentorship only if you'd rather.");
 
-  s = content("How to front-run a narrative", "Lesson 3");
+  s = content("How to front-run a narrative", "Lesson " + les);
   steps(s, [
     ["Spot the theme", "Two or three coins on the same idea start moving on the same day."],
     ["Find the leader", "The first coin with real volume and real holders is usually the one the crowd buys."],
@@ -210,14 +212,131 @@ async function icon(name, color) {
   ], 1.45, 3.1);
   s.addNotes("The playbook: be early to the theme, pick the leader, size small, sell into attention.");
 
+  // ---------- EVENT NARRATIVES ----------
+  section(0, "Front-running the calendar", "The biggest narratives are on the calendar months ahead: elections, the Super Bowl, the World Cup. Find the first coin named after the event while it's worth almost nothing.");
+
+  s = content("Why events are easy to front-run", "Lesson " + les);
+  await iconRows(s, [
+    ["FaCalendarDays", "The date is public", "Everyone knows when the Super Bowl, an election or a World Cup final happens. You don't have to guess when attention arrives."],
+    ["FaMagnifyingGlass", "The crowd searches the name", "On the day, new buyers type the event's name into Pump.fun or FOMO and buy what they find. Very often that's the first coin made with that name."],
+    ["FaCrown", "The OG gets the attention", "In memecoins, \"the original\" is part of the story. The first coin with the name is the one people screenshot, share and pile into."],
+    ["FaSeedling", "You get in before anyone cares", "Months early, the OG can sit at a few thousand dollars in market cap. A few dollars buys a real share of the supply."],
+  ], 0.5, 1.45, 9, 0.9);
+  s.addNotes("Events are narratives with a known date. That's the edge: you can be early on purpose.");
+
+  s = content("How an event coin moves", "Lesson " + les);
+  const tl = [["Months before", "Quiet. The OG sits at a few $K market cap. You buy small.", C.accent1],
+              ["Weeks before", "Talk starts on X and Telegram. Early wallets add.", C.accent3],
+              ["The day itself", "Search volume spikes. The crowd buys the name. This is where you sell.", C.accent2],
+              ["After", "Attention moves on. Most event coins fade fast.", C.accent5]];
+  s.addShape(pres.shapes.LINE, { x: 0.7, y: 2.2, w: 8.6, h: 0, line: { color: C.background2, width: 2 } });
+  tl.forEach(([h, b, col], i) => {
+    const x = 0.5 + i * 2.3;
+    s.addShape(pres.shapes.OVAL, { x: x + 0.15, y: 2.0, w: 0.4, h: 0.4, fill: { color: col }, line: { color: col } });
+    s.addText(h, { isTextBox: true, x, y: 2.6, w: 2.1, h: 0.4, fontSize: 15, bold: true, color: C.background1, margin: 0 });
+    s.addText(b, { isTextBox: true, x, y: 3.05, w: 2.1, h: 1.5, fontSize: 13, color: C.background2, margin: 0, valign: "top" });
+  });
+  s.addText("You buy in the first column and sell in the third. You never need to be right about who wins the game or the election, only that people will care on the day.",
+    { isTextBox: true, x: 0.5, y: 4.45, w: 9, h: 0.6, fontSize: 13, italic: true, color: C.accent4, margin: 0 });
+  s.addNotes("The trade is on attention, not on the outcome of the event.");
+
+  s = content("Events that already played out", "Lesson " + les);
+  const past = [
+    ["2024 US presidential election", "\"PolitiFi\" became its own narrative: coins named after candidates, nicknames and slogans ran for months before election day."],
+    ["The Super Bowl (every February)", "Team names, the halftime show, the ads and viral moments all get coins, before and during the game."],
+    ["FIFA World Cup 2022 and 2026", "Country names, star players, mascots and the final. Each match day brings a new wave of searches."],
+    ["Paris Olympics 2024", "Athletes and viral moments became coins within minutes, and early holders sold into the attention."],
+    ["Bitcoin halving, April 2024", "A dated crypto event. Halving-themed coins moved in the weeks before it."],
+    ["Holidays: Halloween, Thanksgiving, Christmas, New Year", "The same idea every year. The calendar never changes."],
+  ];
+  past.forEach(([h, b], i) => {
+    const col = i % 2, row = Math.floor(i / 2), x = 0.5 + col * 4.6, y = 1.4 + row * 1.2;
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: 4.4, h: 1.05, rectRadius: 0.1, fill: { color: C.text2 }, line: { color: C.text2 } });
+    s.addText([{ text: h, options: { bold: true, color: C.accent1, breakLine: true } }, { text: b, options: { color: C.background1 } }],
+      { isTextBox: true, x: x + 0.15, y: y + 0.08, w: 4.1, h: 0.92, fontSize: 12, margin: 0, valign: "top" });
+  });
+  check(s, "Add the real coins you or the traders you follow caught for each event: the name, the market cap when bought and at the peak, with screenshots. I've kept this slide free of numbers I can't verify.");
+
+  s = content("The calendar ahead", "Lesson " + les);
+  const ahead = [
+    ["Nov 2026", "GTA VI release (check date)"], ["Dec 2026", "Christmas, New Year"],
+    ["Feb 2027", "Super Bowl LXI, Grammys"], ["Mar 2027", "The Oscars"],
+    ["Jun–Jul 2027", "FIFA Women's World Cup, Brazil"], ["Oct–Nov 2027", "Cricket and Rugby World Cups"],
+    ["2028", "Bitcoin halving (around April)"], ["Jul 2028", "Los Angeles Olympics"],
+    ["Nov 2028", "US presidential election"], ["Every year", "Halloween, Thanksgiving, big product launches"],
+  ];
+  ahead.forEach(([d, e], i) => {
+    const col = i % 2, row = Math.floor(i / 2), x = 0.5 + col * 4.6, y = 1.35 + row * 0.72;
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: 1.35, h: 0.52, rectRadius: 0.1, fill: { color: C.accent1 }, line: { color: C.accent1 } });
+    s.addText(d, { isTextBox: true, x, y, w: 1.35, h: 0.52, fontSize: 12, bold: true, align: "center", valign: "middle", color: C.text1, margin: 0 });
+    s.addText(e, { isTextBox: true, x: x + 1.5, y, w: 2.9, h: 0.52, fontSize: 13, color: C.background1, margin: 0, valign: "middle" });
+  });
+  check(s, "Dates are from today (November 2026); confirm each before teaching it. Add any events you're already watching.");
+
+  s = content("Build your search list for each event", "Lesson " + les);
+  card(s, 0.5, 1.4, 4.4, 3.5, "Write down every name people will type", "The event: SUPERBOWL, WORLDCUP\nThe short form: SB61, WC2027\nThe teams, countries, players, candidates\nThe mascot, the slogan, the meme of the moment\nThe nickname the internet uses, not the official one");
+  card(s, 5.1, 1.4, 4.4, 3.5, "Keep it in one sheet", "One row per event: date, search names, the OG coin you found, its contract address, market cap when you bought, your supply %, and the week you plan to sell.\n\nReview it every Sunday. New names appear as the event gets closer.", { tcol: C.accent2 });
+  s.addNotes("The list is the work. The more names you check, the more OGs you find before the crowd.");
+
+  s = content("Searching an event on Pump.fun and FOMO", "Lesson " + les);
+  steps(s, [
+    ["Search the name", "Type each name from your list into Pump.fun's search, then into FOMO."],
+    ["Sort by oldest", "Look for the earliest-created coin with that exact name or ticker."],
+    ["Open the first one", "Check when it was created, who created it and who holds it."],
+    ["Confirm on-chain", "Paste the contract into a Solana explorer and check the creation time matches."],
+    ["Buy small", "A few dollars. Note the market cap and your % of supply in your sheet."],
+  ], 1.45, 3.1);
+  check(s, "Confirm the exact search and sort steps in Pump.fun and FOMO as they work today, and record this lesson on screen so students see each click.");
+
+  s = content("Is it really the OG?", "Lesson " + les);
+  card(s, 0.5, 1.4, 4.4, 3.5, "Signs it's the original", "Created before every other coin with that name\nThe name and ticker match the event exactly\nThe creator doesn't hold a big share of supply\nIt wasn't bought up by a few wallets in the first seconds\nOther holders are spread out, not one whale", { tcol: C.accent2 });
+  card(s, 5.1, 1.4, 4.4, 3.5, "Signs to walk away", "A later copy with more holders is clearly the one people chose\nThe creator sold early or holds most of the supply\nBundled launch: a few wallets took most of it at once\nThe name is close but not the one people will search\nIt can't be sold (check others have sold)", { tcol: C.accent5 });
+  s.addNotes("Copycats will appear with the same name. That's normal. You want the first one that's clean.");
+
+  s = content("The math: your share of the supply", "Lesson " + les);
+  bigStat(s, 0.5, 1.4, 4.2, "$15 at $3K", "market cap buys 0.5% of the supply. Your share = what you put in ÷ the market cap.", C.accent1);
+  const rowsM = [["If the coin reaches", "0.5% is worth"], ["$100K", "$500"], ["$500K", "$2,500"], ["$1M", "$5,000"], ["$2M", "$10,000"], ["$3M", "$15,000"]];
+  s.addTable(rowsM.map((r, i) => r.map((t) => ({ text: t, options: { bold: i === 0, color: i === 0 ? C.text1 : C.background1, fill: { color: i === 0 ? C.accent1 : C.text2 }, fontSize: 14, align: "center", valign: "middle" } }))),
+    { x: 5.2, y: 1.4, w: 4.3, colW: [2.15, 2.15], rowH: 0.48, border: { type: "solid", pt: 1, color: HEX.dk1 } });
+  s.addText("To turn $10–15 into $10,000–15,000, the coin has to reach about $2M–$3M. At $500K, 0.5% is worth $2,500. Fees and slippage reduce these a little.",
+    { isTextBox: true, x: 0.5, y: 3.0, w: 4.3, h: 1.6, fontSize: 13, color: C.background2, margin: 0, valign: "top" });
+  s.addNotes("Use this slide so students understand supply %. The example numbers are for teaching; most event coins never reach these levels.");
+
+  s = content("Rinse and repeat: the event portfolio", "Lesson " + les);
+  bigStat(s, 0.5, 1.4, 2.9, "20 events", "a few dollars on the OG of each", C.accent1);
+  bigStat(s, 3.55, 1.4, 2.9, "19 zeros", "That's normal. Each one only cost a few dollars.", C.accent5);
+  bigStat(s, 6.6, 1.4, 2.9, "1 hit", "can pay for all of them many times over", C.accent2);
+  bullets(s, [
+    "Same small amount on every event coin, never more because you \"feel sure\"",
+    "Set a reminder for the week of the event: sell into the attention, before the day ends",
+    "Take your starting money out as soon as it multiplies, let a small part ride",
+    "Profits go into the money loop (Lesson 11), never back into one big bet",
+  ], 0.5, 3.15, 9, 1.9, 14);
+  s.addNotes("This is a numbers game. It works because the losers are tiny and the winners are big.");
+
+  s = content("Find traders who already do this", "Lesson " + les);
+  await iconRows(s, [
+    ["FaUserSecret", "Look at who holds the OGs", "Open the event coins you found. Wallets that bought months early and hold a real share are often event front-runners."],
+    ["FaClockRotateLeft", "Check their past events", "Did they hold last year's Super Bowl or election coins early, and sell into the day? That's the pattern you want."],
+    ["FaEye", "Watch what they hold now", "Their current low-market-cap holdings show you the next events they're positioned for (Lesson 7)."],
+    ["FaRobot", "Copy them", "Add the best ones to your copy bot (Lesson 8), sized small, so you're in when they buy the next OG."],
+  ], 0.5, 1.45, 9, 0.9);
+  s.addNotes("You don't have to find every event yourself. Find the people who already do it well.");
+
+  s = content("What goes wrong with event coins", "Lesson " + les);
+  card(s, 0.5, 1.4, 2.85, 3.5, "Crowd picks another", "A later copy, a celebrity's coin or an \"official\" one can take all the attention. The OG isn't guaranteed to win.", { tcol: C.accent5 });
+  card(s, 3.575, 1.4, 2.85, 3.5, "It dies before the day", "Months is a long time. Many event coins lose their community long before the event.", { tcol: C.accent5 });
+  card(s, 6.65, 1.4, 2.85, 3.5, "You can't get out", "Tiny coins have little liquidity. Selling a big share can crash the price. Sell in pieces, early.", { tcol: C.accent5 });
+  s.addNotes("Set expectations honestly so students size small.");
+
   // ---------- 4 ATTENTION ----------
   section(4, "Reading attention", "Hype leaves fingerprints in the numbers. Learn to tell real momentum from a fake pump.");
-  s = content("Real momentum vs a fake pump", "Lesson 4");
+  s = content("Real momentum vs a fake pump", "Lesson " + les);
   card(s, 0.5, 1.45, 4.4, 3.4, "Real momentum", "Holders growing steadily\nVolume rising with price\nMany different wallets buying\nMentions growing from different accounts\nBuys and sells both healthy", { tcol: C.accent2 });
   card(s, 5.1, 1.45, 4.4, 3.4, "Fake pump", "A few wallets doing most of the volume\nHolders flat while price jumps\nSame-block buys at launch (bundles)\nThe same accounts posting it over and over\nDev or top wallets holding a big share", { tcol: C.accent5 });
   check(s, "Your exact numbers: what volume, holder count or market cap range do you look for before entering?");
 
-  s = content("When to skip: \"I'm too late\"", "Lesson 4");
+  s = content("When to skip: \"I'm too late\"", "Lesson " + les);
   bullets(s, [
     "The big accounts have already posted it and the price has already run several times",
     "Volume is falling while price is still near the top",
@@ -230,24 +349,24 @@ async function icon(name, color) {
 
   // ---------- 5 FINDING WALLETS ----------
   section(5, "Finding the trader's wallet", "Use a coin they already won on to find their wallet on DEX Screener.");
-  s = content("Find the wallet behind a winning trade", "Lesson 5");
+  s = content("Find the wallet behind a winning trade", "Lesson " + les);
   steps(s, [
     ["Pick a coin that ran", "One that already went up a lot, or the coin a trader you follow is in."],
     ["Open it on DEX Screener", "Search the coin, open its pair page."],
     ["Open \"Top Traders\"", "It lists wallets ranked by profit on that coin: what they bought, sold and made."],
     ["Pick the early winners", "Wallets that bought early and sold well, not the ones that only bought."],
-    ["Copy the address", "Click the wallet and copy it. Now check it (Lesson 6)."],
+    ["Copy the address", "Click the wallet and copy it. Now check it (Lesson 7)."],
   ], 1.45, 3.1);
   check(s, "Confirm the exact steps and tab names as you do them today, and record this lesson as a screen recording so students see each click.");
 
-  s = content("Finding a specific trader you want to copy", "Lesson 5");
+  s = content("Finding a specific trader you want to copy", "Lesson " + les);
   card(s, 0.5, 1.45, 4.4, 3.4, "When you know their coin", "They post or call a coin, or you know what they're in. Open that coin's Top Traders and look for a wallet whose buy matches their timing and size. Confirm it on a second coin they're in.");
   card(s, 5.1, 1.45, 4.4, 3.4, "When you only know the winner", "Look across two or three coins from the same narrative. A wallet that shows up early and in profit on all of them is a trader, not luck.", { tcol: C.accent2 });
   check(s, "Is this how you match a trader to their wallet? Add any trick you use (timing, buy size, the same wallet across coins).");
 
   // ---------- 6 VETTING ----------
   section(6, "Checking a wallet before you copy it", "One lucky trade proves nothing. Here's how to tell skill from luck, insiders and bots.");
-  s = content("The wallet checklist", "Lesson 6");
+  s = content("The wallet checklist", "Lesson " + les);
   await iconRows(s, [
     ["FaListCheck", "A real track record", "Dozens of trades, not one or two. Profitable across many coins over weeks."],
     ["FaClock", "Buys early, but not insider-early", "Buying in the very first block or seconds of launch often means sniper, insider or dev."],
@@ -257,7 +376,37 @@ async function icon(name, color) {
   card(s, 6.4, 1.45, 3.1, 3.55, "Use a wallet tracker", "Paste the address into a wallet-tracking site to see its full history: win rate, profit, hold time and recent trades.", { tcol: C.accent4 });
   check(s, "Which wallet tracker do you use to check history? Your minimum numbers (win rate, number of trades, profit) go on this slide.");
 
-  s = content("Red flags: drop the wallet", "Lesson 6");
+  s = content("Read their transaction pattern on FOMO", "Lesson " + les);
+  function pattern(x, y, seq, good) {
+    seq.forEach((t, i) => {
+      const xx = x + i * 0.42, isB = t === "B";
+      s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: xx, y, w: 0.36, h: 0.36, rectRadius: 0.06, fill: { color: isB ? C.accent2 : C.accent5 }, line: { color: isB ? C.accent2 : C.accent5 } });
+      s.addText(t, { isTextBox: true, x: xx, y, w: 0.36, h: 0.36, fontSize: 12, bold: true, align: "center", valign: "middle", color: C.text1, margin: 0 });
+    });
+  }
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.5, y: 1.4, w: 9, h: 1.65, rectRadius: 0.12, fill: { color: C.text2 }, line: { color: C.accent2, width: 1.5 } });
+  s.addText("Consistent: copy this", { isTextBox: true, x: 0.7, y: 1.5, w: 5, h: 0.35, fontSize: 15, bold: true, color: C.accent2, margin: 0 });
+  pattern(0.7, 1.95, ["B", "S", "S", "S", "S", "S", "B", "S", "S", "S", "S", "B", "S", "S", "S", "S", "S", "S"], true);
+  s.addText("One buy, then several sells, again and again. They enter once and take profit in pieces: a plan they repeat.",
+    { isTextBox: true, x: 0.7, y: 2.4, w: 8.6, h: 0.55, fontSize: 13, color: C.background1, margin: 0 });
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.5, y: 3.25, w: 9, h: 1.65, rectRadius: 0.12, fill: { color: C.text2 }, line: { color: C.accent5, width: 1.5 } });
+  s.addText("Scattered: skip this", { isTextBox: true, x: 0.7, y: 3.35, w: 5, h: 0.35, fontSize: 15, bold: true, color: C.accent5, margin: 0 });
+  pattern(0.7, 3.8, ["B", "S", "B", "B", "B", "B", "B", "S", "S", "B", "S", "B", "B", "S", "B", "B", "S", "B"], false);
+  s.addText("Random buys and sells: one in, one out, five in, two out. No repeatable plan, even if the profit looks good right now.",
+    { isTextBox: true, x: 0.7, y: 4.25, w: 8.6, h: 0.55, fontSize: 13, color: C.background1, margin: 0 });
+  check(s, "Confirm how FOMO shows a trader's transactions today (where the buy/sell list is), and add a screenshot of a real consistent trader and a scattered one.");
+
+  s = content("Check what they're holding right now", "Lesson " + les);
+  steps(s, [
+    ["Open their holdings", "On FOMO or a wallet tracker, see every coin they hold now."],
+    ["Low market cap?", "Coins still small, so there's room to grow."],
+    ["Big share of supply?", "They hold a real % of it, so they're committed."],
+    ["Does the narrative fit?", "An upcoming event or the current meta. It should make sense in one sentence."],
+    ["All four: buy small", "Same small size as always, and add it to your sheet."],
+  ], 1.45, 3.1);
+  s.addNotes("A consistent trader's current low-cap holdings are a shortlist made for you. Every box still has to be ticked.");
+
+  s = content("Red flags: drop the wallet", "Lesson " + les);
   bullets(s, [
     "Most of its profit came from one coin",
     "Buys in the same block as the launch, every time (sniper or insider)",
@@ -269,7 +418,7 @@ async function icon(name, color) {
   s.addImage({ data: await ic("FaTriangleExclamation", HEX.accent5), x: 7.3, y: 2.0, w: 1.6, h: 1.6 });
   s.addNotes("If a wallet fails any of these, don't copy it.");
 
-  s = content("When to stop following a wallet", "Lesson 6");
+  s = content("When to stop following a wallet", "Lesson " + les);
   steps(s, [
     ["Track it", "Keep a sheet: every wallet you copy, the trades and the result."],
     ["Review weekly", "Is it still profitable over its last 20 trades?"],
@@ -280,7 +429,7 @@ async function icon(name, color) {
 
   // ---------- 7 COPY TRADING ----------
   section(7, "Copy trading with a bot", "Put the wallet into a copy-trading bot so you buy when they buy, within seconds.");
-  s = content("Setting up the copy bot", "Lesson 7");
+  s = content("Setting up the copy bot", "Lesson " + les);
   steps(s, [
     ["Open the bot", "A Telegram trading bot such as Maestro or Odin."],
     ["Make a bot wallet", "Create a new wallet in the bot. Never import your vault."],
@@ -290,16 +439,16 @@ async function icon(name, color) {
   ], 1.45, 3.1);
   check(s, "Please confirm: which bot do you use (Maestro, Odin, or another), the exact menu names, and record this lesson on screen. I could not verify Odin's menus myself.");
 
-  s = content("The settings that matter", "Lesson 7");
+  s = content("The settings that matter", "Lesson " + les);
   await iconRows(s, [
     ["FaCoins", "Fixed amount per copy", "The same small amount on every trade, whatever the wallet buys. You're copying the idea, not their size."],
     ["FaGaugeHigh", "Slippage and priority fee", "High enough to get filled fast, low enough that you don't overpay on every trade."],
-    ["FaArrowRightFromBracket", "Copy sells, or your own exits", "Either sell when they sell, or use your own take-profit ladder (Lesson 9)."],
+    ["FaArrowRightFromBracket", "Copy sells, or your own exits", "Either sell when they sell, or use your own take-profit ladder (Lesson 10)."],
     ["FaShield", "Protection settings", "Anti-rug or MEV protection, a max buy price, a blacklist of coins you won't touch."],
   ], 0.5, 1.45, 9, 0.9);
   check(s, "Your exact numbers: amount per trade, slippage %, priority fee, and whether you copy sells or use your own ladder.");
 
-  s = content("Copy trading: what goes wrong", "Lesson 7");
+  s = content("Copy trading: what goes wrong", "Lesson " + les);
   card(s, 0.5, 1.45, 2.85, 3.4, "You're last in", "Even fast bots buy after the wallet does. On tiny coins that gap can be the whole move.", { tcol: C.accent5 });
   card(s, 3.575, 1.45, 2.85, 3.4, "They exit, you don't", "If you don't copy sells or use a ladder, you can hold after they've left.", { tcol: C.accent5 });
   card(s, 6.65, 1.45, 2.85, 3.4, "The bot holds your key", "A bot is a hot wallet. Keep its balance small and withdraw profits to your vault often.", { tcol: C.accent5 });
@@ -307,7 +456,7 @@ async function icon(name, color) {
 
   // ---------- 8 SIZING ----------
   section(8, "Sizing", "Small, fixed bets are what let you survive the coins that go to zero.");
-  s = content("The sizing rules", "Lesson 8");
+  s = content("The sizing rules", "Lesson " + les);
   bigStat(s, 0.5, 1.5, 2.9, "1–2%", "of your memecoin money per copy trade", C.accent1);
   bigStat(s, 3.55, 1.5, 2.9, "Max 10", "open positions at once", C.accent1);
   bigStat(s, 6.6, 1.5, 2.9, "Stop", "for the day after a set loss", C.accent5);
@@ -316,7 +465,7 @@ async function icon(name, color) {
 
   // ---------- 9 PROFIT ----------
   section(9, "Taking profit on the way up", "The money is made when you sell, not when the chart goes up.");
-  s = content("A take-profit ladder", "Lesson 9");
+  s = content("A take-profit ladder", "Lesson " + les);
   const lad = [["2x", "Take your starting money out. The rest is free."], ["3x", "Sell another part."], ["5x", "Sell another part."], ["10x+", "Leave a small part running."]];
   for (let i = 0; i < lad.length; i++) {
     const x = 0.5 + i * 2.3, h = 1.2 + i * 0.6, y = 4.75 - h;
@@ -326,7 +475,7 @@ async function icon(name, color) {
   }
   check(s, "Your real ladder: at which multiples you sell and how much each time.");
 
-  s = content("The profit rules", "Lesson 9");
+  s = content("The profit rules", "Lesson " + les);
   await iconRows(s, [
     ["FaSackDollar", "Initials out at 2x", "Once your starting money is back, nothing on that trade can hurt you."],
     ["FaCalendarCheck", "A time limit", "If a coin does nothing for a set time, sell and move on."],
@@ -337,7 +486,7 @@ async function icon(name, color) {
 
   // ---------- 10 LOOP ----------
   section(10, "The money loop", "How memecoin profits turn into leverage trading, a safe stack, and a monthly income.");
-  s = content("Where the profit goes", "Lesson 10");
+  s = content("Where the profit goes", "Lesson " + les);
   const boxes = [["Memecoins", "Copy trading, small size", 0.7, 1.55, C.accent1], ["Leverage", "The PRNTR system, fixed risk", 6.3, 1.55, C.accent3], ["Safe stack", "Profits you keep and pay yourself from", 3.5, 3.55, C.accent2]];
   for (const [t, b, x, y, col] of boxes) {
     s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: 3.0, h: 1.2, rectRadius: 0.14, fill: { color: C.text2 }, line: { color: col, width: 2 } });
@@ -352,7 +501,7 @@ async function icon(name, color) {
   s.addText("a small slice back in", { isTextBox: true, x: 0.6, y: 3.0, w: 1.7, h: 0.35, fontSize: 11, color: C.background2, margin: 0 });
   s.addNotes("The loop: money moves from the riskiest place to safer ones every time. Nothing goes back in to win back a loss.");
 
-  s = content("A split you can start with", "Lesson 10");
+  s = content("A split you can start with", "Lesson " + les);
   bigStat(s, 0.5, 1.5, 2.9, "50%", "of memecoin profit to the safe stack", C.accent2);
   bigStat(s, 3.55, 1.5, 2.9, "30%", "to the leverage account", C.accent3);
   bigStat(s, 6.6, 1.5, 2.9, "20%", "stays for memecoins", C.accent1);
