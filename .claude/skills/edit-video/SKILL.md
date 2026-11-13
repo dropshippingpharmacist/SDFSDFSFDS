@@ -81,3 +81,7 @@ Read the face frames and pick the most expressive one (open mouth, raised eyebro
 ## 6. Hand over
 
 Send with SendUserFile: `final.mp4`, `thumbnail.png` (+ the B version), and write `W/youtube_pack.md` with: 3 title options (recommended first), description with the chapters from `W/chapters.txt`, pinned comment, tags. Tell the owner what you cut and why in two or three lines.
+
+## The website version
+
+The same pipeline runs on its own at https://prntr-editor.onrender.com (Render service `srv-dbrls48n74is7398c4ig`, code in `prntr_editor/app.py`, `editor/pipeline.py` and `editor/brain.py`). The editing rules for the website's AI step are in the `SYSTEM` prompt in `editor/brain.py`. When you change the rules here, change them there too.
