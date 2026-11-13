@@ -71,7 +71,7 @@ fig, (a1, a2) = plt.subplots(2, 1, figsize=(16, 10), dpi=120, sharex=True, grids
 fig.patch.set_facecolor(BG)
 for a in (a1, a2):
     a.set_facecolor(BG); a.grid(color="#1A2350", lw=0.6)
-a1.plot([r[0] + dt.timedelta(hours=21) for r in nd], [r[4] for r in nd], color=CYAN, lw=2.5, marker="o", ms=5)
+a1.plot([r[0] + dt.timedelta(hours=6, minutes=30) for r in nd], [r[4] for r in nd], color=CYAN, lw=2.5, marker="o", ms=5)
 a1.axhline(MID, color=GOLD, ls=":", lw=1.2); a1.text(dt.datetime(2026, 10, 27, 6), MID + 2, "Box middle ~$190", color=GOLD, fontsize=10)
 a1.axhline(FLOOR, color=CYAN, ls="--", lw=1.2); a1.text(dt.datetime(2026, 10, 27, 6), FLOOR + 2, "Box floor ~$168", color=CYAN, fontsize=10)
 a1.set_ylabel("NVDA close ($)", fontsize=12)

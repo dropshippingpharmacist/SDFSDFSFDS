@@ -1,6 +1,6 @@
 # YouTube script: "NVIDIA's chart broke before the scandal. A memecoin about it went 100x."
 
-**Format:** about 10–12 minutes. `[FACE]` = camera, `[CHART 1]` = `1_NVDA_PRNTR_box.png`, `[CHART 2]` = `2_NVDA_vs_HUNG.png`, `[SCREEN]` = live screen recording.
+**Format:** about 13–15 minutes. `[FACE]` = camera, `[CHART 1]` = `1_NVDA_PRNTR_box.png`, `[CHART 2]` = `2_NVDA_vs_HUNG.png`, `[CHART 3]` = `3_timeline_news_vs_coins.png`, `[CHART 4]` = `4_NVDA_1h_turn_and_coins.png`, `[SCREEN]` = live screen recording.
 
 **The name for this style:** the **PRNTR Crossover**: read a big stock's chart with PRNTR, then trade the memecoin wave its news creates.
 
@@ -43,7 +43,29 @@ The chart didn't know about any scandal. Nobody did. It just showed that the buy
 
 From there, price travelled to the floor and through it. It closed at $160.96 yesterday.
 
-## [FACE] Part 2: The news (3:30–4:30)
+## [CHART 4] Part 1b: Zoom in, the 1-hour Turn (3:30–5:30)
+
+Now let's zoom in, because the daily Turn came late. On the 1-hour chart, you could have sold days earlier.
+
+From October 30th to November 4th, NVIDIA built a **small Box**: a floor at $201.32 and a ceiling at $210.28.
+
+Look at the top. On November 3rd it poked above the ceiling to $211.26. On November 4th, again, $211.35. Two **Fake-Outs**. Both got sold straight back into the Box. That's the big money selling into the breakout buyers.
+
+Then, on November 4th at 8pm UTC, an hour closed **below** the small floor, at $200.63. That's **the Turn** on the 1-hour chart. That's the sell.
+
+- **Entry:** $200.63.
+- **Stop:** $207.30, just above the last bounce that failed inside the Box.
+- **Target:** $168, the floor of the **big** Box from the daily chart. That's a low target, and it's the right one: when the small Box breaks inside a big Box that has already turned, the trip goes all the way across.
+
+That's about **4.9 times** what you risked. After the entry, the highest NVIDIA got was $202.25, so the stop was never in danger. The target hit on November 10th.
+
+Just as an example: $1,000 at 5x leverage would have made about $813 at the target, and the stop would have cost about $166.
+
+Now look at the bottom of this chart. When you sold NVIDIA on November 4th, **there was no scandal coin at all**. HUNG didn't exist yet. When NVIDIA hit the target on November 10th, HUNG was sitting at about $9,000 in market cap. Hold that thought.
+
+*(To be clear: I marked this up by hand with my PRNTR rules. It's a chart study, not a signal my bot sent.)*
+
+## [FACE] Part 2: The news (5:30–6:30)
 
 Then the story broke.
 
@@ -55,7 +77,7 @@ By November 11th and 12th, he had resigned as CEO, and Congress was asking him t
 
 Now, the retail crowd sees the headline and thinks, "ah, that's why NVIDIA dropped." But the chart had already turned.
 
-## [CHART 2] Part 3: The memecoin (4:30–7:00)
+## [CHART 2] Part 3: The memecoin (6:30–8:30)
 
 Here's where the second world comes in.
 
@@ -71,7 +93,24 @@ The next day, on more coverage, it touched about $1.29 million, its peak. Right 
 
 Look at the top chart and the bottom chart together. The stock's worst news was this coin's best day.
 
-## [SCREEN] Part 4: How you'd find it (7:00–8:30)
+## [CHART 3] Part 3b: Could you have seen it coming? (8:30–10:00)
+
+Here's the part most people miss. This story didn't drop in one day. It leaked in pieces for two weeks.
+
+- **October 29th:** the New York Times reported a "close relationship" between Jensen Huang and an executive at a company called Megaspeed. The same day, somebody made an "Alice Huang" coin on Pump.fun. It never took off.
+- **November 7th:** the Financial Times reported an intelligence memo. That morning, a coin called **"The NVIDIA Files"** was made at about $3,700. It later touched about $17,000.
+- **November 8th:** the email to staff.
+- **November 11th and 12th:** the resignation. That's when HUNG ran.
+
+So yes, you could have been early. Not by knowing the future, but by doing three things:
+
+1. NVIDIA had already made its Turn. So it was on my watchlist, and I'd be reading its news every day.
+2. Set alerts on the names: Google Alerts, an X list, for the CEO, his nickname, and any person or company that shows up in the story. Alice Huang. Megaspeed.
+3. The same hour a new name shows up, search it on Pump.fun and FOMO.
+
+And the cheapest moment wasn't the first headline. It was the **quiet two days** before the resignation, when HUNG sat at about $9,700 and everybody had moved on.
+
+## [SCREEN] Part 4: How you'd find it (10:00–11:00)
 
 [SCREEN: DEX Screener / Pump.fun search for "HUNG" and "JENSEN".]
 
@@ -81,7 +120,7 @@ So the rule isn't just "buy the oldest one." The rule is: **when the story break
 
 And search "JENSEN": dozens of copies made in the last few days, most sitting at two to five thousand dollars. That's what most of these become.
 
-## [FACE] Part 5: The real math (8:30–9:30)
+## [FACE] Part 5: The real math (11:00–12:00)
 
 Let's be honest about the numbers, because this is where people get lied to.
 
@@ -91,15 +130,15 @@ Let's be honest about the numbers, because this is where people get lied to.
 
 Small amounts, big multiples. That's the game. But for every HUNG there are dozens of coins that go to zero, so you only ever put in money you're fine losing.
 
-## [FACE] Part 6: The PRNTR Crossover in 5 steps (9:30–10:45)
+## [FACE] Part 6: The PRNTR Crossover in 5 steps (12:00–13:15)
 
-1. **Read the big names with PRNTR.** Watch the stocks everyone talks about. When one makes its Turn, put it on your list.
+1. **Read the big names with PRNTR.** Watch the stocks everyone talks about. When one makes its Turn, put it on your list. Drop to the 1-hour chart for the entry, and aim for the floor of the big Box.
 2. **Watch that company's news.** A chart that's already weak plus a big headline gives you the biggest moves.
-3. **When the story breaks, search the names** on Pump.fun and FOMO: the person, the nickname, the joke everyone is making.
-4. **Pick the first coin with real volume**, not just the oldest. Check it isn't a scam. Buy small.
+3. **Set alerts on the names, and search them the same hour** on Pump.fun and FOMO: the person, the nickname, the people and companies in the story, the joke everyone is making.
+4. **Pick the first coin with real volume**, not just the oldest. Check it isn't a scam. Buy small, ideally in the quiet between headlines.
 5. **Watch for the second headline.** HUNG didn't move on the first story. It moved on the resignation. Sell into the attention.
 
-## [FACE] CTA (10:45–11:30)
+## [FACE] CTA (13:15–14:00)
 
 This is exactly the kind of thing I teach in the mentorship: the PRNTR charts, the memecoin side, and how to move money from one to the other.
 
@@ -111,4 +150,4 @@ None of this is financial advice. Memecoins are extremely risky, most go to zero
 
 ## Description box (paste)
 
-> Charts in this video use NVIDIA daily data (Yahoo Finance) and HUNG hourly data from its PumpSwap pool (GeckoTerminal), market cap = price × 1B supply. News details are as reported by the press; allegations are allegations. This video is education, not financial advice. Memecoins are extremely high risk and most go to zero. Past moves don't predict future ones.
+> Charts in this video use NVIDIA daily data (Yahoo Finance), NVIDIA 1-hour perpetual data (Bitunix NVDAUSDT), and HUNG and NVIDIA Files hourly data from their pools (GeckoTerminal), market cap = price × 1B supply. News details are as reported by the press; allegations are allegations. This video is education, not financial advice. Memecoins are extremely high risk and most go to zero. Past moves don't predict future ones.

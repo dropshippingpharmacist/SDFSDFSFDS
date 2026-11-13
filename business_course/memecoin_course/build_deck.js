@@ -131,10 +131,10 @@ async function icon(name, color) {
     ["FaShieldHalved", "Lessons 1–2: safety and the game", "Wallets that can't take your savings with them, and how memecoin money is really made and lost."],
     ["FaFire", "Lessons 3–5: narratives, events and attention", "Spot the theme the market is about to care about, front-run dated events, and get in before the crowd."],
     ["FaMagnifyingGlass", "Lessons 6–7: find and vet the wallet", "DEX Screener's top traders, FOMO transaction patterns, and what they hold right now."],
-    ["FaRobot", "Lessons 8–11: copy, size, profit, the loop", "Copy the wallet with a bot, size small, take profit, and move it into leverage and your safe stack."],
+    ["FaRobot", "Lessons 8–12: copy, size, profit, the loop, a case study", "Copy with a bot, size small, take profit, move it into leverage, then see it all in a real trade."],
   ], 0.5, 1.45, 5.6, 0.92);
   card(s, 6.4, 1.45, 3.1, 3.55, "The promise", "Not that you'll win every coin. Most lose. You'll lose small on the losers, take real money off the winners, and move it somewhere safer every time.", { tcol: C.accent4 });
-  s.addNotes("Overview of the 11 lessons. Lesson 4 is front-running events; Lesson 11 is the money loop into leverage.");
+  s.addNotes("Overview of the 12 lessons. Lesson 4 is front-running events, Lesson 11 the money loop into leverage, Lesson 12 the NVIDIA × HUNG case study.");
 
   s = content("Read this before you start", "The honest warning");
   bigStat(s, 0.5, 1.5, 2.9, "Most", "memecoins go to zero. Some are built to steal from buyers.", C.accent5);
@@ -507,6 +507,73 @@ async function icon(name, color) {
   bigStat(s, 6.6, 1.5, 2.9, "20%", "stays for memecoins", C.accent1);
   bullets(s, ["Move funds to an exchange, never from the vault to a bot", "Pay yourself a fixed amount each month from the safe stack", "Never move money back in to win back a loss"], 0.5, 3.55, 9, 1.4, 14);
   check(s, "Is this close to your real split? Also how you bridge between chains and exchanges, step by step, for the screen recording.");
+
+  // ---------- CASE STUDY: THE PRNTR CROSSOVER ----------
+  const CS = "/home/user/SDFSDFSFDS/business_course/case_nvda_hung/";
+  section(11, "Case study: NVIDIA × HUNG", "The PRNTR Crossover: read a big stock's chart, then trade the memecoin wave its news creates.");
+
+  function side(s, x, w, items, size) {
+    s.addText(items.map(([h, b], i) => [
+      { text: h, options: { bold: true, color: C.background1, breakLine: true } },
+      { text: b, options: { color: C.background2, breakLine: i < items.length - 1, paraSpaceAfter: 8 } },
+    ]).flat(), { isTextBox: true, x, y: 1.35, w, h: 3.8, fontSize: size || 12, margin: 0, valign: "top" });
+  }
+
+  s = content("The chart turned before the news", "Lesson " + les);
+  s.addImage({ path: CS + "1_NVDA_PRNTR_box.png", x: 0.5, y: 1.35, w: 5.8, h: 3.74 });
+  side(s, 6.55, 2.95, [
+    ["The Box", "NVIDIA ranged between ~$168 and ~$212 for a year. Middle ~$190."],
+    ["Two Fake-Outs", "Above the ceiling in May and on Oct 6 ($243). Breakout buyers got trapped."],
+    ["The Return and the Turn", "Back inside by Oct 30. Nov 5 closed at $181.60, below the middle."],
+    ["Then the news", "The email to staff went public on Nov 8, three days after the Turn."],
+  ]);
+  s.addNotes("The point: the chart showed the buyers had stopped defending NVIDIA before anyone knew why. Never say we 'knew' about the scandal.");
+
+  s = content("Zoom in: the 1-hour Turn", "Lesson " + les);
+  s.addImage({ path: CS + "4_NVDA_1h_turn_and_coins.png", x: 0.5, y: 1.35, w: 6.45, h: 3.62 });
+  side(s, 7.15, 2.35, [
+    ["Small Box", "Floor $201.32, ceiling $210.28, two Fake-Outs above it on Nov 3 and Nov 4."],
+    ["Sell $200.63", "Nov 4, 20:00 UTC: the first hour closes below the small floor."],
+    ["Stop $207.30", "Just above the last failed bounce. Highest price after entry: $202.25."],
+    ["Target $168, +4.9R", "The big Box floor. Hit Nov 10, 16:00 UTC."],
+  ], 11);
+  s.addNotes("Hand-marked with the PRNTR rules on the 24/7 NVIDIA perpetual. It's a chart study, not a signal the bot sent. Example only: $1,000 at 5x would have been about +$813 at the target, or about -$166 at the stop. Notice the coin panel: when you'd have sold NVIDIA, no scandal coin existed yet.");
+
+  s = content("The coin, on the same clock", "Lesson " + les);
+  s.addImage({ path: CS + "2_NVDA_vs_HUNG.png", x: 0.5, y: 1.35, w: 5.8, h: 3.72 });
+  side(s, 6.55, 2.95, [
+    ["Nov 9", "HUNG starts trading around $44K, then fades."],
+    ["Nov 10–11", "Quiet at ~$9.7K for two days. Most people gave up."],
+    ["Nov 11, evening UTC", "Resignation news: ~$9.7K to ~$1M in about two hours."],
+    ["Nov 12", "Peak ~$1.29M. Now ~$193K."],
+  ]);
+  s.addNotes("$10 at ~$9.7K is about 0.1% of supply, about $1,330 at the peak. Selling at $600K–$800K turns it into about $600–$800. Nobody sells the top.");
+
+  s = content("Could we have seen the news coming?", "Lesson " + les);
+  s.addImage({ path: CS + "3_timeline_news_vs_coins.png", x: 0.5, y: 1.35, w: 5.9, h: 3.72 });
+  side(s, 6.6, 2.9, [
+    ["Oct 29", "The NYT reports a 'close relationship' with a Megaspeed executive. An 'Alice Huang' coin appears the same day."],
+    ["Nov 7", "The FT reports an intelligence memo. 'The NVIDIA Files' coin is made at ~$3.7K."],
+    ["Nov 8 → Nov 12", "The email, more reports, the resignation."],
+    ["The lesson", "The story leaked in pieces for two weeks. Each piece was a chance to be early."],
+  ], 11);
+  s.addNotes("Use 'reported' for everything beyond his own email. The spy part is an allegation.");
+
+  s = content("Catching the coins earlier", "Lesson " + les);
+  steps(s, [
+    ["Watch the Turns", "Keep a list of big names. When one makes its Turn, watch its news daily."],
+    ["Alert on the names", "Google Alerts and an X list: the CEO, nicknames, people and companies in the story."],
+    ["Search the same hour", "Every new name goes straight into Pump.fun and FOMO. Sort by oldest, check it's the OG."],
+    ["Buy in the quiet", "The cheapest entry is between headlines, when the coin has gone quiet."],
+    ["Sell the 2nd headline", "HUNG moved on the resignation, not the first story. Sell into that attention."],
+  ], 1.45, 3.5);
+  s.addNotes("This is the PRNTR Crossover playbook in five steps.");
+
+  s = content("The honest scorecard", "Lesson " + les);
+  card(s, 0.5, 1.4, 2.85, 3.5, "Worked", "The 1-hour Turn sold at $200.63, well before the news. HUNG went ~100x off its quiet price on the second headline.", { tcol: C.accent2 });
+  card(s, 3.575, 1.4, 2.85, 3.5, "Didn't", "The Oct 29 'Alice Huang' coin died. 'The NVIDIA Files' only went from ~$3.7K to ~$17K. The first 'HUNG' from June went nowhere.", { tcol: C.accent5 });
+  card(s, 6.65, 1.4, 2.85, 3.5, "So", "First isn't always the winner. Spread a few dollars across the story's coins, and size up only on the one getting real volume and holders.", { tcol: C.accent4 });
+  s.addNotes("Keep it honest: one big winner, several small losers. That's the game.");
 
   // ---------- CLOSE ----------
   pres.addSection({ title: "Close" });
