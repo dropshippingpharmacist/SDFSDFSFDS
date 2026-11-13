@@ -10,16 +10,16 @@ There are only two things for sale to the public, plus one thing only students c
 
 | | What | Price | Who gets it |
 |---|---|---|---|
-| **Main offer** | 1-on-1 Mentorship, 90 days | **$5,000** pay in full, or **2 × $3,000**, or **3 × $2,200** | Pitched on every call |
-| **Downsell** | The PRNTR Method course + 60 days of signals | **$997**, or **2 × $600** | Only people who can't afford or don't want 1-on-1 |
+| **Main offer** | 1-on-1 Mentorship, 90 days: memecoins + copy trading, leverage, and the money loop between them | **$3,000** pay in full, or **2 × $1,700**, or **3 × $1,200** | Pitched on every call |
+| **Downsell** | Both courses: the memecoin and copy trading course + the PRNTR trading course | **$997**, or **2 × $550** | Only people who can't afford or don't want 1-on-1 |
 | **Student-only** | Signals after the mentorship ends | **$149 / month**, or a **limited lifetime seat at $2,500** (max 25) | Offered in week 10–12 |
 
 ### Why these prices (his rules)
 
 - **Start with 1-on-1.** He says it's the easiest to sell at the start and gives the best results and testimonials. Under $10K/month you sell it yourself.
-- **$4K–$6K is the normal range** for a first trading mentorship. $5,000 sits in the middle.
+- **$4K–$6K is his normal range** for a first trading mentorship. You've set **$3,000**, which is easier to sell while your audience and testimonials grow. His own check says when to raise it: once you close more than 60% of calls, or 1-on-1 starts filling up.
 - **Payment plans always cost more than paying in full**, and more the more it's split, so paying in full looks best.
-- **Pay-in-full clearance:** anyone on a plan can pay off the rest at the pay-in-full price within 30 days. Example: paid $3,000, clears with $2,000 instead of another $3,000. He says this lifts cash and plan completion.
+- **Pay-in-full clearance:** anyone on a plan can pay off the rest at the pay-in-full price within 30 days. Example: paid $1,700, clears with $1,300 instead of another $1,700. He says this lifts cash and plan completion.
 - **Downsell at $500–$1,000**, with no calls, so it costs you no time. $997 fits.
 - **Never sell lifetime coaching or lifetime community.** That's why lifetime is only for signals, capped, and worded "for the life of the service".
 
@@ -27,7 +27,7 @@ There are only two things for sale to the public, plus one thing only students c
 
 1. **Close rate:** over 60–80% of calls = raise the price. Under 20–30% = too high, or the wrong people are booking.
 2. **Cash vs contract value:** if over 90% of the contract value is collected up front, you're underpriced.
-3. **Your hourly rate:** $5,000 ÷ about 15 hours of your time per student ≈ $333/hour. When your time is worth more than that, raise the price.
+3. **Your hourly rate:** $3,000 ÷ about 15 hours of your time per student ≈ $200/hour. When your time is worth more than that, raise the price.
 
 ### The mentorship: what's inside
 
@@ -44,7 +44,7 @@ There are only two things for sale to the public, plus one thing only students c
 
 ### The course: what's inside
 
-15 modules (Part 1 is done: mindset, reading the chart, the Box, the Fake-Out and Return), workbook, slides, 60 days of signals. What they paid counts toward the mentorship if they upgrade within 90 days.
+Two courses for $997: **the memecoin and copy trading course** (8 lessons: security and scams, finding and checking wallets, copy trading in practice, entering while the hype builds, taking profit, moving profits out) and **the PRNTR trading course** (15 modules; Part 1 is done). No signals, no calls. What they paid counts toward the mentorship if they upgrade within 90 days.
 
 ---
 
@@ -55,11 +55,11 @@ Reel / short / YouTube / story
   → "DM me BOT" (ManyChat)  or  link in bio / description
       → Free guide + 6 emails + free Discord        (not ready yet)
       → prntr site → watch video → APPLY
-          → budget $3K+ and not brand new  → BOOK A CALL (next 4 days) → "You're booked" page → reminders → CALL
+          → budget $1K–$3K or more, not brand new → BOOK A CALL (next 4 days) → "You're booked" page → reminders → CALL
                 → buys mentorship (pay in full / 2-pay / 3-pay)
                 → can't afford → course offered on the call
                 → not now → follow-up messages, then the email list
-          → under $3K or brand new  → COURSE PAGE ($997)
+          → under $1K or brand new  → COURSE PAGE ($997)
                 → you message them anyway: some understated
                 → course buyers → upgrade offer later
   → student → onboarding → 90 days → results interview → signals offer
@@ -81,10 +81,10 @@ Reel / short / YouTube / story
 
 ### Who gets a call
 
-- Budget answer $3,000 or more, and not "new to trading" → booking page.
+- Budget answer "$1,000–$3,000" or higher, and not "new to trading" → booking page. The 2-payment plan starts at $1,700, so these people can buy on the call.
 - Everyone else → course page.
 
-His filter was under $1,000. I set it at $3,000 because your cheapest mentorship plan starts at $3,000. Change `minBudget` in `config.js` if you want more calls.
+This matches his filter (under $1,000 goes to the downsell). Change `minBudget` in `config.js` if you want it stricter.
 
 **I left out his country filter on purpose.** The budget question already does that job person by person.
 
@@ -105,7 +105,7 @@ His filter was under $1,000. I set it at $3,000 because your cheapest mentorship
 
 ### Keeping every application, including people who don't book
 
-Without this, people sent to the course page leave no record. Free option: make a **Formspree** form (or a Make/Zapier webhook into a Google Sheet) and paste its URL into `config.js` → `formEndpoint`. Every application then lands in your inbox or sheet, and you can message the "under $3K" ones; he says some understate.
+Without this, people sent to the course page leave no record. Free option: make a **Formspree** form (or a Make/Zapier webhook into a Google Sheet) and paste its URL into `config.js` → `formEndpoint`. Every application then lands in your inbox or sheet, and you can message the "under $1K" ones; he says some understate.
 
 ### Videos you need to record
 
@@ -113,7 +113,7 @@ Without this, people sent to the course page leave no record. Free option: make 
 |---|---|---|---|
 | Apply video | 5–8 min | Script already written (Day 2 kit). Its only job is the click on "Apply". | `vslLanding` |
 | Before-the-call video | 10–15 min | How the 90 days work, what they get, who it's for, student results, what happens on the call. | `vslBooked` |
-| Course video | 3–5 min | What's in the course, who it's for, the 60 days of signals, upgrade credit. | `vslCourse` |
+| Course video | 3–5 min | What's in both courses, who they're for, the upgrade credit. | `vslCourse` |
 | 3 pre-call videos | 5 min each | Overtrading · sizing and liquidation · giving back profits. Sent before the call to match their struggle. | Sent by message |
 
 ---
