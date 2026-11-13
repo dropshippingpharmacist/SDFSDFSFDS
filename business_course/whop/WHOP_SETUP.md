@@ -32,3 +32,17 @@ Docs: https://docs.whop.com/api-reference/products/create-product · https://doc
 3. Owner or Claude: set `PRNTR_SIGNALS_CHAT_ID` (the channel id, e.g. `-100…`) on the Render service
    `excellentnqtct-va` (srv-dbchiafb9u1s73bgavog). The bot (`prntr_signals.py`) then posts every Grade A signal there.
 4. Mentorship students get the signals free: add them to the channel by hand or give them a free Whop plan.
+
+## Done 2026-11-13 (via the API)
+Product **PRNTR Signals** `prod_aYHeN67sVN6Yl` (route `prntr-signals`, visible) on business PRNTR.ai `biz_HITwUZyiBn2jOo`.
+The old archived "PRNTR AI Trading Signals Group" (`prod_CmxVMi4efkkzf`, 3 members) was left untouched.
+
+| Plan | Id | Checkout |
+|---|---|---|
+| 1 Day Pass $9.99 (one-time, 1 day access) | plan_M1i7PpdNlNRhe | https://whop.com/checkout/plan_M1i7PpdNlNRhe |
+| Weekly $35 | plan_LLii730Boa2we | https://whop.com/checkout/plan_LLii730Boa2we |
+| Monthly $125 | plan_5P6kMVbpLNckw | https://whop.com/checkout/plan_5P6kMVbpLNckw |
+| 3 Months $300 | plan_8LlB6MUwp5JD1 | https://whop.com/checkout/plan_8LlB6MUwp5JD1 |
+| Lifetime $500 (one-time) | plan_soJuhgMrHfa3e | https://whop.com/checkout/plan_soJuhgMrHfa3e |
+
+The links are live in `prntr_site/config.js`. Still to do in the Whop dashboard: Telegram app + channel, bot as admin.
