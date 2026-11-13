@@ -91,16 +91,17 @@ a2.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, p: f"${v/
 a2.set_ylabel("Memecoin market cap (log)", fontsize=12)
 a2.axvspan(X0, ft[0], color="#1A2350", alpha=0.55)
 a2.text(T(2026, 11, 1, 0), 9000, "No NVIDIA scandal coin is trading yet.\nYou're already short from the chart.", color=MUTE, fontsize=11.5, fontweight="bold")
+a2.axvspan(T(2026, 11, 10, 15), T(2026, 11, 11, 21), color=GREEN, alpha=0.13)
 a2.legend(loc="upper left", facecolor=BG, edgecolor="#2A3360", labelcolor=INK, fontsize=10.5)
 
 def at(ts, vals, t):
     v = [c for x, c in zip(ts, vals) if x <= t]
     return v[-1] if v else None
 for t, lab, col, ty in ((T(2026, 11, 9, 4), "HUNG starts trading\n~\\$44K", GREEN, 300_000),
-                        (TARGET_T, f"NVDA target hit:\nHUNG ~\\${at(ht, hc, TARGET_T)/1e3:.1f}K", CYAN, 150_000),
+                        (TARGET_T, "Close the NVDA short at \\$168,\nbuy HUNG under \\$10K\n(~30 hours of chances)", CYAN, 1_500_000),
                         (T(2026, 11, 12, 14), "NVDA wick to \\$149:\nHUNG ~\\$942K", PURPLE, 2_600_000)):
     y = at(ht, hc, t) if t != T(2026, 11, 9, 4) else 43_800
-    dx = dt.timedelta(hours=-4) if t == TARGET_T else dt.timedelta(hours=30)
+    dx = {TARGET_T: dt.timedelta(hours=20), T(2026, 11, 12, 14): dt.timedelta(hours=-22)}.get(t, dt.timedelta(hours=30))
     a2.annotate(lab, xy=(t, y), xytext=(t - dx, ty), color=col, fontsize=10.5, fontweight="bold",
                 ha="center", arrowprops=dict(arrowstyle="-|>", color=col, lw=1.2))
 a2.annotate("NVIDIA Files coin made Nov 7\n~\\$3.7K", xy=(ft[0], 3650), xytext=(T(2026, 11, 5, 6), 40_000), color=GOLD,

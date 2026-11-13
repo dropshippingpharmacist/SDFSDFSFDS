@@ -1,6 +1,6 @@
 # YouTube script: "NVIDIA's chart broke before the scandal. A memecoin about it went 100x."
 
-**Format:** about 13–15 minutes. `[FACE]` = camera, `[CHART 1]` = `1_NVDA_PRNTR_box.png`, `[CHART 2]` = `2_NVDA_vs_HUNG.png`, `[CHART 3]` = `3_timeline_news_vs_coins.png`, `[CHART 4]` = `4_NVDA_1h_turn_and_coins.png`, `[SCREEN]` = live screen recording.
+**Format:** about 15 minutes. `[FACE]` = camera, `[CHART 1]` = `1_NVDA_PRNTR_box.png`, `[CHART 2]` = `2_NVDA_vs_HUNG.png`, `[CHART 3]` = `3_timeline_news_vs_coins.png`, `[CHART 4]` = `4_NVDA_1h_turn_and_coins.png`, `[SCREEN]` = live screen recording.
 
 **The name for this style:** the **PRNTR Crossover**: read a big stock's chart with PRNTR, then trade the memecoin wave its news creates.
 
@@ -120,7 +120,7 @@ So the rule isn't just "buy the oldest one." The rule is: **when the story break
 
 And search "JENSEN": dozens of copies made in the last few days, most sitting at two to five thousand dollars. That's what most of these become.
 
-## [FACE] Part 5: The real math (11:00–12:00)
+## [FACE] Part 5: The real math (11:00–11:45)
 
 Let's be honest about the numbers, because this is where people get lied to.
 
@@ -130,7 +130,26 @@ Let's be honest about the numbers, because this is where people get lied to.
 
 Small amounts, big multiples. That's the game. But for every HUNG there are dozens of coins that go to zero, so you only ever put in money you're fine losing.
 
-## [FACE] Part 6: The PRNTR Crossover in 5 steps (12:00–13:15)
+## [CHART 4] Part 5b: Both trades, one story (11:45–13:15)
+
+[CHART 4: point at the top panel, then the bottom panel, on the same dates.]
+
+Now let me put the two worlds together, step by step, because this is the whole point of the PRNTR Crossover. All times are UTC.
+
+- **November 4th, 8pm.** The 1-hour Turn. I sell NVIDIA at $200.63, stop at $207.30, target $168. There is **no scandal coin yet**, so there's nothing to buy. What I do is set alerts on every name in the story so far: Alice Huang, Megaspeed.
+- **November 7th, 9am.** I'm already in profit, NVIDIA's around $188. The FT report drops, and "The NVIDIA Files" coin gets made at about $3,700. A few dollars at most. It only made it to about $17K.
+- **November 8th, 8pm.** The email news. NVIDIA drops from $187.88 to $180.67 in one hour. I'm searching "Huang", "Jensen" and "Hung" on Pump.fun and FOMO.
+- **November 9th, 4am.** HUNG shows up at about $44K. I don't chase it. I watch it.
+- **November 10th, 4pm.** NVIDIA hits $168. I close the short: **4.9 times my risk.** And look at the bottom panel: HUNG has faded **under $10K**. It sat under ten thousand for about 30 hours, as low as $7,800. That's when I take a small slice of the NVIDIA profit and buy HUNG.
+- **November 11th, 9pm.** The resignation hits. HUNG goes from about $9,700 to nearly $1 million in two hours. I sell in pieces between $600K and $800K.
+
+Example numbers: $1,000 at 5x on the NVIDIA short makes about $813. Put $50 of that into HUNG at about $9K, that's about half a percent of the supply. Sell it at $700K and that $50 is about **$3,900**.
+
+One honest warning: while HUNG was quiet, it only traded $50 to $160 an hour. So you buy small, or you'll move the price yourself.
+
+And if you'd rather use a **put option** on NVIDIA instead of a short, it does the same job: it makes money when NVIDIA falls, and the most you can lose is what you paid for it. You still pick the strike and the expiry yourself; the numbers I just gave you are for the short.
+
+## [FACE] Part 6: The PRNTR Crossover in 5 steps (13:15–14:15)
 
 1. **Read the big names with PRNTR.** Watch the stocks everyone talks about. When one makes its Turn, put it on your list. Drop to the 1-hour chart for the entry, and aim for the floor of the big Box.
 2. **Watch that company's news.** A chart that's already weak plus a big headline gives you the biggest moves.
@@ -138,7 +157,7 @@ Small amounts, big multiples. That's the game. But for every HUNG there are doze
 4. **Pick the first coin with real volume**, not just the oldest. Check it isn't a scam. Buy small, ideally in the quiet between headlines.
 5. **Watch for the second headline.** HUNG didn't move on the first story. It moved on the resignation. Sell into the attention.
 
-## [FACE] CTA (13:15–14:00)
+## [FACE] CTA (14:15–15:00)
 
 This is exactly the kind of thing I teach in the mentorship: the PRNTR charts, the memecoin side, and how to move money from one to the other.
 

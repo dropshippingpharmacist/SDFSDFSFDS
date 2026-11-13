@@ -569,6 +569,27 @@ async function icon(name, color) {
   ], 1.45, 3.5);
   s.addNotes("This is the PRNTR Crossover playbook in five steps.");
 
+  s = content("Both trades, one story, step by step", "Lesson " + les);
+  {
+    const H = (t) => ({ text: t, options: { bold: true, color: HEX.lt1, fill: { color: HEX.dk2 } } });
+    const rows = [
+      [H("Time (UTC)"), H("NVIDIA: the short"), H("The coins")],
+      ["Nov 4, 20:00", "The 1-hour Turn. Sell \$200.63, stop \$207.30, target \$168.", "None exist yet. Set alerts on every name in the story (Alice Huang, Megaspeed)."],
+      ["Nov 7, 09:00", "In profit, around \$188.", "FT report. 'The NVIDIA Files' made at ~\$3.7K. A few dollars at most (it peaked ~\$17K)."],
+      ["Nov 8, 20:00", "Email news: \$187.88 to \$180.67 in one hour.", "Search Huang, Jensen, Hung on Pump.fun and FOMO."],
+      ["Nov 9, 04:00", "Around \$179.", "HUNG appears at ~\$44K. Don't chase. Watch it."],
+      ["Nov 10, 16:00", "Target \$168 hit. Close it: +4.9R.", "HUNG is under \$10K (low ~\$7.8K). Buy with a slice of the profit."],
+      ["Nov 11, 21:00", "Done.", "Resignation: ~\$9.7K to ~\$995K in two hours. Sell in pieces at \$600K–\$800K."],
+    ].map((r, i) => i === 0 ? r : r.map((c, j) => ({ text: c, options: { color: j === 0 ? HEX.accent1 : HEX.lt1, bold: j === 0, fill: { color: i % 2 ? HEX.accent6 : HEX.dk1 } } })));
+    s.addTable(rows, { x: 0.5, y: 1.3, w: 9, colW: [1.25, 3.4, 4.35], fontSize: 10.5, rowH: 0.42, valign: "middle", margin: [2, 6, 2, 6],
+      border: { type: "solid", pt: 0.75, color: HEX.dk2 }, fontFace: "Calibri" });
+  }
+  s.addText([
+    { text: "Example: ", options: { bold: true, color: C.accent4 } },
+    { text: "\$1,000 at 5x on the short makes about \$813. Put \$50 of it into HUNG at ~\$9K (about 0.55% of the supply) and selling at \$700K pays about \$3,900. HUNG only traded \$50–\$160 an hour while it was quiet, so buy small or you'll move the price yourself.", options: { color: C.background2 } },
+  ], { isTextBox: true, x: 0.5, y: 4.4, w: 9, h: 0.75, fontSize: 11.5, margin: 0, valign: "top" });
+  s.addNotes("The short pays for the coin. A put option does the same job as the short (it gains when NVIDIA falls, and you can only lose what you paid for it), but you have to choose the strike and expiry. These numbers are for the perpetual short, not a put.");
+
   s = content("The honest scorecard", "Lesson " + les);
   card(s, 0.5, 1.4, 2.85, 3.5, "Worked", "The 1-hour Turn sold at $200.63, well before the news. HUNG went ~100x off its quiet price on the second headline.", { tcol: C.accent2 });
   card(s, 3.575, 1.4, 2.85, 3.5, "Didn't", "The Oct 29 'Alice Huang' coin died. 'The NVIDIA Files' only went from ~$3.7K to ~$17K. The first 'HUNG' from June went nowhere.", { tcol: C.accent5 });
