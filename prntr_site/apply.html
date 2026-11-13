@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Apply · PRNTR.AI Mentorship</title>
+  <meta name="description" content="Apply for the PRNTR.AI 1-on-1 leverage trading mentorship.">
+  <meta property="og:title" content="Apply · PRNTR.AI Mentorship">
+  <meta property="og:description" content="Apply for the PRNTR.AI 1-on-1 leverage trading mentorship.">
+  <meta property="og:image" content="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/banner.jpg?v=1777219122">
+  <meta name="twitter:card" content="summary_large_image">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+</head>
+<body>
+<div id="modal" class="modal" onclick="this.style.display='none'"><img id="modalImg" alt=""></div>
+<div class="container">
+  <div class="topbar"><a href="index.html"><img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/banner.jpg?v=1777219122" alt="PRNTR.AI"></a></div>
+
+  <div class="apply-wrap">
+    <span class="eyebrow">APPLICATION · 2 MINUTES</span>
+    <h1 style="font-size:2rem;">Let's see if this is a fit</h1>
+    <div class="progress"><i id="bar"></i></div>
+    <form id="app" novalidate>
+      <div class="q" data-k="name"><h3>What's your first name?</h3><input name="name" autocomplete="given-name" required></div>
+      <div class="q" data-k="contact"><h3>Where can I reach you?</h3><p class="hint">Your booking confirmation and call link go here.</p>
+        <input name="email" type="email" placeholder="Email" autocomplete="email" required>
+        <input name="phone" type="tel" placeholder="Phone (for call reminders)" autocomplete="tel" required>
+        <input name="instagram" placeholder="Instagram handle (optional)"></div>
+      <div class="q" data-k="stage"><h3>Which describes you best?</h3>
+        <button type="button" class="opt" data-v="New to trading">New to trading</button>
+        <button type="button" class="opt" data-v="Trading under a year">Trading under a year</button>
+        <button type="button" class="opt" data-v="Trading 1+ years, not yet profitable">Trading 1+ years, not yet profitable</button>
+        <button type="button" class="opt" data-v="Profitable, want to scale">Profitable, want to scale</button></div>
+      <div class="q" data-k="struggle"><h3>What's your biggest struggle with trading right now?</h3><p class="hint">Be honest. This is what we'll work on.</p><textarea name="struggle" required></textarea></div>
+      <div class="q" data-k="goal"><h3>What's your goal, and why now?</h3><textarea name="goal" required></textarea></div>
+      <div class="q" data-k="invest"><h3>This is 1-on-1 mentorship, not a signals group. What can you invest in getting this right?</h3>
+        <button type="button" class="opt" data-v="Under $1,000" data-n="500">Under $1,000</button>
+        <button type="button" class="opt" data-v="$1,000 – $3,000" data-n="2000">$1,000 – $3,000</button>
+        <button type="button" class="opt" data-v="$3,000 – $5,000" data-n="4000">$3,000 – $5,000</button>
+        <button type="button" class="opt" data-v="$5,000+" data-n="6000">$5,000+</button></div>
+      <div class="q" data-k="ready"><h3>If we're a fit, are you ready to start in the next 7 days?</h3>
+        <button type="button" class="opt" data-v="Yes">Yes</button>
+        <button type="button" class="opt" data-v="Not sure yet">Not sure yet</button></div>
+      <div class="err" id="err" role="alert"></div>
+      <div class="qnav"><button type="button" class="back" id="back">← Back</button><button type="button" class="btn btn-main" id="next">Next</button></div>
+    </form>
+  </div>
+
+  <footer>
+    <p>© 2026 PRNTR.AI · Doctor founder, from pharmacy to full-time trading.</p>
+    <p><a href="https://x.com/prntrai" target="_blank" rel="noopener">@prntrai on X</a> · <a href="#" class="ig-link" target="_blank" rel="noopener">Instagram</a></p>
+    <p>Trading, and especially leverage trading, carries a high risk of loss; you can lose more than you deposit. Past results, mine, students' or the signals', do not guarantee future results, and the results shown are not typical. This is education, not financial advice.</p>
+    <p>This site is not part of Facebook™ or Meta™.</p>
+  </footer>
+</div>
+<script>
+  document.querySelectorAll('[data-zoom]').forEach(function (img) {
+    img.addEventListener('click', function (e) { e.stopPropagation(); document.getElementById('modalImg').src = img.src; document.getElementById('modal').style.display = 'flex'; });
+  });
+  document.querySelectorAll('.ig-link').forEach(function (a) { a.href = 'https://instagram.com/' + PRNTR.instagram; });
+  document.querySelectorAll('.ig-handle').forEach(function (e) { e.textContent = '@' + PRNTR.instagram; });
+  document.querySelectorAll('.spots-n').forEach(function (e) { e.textContent = PRNTR.spotsPerMonth; });
+
+  (function () {
+    var qs = [].slice.call(document.querySelectorAll('.q')), i = 0, ans = {};
+    var bar = document.getElementById('bar'), err = document.getElementById('err');
+    var next = document.getElementById('next'), back = document.getElementById('back');
+    try { var saved = JSON.parse(sessionStorage.getItem('prntr_app') || '{}'); ans = saved || {}; } catch (e) { ans = {}; }
+    function show(n) {
+      qs.forEach(function (q, k) { q.classList.toggle('on', k === n); });
+      bar.style.width = Math.round(100 * n / qs.length) + '%';
+      back.style.visibility = n ? 'visible' : 'hidden';
+      next.textContent = n === qs.length - 1 ? 'Submit' : 'Next';
+      next.style.display = qs[n].querySelector('.opt') ? 'none' : '';
+      var f = qs[n].querySelector('input, textarea'); if (f) setTimeout(function () { f.focus(); }, 50);
+      err.textContent = '';
+    }
+    function save() { try { sessionStorage.setItem('prntr_app', JSON.stringify(ans)); } catch (e) {} }
+    function valid(q) {
+      var ok = true;
+      q.querySelectorAll('input[required], textarea[required]').forEach(function (f) {
+        var v = f.value.trim(); ans[f.name] = v;
+        if (!v || (f.type === 'email' && !/^\S+@\S+\.\S+$/.test(v)) || (f.type === 'tel' && v.replace(/\D/g, '').length < 7)) ok = false;
+      });
+      q.querySelectorAll('input:not([required])').forEach(function (f) { ans[f.name] = f.value.trim(); });
+      if (!ok) err.textContent = 'Please fill this in to continue.';
+      return ok;
+    }
+    function go() { if (!valid(qs[i])) return; save(); if (i < qs.length - 1) { i++; show(i); } else finish(); }
+    next.onclick = go;
+    back.onclick = function () { if (i) { i--; show(i); } };
+    document.getElementById('app').addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); go(); } });
+    qs.forEach(function (q) {
+      q.querySelectorAll('.opt').forEach(function (b) {
+        b.onclick = function () {
+          q.querySelectorAll('.opt').forEach(function (x) { x.classList.remove('sel'); });
+          b.classList.add('sel'); ans[q.dataset.k] = b.dataset.v; if (b.dataset.n) ans.investN = +b.dataset.n;
+          save(); setTimeout(go, 220);
+        };
+      });
+    });
+    function finish() {
+      var qualified = (ans.investN || 0) >= PRNTR.minBudget && ans.stage !== 'New to trading';
+      ans.qualified = qualified; ans.submitted = new Date().toISOString(); save();
+      var done = function () { location.href = qualified ? 'book.html' : 'course.html?from=apply'; };
+      if (PRNTR.formEndpoint) {
+        fetch(PRNTR.formEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(ans) })
+          .then(done, done);
+      } else { done(); }
+    }
+    show(0);
+  })();
+</script>
+</body>
+</html>

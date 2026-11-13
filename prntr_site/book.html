@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Book your call · PRNTR.AI</title>
+  <meta name="description" content="Pick a time for your PRNTR.AI mentorship call.">
+  <meta property="og:title" content="Book your call · PRNTR.AI">
+  <meta property="og:description" content="Pick a time for your PRNTR.AI mentorship call.">
+  <meta property="og:image" content="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/banner.jpg?v=1777219122">
+  <meta name="twitter:card" content="summary_large_image">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+</head>
+<body>
+<div id="modal" class="modal" onclick="this.style.display='none'"><img id="modalImg" alt=""></div>
+<div class="container">
+  <div class="topbar"><a href="index.html"><img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/banner.jpg?v=1777219122" alt="PRNTR.AI"></a></div>
+
+  <span class="eyebrow">YOU'RE APPROVED TO BOOK</span>
+  <h1 style="font-size:2rem;">Pick a time for your call</h1>
+  <p class="lead">45 minutes with me. We'll go through your trading, your goal and what's stopping you. If I can help, I'll show you exactly how.</p>
+  <p class="small mute">Times are shown in your time zone. Only the next few days are open, so pick the first time that works.</p>
+  <div id="cal" class="calendly-inline-widget"></div>
+  <p class="small mute center">Can't see the calendar? <a id="calLink" href="#" target="_blank" rel="noopener">Open it here</a>.</p>
+
+  <footer>
+    <p>© 2026 PRNTR.AI · Doctor founder, from pharmacy to full-time trading.</p>
+    <p><a href="https://x.com/prntrai" target="_blank" rel="noopener">@prntrai on X</a> · <a href="#" class="ig-link" target="_blank" rel="noopener">Instagram</a></p>
+    <p>Trading, and especially leverage trading, carries a high risk of loss; you can lose more than you deposit. Past results, mine, students' or the signals', do not guarantee future results, and the results shown are not typical. This is education, not financial advice.</p>
+    <p>This site is not part of Facebook™ or Meta™.</p>
+  </footer>
+</div>
+<script>
+  document.querySelectorAll('[data-zoom]').forEach(function (img) {
+    img.addEventListener('click', function (e) { e.stopPropagation(); document.getElementById('modalImg').src = img.src; document.getElementById('modal').style.display = 'flex'; });
+  });
+  document.querySelectorAll('.ig-link').forEach(function (a) { a.href = 'https://instagram.com/' + PRNTR.instagram; });
+  document.querySelectorAll('.ig-handle').forEach(function (e) { e.textContent = '@' + PRNTR.instagram; });
+  document.querySelectorAll('.spots-n').forEach(function (e) { e.textContent = PRNTR.spotsPerMonth; });
+
+  (function () {
+    var a = {}; try { a = JSON.parse(sessionStorage.getItem('prntr_app') || '{}'); } catch (e) {}
+    var p = new URLSearchParams({ hide_gdpr_banner: '1', background_color: '0a0a1a', text_color: 'ffffff', primary_color: '2aabe3' });
+    if (a.name) p.set('name', a.name); if (a.email) p.set('email', a.email);
+    // a1..a5 = the Calendly event's custom questions, in this order (see the blueprint)
+    if (a.phone) p.set('a1', a.phone);
+    if (a.stage) p.set('a2', a.stage);
+    if (a.struggle) p.set('a3', a.struggle);
+    if (a.goal) p.set('a4', a.goal);
+    if (a.invest) p.set('a5', a.invest + (a.instagram ? ' · IG @' + a.instagram.replace(/^@/, '') : ''));
+    var url = PRNTR.calendly + '?' + p.toString();
+    document.getElementById('calLink').href = url;
+    var cal = document.getElementById('cal');
+    var f = document.createElement('iframe'); f.src = url + '&embed_type=Inline&embed_domain=' + location.hostname;
+    f.style.cssText = 'width:100%;height:100%;border:0'; f.title = 'Book your call'; cal.appendChild(f);
+    window.addEventListener('message', function (e) {
+      if (e.data && e.data.event === 'calendly.event_scheduled') location.href = 'booked.html';
+    });
+  })();
+</script>
+</body>
+</html>

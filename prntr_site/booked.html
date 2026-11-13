@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>You're booked · PRNTR.AI</title>
+  <meta name="description" content="Your PRNTR.AI mentorship call is booked.">
+  <meta property="og:title" content="You're booked · PRNTR.AI">
+  <meta property="og:description" content="Your PRNTR.AI mentorship call is booked.">
+  <meta property="og:image" content="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/banner.jpg?v=1777219122">
+  <meta name="twitter:card" content="summary_large_image">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+</head>
+<body>
+<div id="modal" class="modal" onclick="this.style.display='none'"><img id="modalImg" alt=""></div>
+<div class="container">
+  <div class="topbar"><a href="index.html"><img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/banner.jpg?v=1777219122" alt="PRNTR.AI"></a></div>
+
+  <span class="eyebrow">YOU'RE BOOKED</span>
+  <h1 style="font-size:2rem;">Congratulations, your call is booked</h1>
+  <p class="lead">Most people who apply aren't a fit. You are one of the few I'm speaking with this week. Two things before our call:</p>
+
+  <div class="stepline">1 · Watch this before our call</div>
+  <div class="vsl" id="bookedVslWrap"><iframe id="vslBooked" allow="autoplay; encrypted-media" allowfullscreen title="Before our call"></iframe></div>
+  <p class="small mute">How the 90 days work, what you get, who it's for, and what happens on the call. About 10 minutes.</p>
+
+  <div class="stepline">2 · Confirm your spot</div>
+  <div class="yes-box">
+    <p><b>Find the confirmation email and reply "YES".</b></p>
+    <p class="small mute">It confirms you'll be there and keeps my emails out of your spam folder. Check spam or promotions if you can't see it.</p>
+  </div>
+
+  <section class="box">
+    <h3>Come prepared</h3>
+    <ul class="check checklist">
+      <li>Join from a quiet place on a laptop or phone, not while driving</li>
+      <li>Have your last few trades in front of you, or your exchange history</li>
+      <li>Know roughly what you've made and lost this year</li>
+      <li>If someone else is part of money decisions, have them on the call</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>While you wait</h2>
+    <div class="grid-2">
+      <div class="box"><h3>A student: $2K → $250,000</h3><img class="proof-img" src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/ije.jpg?v=1778517168" alt="Student result" data-zoom></div>
+      <div class="box"><h3>Luke Belmar asked where I went</h3><img class="proof-img" src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/Screenshot_2026-04-26_at_10.21.16_AM.png?v=1777213316" alt="Luke Belmar's message" data-zoom></div>
+    </div>
+    <p class="center" style="margin-top:1rem;">See every Grade A signal, wins and losses, on the <a href="index.html#tracker">live tracker</a>.</p>
+  </section>
+
+  <footer>
+    <p>© 2026 PRNTR.AI · Doctor founder, from pharmacy to full-time trading.</p>
+    <p><a href="https://x.com/prntrai" target="_blank" rel="noopener">@prntrai on X</a> · <a href="#" class="ig-link" target="_blank" rel="noopener">Instagram</a></p>
+    <p>Trading, and especially leverage trading, carries a high risk of loss; you can lose more than you deposit. Past results, mine, students' or the signals', do not guarantee future results, and the results shown are not typical. This is education, not financial advice.</p>
+    <p>This site is not part of Facebook™ or Meta™.</p>
+  </footer>
+</div>
+<script>
+  document.querySelectorAll('[data-zoom]').forEach(function (img) {
+    img.addEventListener('click', function (e) { e.stopPropagation(); document.getElementById('modalImg').src = img.src; document.getElementById('modal').style.display = 'flex'; });
+  });
+  document.querySelectorAll('.ig-link').forEach(function (a) { a.href = 'https://instagram.com/' + PRNTR.instagram; });
+  document.querySelectorAll('.ig-handle').forEach(function (e) { e.textContent = '@' + PRNTR.instagram; });
+  document.querySelectorAll('.spots-n').forEach(function (e) { e.textContent = PRNTR.spotsPerMonth; });
+
+  (function () {
+    var v = PRNTR.vslBooked || PRNTR.vslLanding;
+    document.getElementById('vslBooked').src = v + '?rel=0&modestbranding=1';
+  })();
+</script>
+</body>
+</html>
