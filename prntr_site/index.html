@@ -45,6 +45,21 @@
     <p class="small mute" id="tkNote" style="margin-top:0.8rem;"></p>
   </section>
 
+  <!-- SIGNALS ONLY -->
+  <section class="box signals" id="signals">
+    <h2>Just want the signals?</h2>
+    <p class="center mute small">The same Grade A signals tracked above, sent to a private Telegram channel the moment they confirm: the market, long or short, the entry, the stop, the target and a clean chart. Crypto, stocks, forex, metals and oil. Included free for mentorship students.</p>
+    <div class="plans">
+      <a class="plan" data-plan="day" href="#"><b>$9.99</b><span>1 day</span></a>
+      <a class="plan" data-plan="week" href="#"><b>$35</b><span>per week</span></a>
+      <a class="plan best" data-plan="month" href="#"><em>Most popular</em><b>$125</b><span>per month</span></a>
+      <a class="plan" data-plan="quarter" href="#"><b>$300</b><span>3 months</span></a>
+      <a class="plan" data-plan="lifetime" href="#"><b>$500</b><span>lifetime</span></a>
+    </div>
+    <p class="small center" id="plansSoon" hidden>Checkout opens soon. DM <b>SIGNALS</b> on Instagram to get the link first.</p>
+    <p class="small mute center">Checkout and channel access through Whop. Cancel any time. Education only, not financial advice; some signals lose.</p>
+  </section>
+
   <!-- DOCTOR STORY -->
   <section class="box glow doctor center">
     <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/doctor.jpg?v=1780088757" alt="The founder in his white coat" data-zoom>
@@ -253,7 +268,8 @@
     <div class="faq"><b>When do the signals arrive?</b>The moment a setup confirms, and only while price is still at the entry. If price has already moved away, the signal isn't sent.</div>
     <div class="faq"><b>What markets?</b>Memecoins on-chain, plus leverage on crypto, forex, indices, commodities, metals and stocks.</div>
     <div class="faq"><b>Is memecoin copy trading safe?</b>No trading is safe. Most memecoins go to zero and some are scams. That's why the mentorship starts with security and small size, and why profits move out of memecoins quickly. You learn to lose small and keep what you win.</div>
-    <div class="faq"><b>What happens after the 90 days?</b>You keep the course for good. Students can keep the signals with a monthly plan, or continue working with me.</div>
+    <div class="faq"><b>What happens after the 90 days?</b>You keep the course for good. Students can keep the signals with any of the signal plans, or continue working with me.</div>
+    <div class="faq"><b>Can I get just the signals?</b>Yes: $9.99 for a day, $35 a week, $125 a month, $300 for 3 months or $500 lifetime, through Whop. You get the same Grade A signals the tracker above shows, in a private Telegram channel. The mentorship includes them free.</div>
     <div class="faq"><b>Can I lose money?</b>Yes. Every trade has a stop loss and some trades lose. Leverage magnifies losses as well as gains. Only trade money you can afford to lose.</div>
   </section>
 
@@ -286,6 +302,11 @@
     b.onclick = function () { cmd('unMute'); cmd('setVolume', [100]); cmd('playVideo'); b.hidden = true; };
   })();
   document.getElementById('discordLink').href = PRNTR.discord;
+  document.querySelectorAll('.plan').forEach(function (a) {
+    var u = (PRNTR.signals || {})[a.dataset.plan];
+    if (u && u.indexOf('[') !== 0) { a.href = u; a.target = '_blank'; a.rel = 'noopener'; }
+    else { a.removeAttribute('href'); a.setAttribute('aria-disabled', 'true'); a.classList.add('soon'); document.getElementById('plansSoon').hidden = false; }
+  });
   (function () {
     var API = 'https://excellentnqtct-va.onrender.com/api/public/track';
     var sec = document.getElementById('tracker');

@@ -154,3 +154,14 @@
     @media (min-width: 560px) { .loop { grid-template-columns: 1fr 1fr; } }
     .loop .phase b.w { color: var(--gold, #e0b84a); }
     .loopdiag { display: block; width: 100%; max-width: 520px; margin: 0.6rem auto; background: transparent; border: 0; }
+    .signals h2 { margin-top: 0; }
+    .plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.6rem; margin: 1rem 0 0.8rem; }
+    .plan { position: relative; display: flex; flex-direction: column; align-items: center; gap: 0.15rem; padding: 1rem 0.6rem; border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,0.04); color: #fff; text-decoration: none; transition: border-color .15s, transform .15s; }
+    .plan:hover, .plan:focus-visible { border-color: var(--cyan); transform: translateY(-2px); }
+    .plan b { font-size: 1.45rem; font-variant-numeric: tabular-nums; }
+    .plan span { color: var(--mute); font-size: 0.85rem; }
+    .plan.best { border-color: var(--cyan); background: rgba(42,171,227,0.12); }
+    .plan em { position: absolute; top: -0.65rem; font-style: normal; font-size: 0.7rem; letter-spacing: 0.04em; text-transform: uppercase; background: var(--cyan); color: #02010a; padding: 0.1rem 0.5rem; border-radius: 999px; }
+    @media (prefers-reduced-motion: reduce) { .plan { transition: none; } .plan:hover { transform: none; } }
+    .plan.soon { cursor: default; opacity: 0.75; }
+    .plan.soon:hover { transform: none; border-color: var(--line); }
