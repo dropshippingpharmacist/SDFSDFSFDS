@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>PRNTR.AI · Signals, Mentorship and the PRNTR Method</title>
+  <meta name="description" content="PRNTR.AI: leverage trading signals sent the moment a setup confirms, a 1-on-1 mentorship and the PRNTR course, built by a doctor-turned-trader who turned $7K into over $1M.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --cyan: #2AABE3; --teal: #219288; --purple: #593CE1; --ink: #020107; --navy: #1F2B5C;
+      --grad-1: linear-gradient(135deg, #2AABE3 0%, #219288 100%);
+      --grad-2: linear-gradient(135deg, #593CE1 0%, #2AABE3 100%);
+      --card: rgba(15,15,31,0.85); --line: rgba(42,171,227,0.25); --mute: #B9C3D6;
+    }
+    body { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background: var(--ink); color: #fff; line-height: 1.5; }
+    .container { max-width: 760px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+    a { color: var(--cyan); text-decoration: none; }
+    h1 { font-size: 2.3rem; font-weight: 900; line-height: 1.15; letter-spacing: -0.02em; margin: 0.4rem 0 0.8rem;
+         background: var(--grad-2); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    @media (min-width: 640px) { h1 { font-size: 3rem; } }
+    h2 { font-size: 1.6rem; font-weight: 800; color: var(--cyan); margin-bottom: 0.6rem; text-align: center; }
+    h3 { font-size: 1.15rem; font-weight: 800; color: var(--cyan); margin-bottom: 0.4rem; }
+    p { margin-bottom: 0.7rem; }
+    section { margin: 2.2rem 0; }
+    .eyebrow { display: inline-block; background: var(--grad-1); color: var(--ink); font-weight: 800; font-size: 0.75rem; letter-spacing: .06em; padding: 0.3rem 1rem; border-radius: 40px; }
+    .lead { border-left: 3px solid var(--cyan); padding-left: 0.8rem; color: #E7ECF5; font-size: 1.05rem; }
+    .center { text-align: center; }
+    .mute { color: var(--mute); }
+    .small { font-size: 0.8rem; }
+    .box { background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 1.3rem; }
+    .box.glow { border: 2px solid var(--cyan); background: linear-gradient(135deg, rgba(42,171,227,0.12), rgba(89,60,225,0.22)); }
+    .btn { display: inline-block; font-weight: 800; border-radius: 60px; padding: 0.8rem 1.6rem; transition: transform .15s; }
+    .btn:hover { transform: scale(0.97); }
+    .btn-main { background: var(--grad-1); color: var(--ink); }
+    .btn-discord { background: #5865F2; color: #fff; }
+    .btn-ghost { border: 1px solid var(--cyan); color: var(--cyan); }
+    .row-btns { display: flex; flex-wrap: wrap; gap: 0.7rem; justify-content: center; margin-top: 1rem; }
+    .logo-header { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
+    .logo-img { max-width: 200px; border-radius: 24px; border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(42,171,227,0.2); }
+    .x-follow { background: #1DA1F2; color: #000; font-weight: 700; font-size: 0.8rem; padding: 0.45rem 1rem; border-radius: 40px; }
+    .spots { text-align: right; font-size: 0.8rem; color: var(--mute); margin-bottom: 0.5rem; }
+    .spots b { color: var(--cyan); }
+    .video { border-radius: 28px; overflow: hidden; border: 1px solid var(--cyan); aspect-ratio: 16/9; margin: 1rem 0 1.4rem; }
+    .video iframe { width: 100%; height: 100%; border: 0; }
+    .doctor img { width: 170px; height: 170px; object-fit: cover; border-radius: 50%; border: 3px solid var(--cyan); display: block; margin: 0 auto 1rem; cursor: zoom-in; }
+    .proof-img { width: 100%; border-radius: 20px; border: 2px solid var(--cyan); cursor: zoom-in; margin: 0.6rem 0; }
+    .grid-2 { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+    @media (min-width: 560px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+    .celebs .box img { width: 100%; border-radius: 16px; border: 2px solid var(--cyan); cursor: zoom-in; margin-bottom: 0.5rem; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin: 1rem 0; }
+    .stat { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 0.8rem; text-align: center; }
+    .stat b { display: block; font-size: 1.4rem; color: var(--cyan); }
+    .stat span { font-size: 0.75rem; color: var(--mute); }
+    .steps { display: grid; gap: 0.6rem; }
+    .step { display: flex; gap: 0.8rem; align-items: flex-start; background: rgba(31,43,92,0.5); border-left: 4px solid var(--cyan); border-radius: 18px; padding: 0.9rem 1rem; }
+    .step b.n { flex: 0 0 auto; background: var(--grad-1); color: var(--ink); width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; }
+    .offer { position: relative; }
+    .offer .tag { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--grad-1); color: var(--ink); font-weight: 800; font-size: 0.72rem; padding: 0.2rem 0.9rem; border-radius: 30px; white-space: nowrap; }
+    .price { font-size: 1.5rem; font-weight: 900; margin: 0.2rem 0 0.4rem; }
+    .price small { font-size: 0.85rem; color: var(--mute); font-weight: 600; }
+    ul.check { list-style: none; margin: 0.6rem 0 0.8rem; }
+    ul.check li { padding-left: 1.4rem; position: relative; margin: 0.35rem 0; }
+    ul.check li::before { content: "✓"; position: absolute; left: 0; color: var(--cyan); font-weight: 900; }
+    .tiers { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.2rem; margin-top: 1rem; }
+    .tier { background: var(--card); border: 1px solid var(--line); border-radius: 28px; overflow: hidden; width: 100%; max-width: 330px; text-align: center; }
+    .tier img { width: 100%; aspect-ratio: 1.2 / 1; object-fit: cover; border-bottom: 2px solid var(--cyan); display: block; }
+    .tier .t { font-size: 1.5rem; font-weight: 900; margin: 0.7rem 0 0.1rem; background: var(--grad-1); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .tier ul.check { text-align: left; padding: 0 1.2rem; font-size: 0.9rem; }
+    .tier .vol { margin: 0 1rem 1.1rem; background: rgba(42,171,227,0.15); border: 1px dashed var(--cyan); border-radius: 16px; padding: 0.5rem; font-size: 0.78rem; }
+    .thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.6rem; margin-top: 0.8rem; }
+    .thumbs img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 14px; border: 1px solid var(--line); cursor: zoom-in; }
+    .note { background: rgba(42,171,227,0.1); border: 1px solid var(--cyan); border-radius: 18px; padding: 0.9rem 1rem; margin: 0.8rem 0; }
+    .compare { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 0.6rem; }
+    .compare th, .compare td { border: 1px solid var(--line); padding: 0.5rem; text-align: left; vertical-align: top; }
+    .compare th { background: var(--navy); }
+    .tablewrap { overflow-x: auto; }
+    .faq { background: rgba(0,0,0,0.35); border-radius: 18px; padding: 0.9rem 1rem; margin-bottom: 0.7rem; }
+    .faq b { color: var(--cyan); display: block; margin-bottom: 0.2rem; }
+    footer { border-top: 1px solid var(--line); margin-top: 2rem; padding-top: 1.4rem; text-align: center; font-size: 0.75rem; color: #AAA; }
+    footer p { margin-bottom: 0.6rem; }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.94); z-index: 50; align-items: center; justify-content: center; cursor: zoom-out; }
+    .modal img { max-width: 92%; max-height: 92%; border-radius: 16px; border: 2px solid var(--cyan); }
+  </style>
+</head>
+<body>
+<div id="modal" class="modal" onclick="this.style.display='none'"><img id="modalImg" alt=""></div>
+
+<div class="container">
+
+  <!-- REAL SCARCITY: set this to the number you can actually take -->
+  <div class="spots">1-on-1 mentorship: <b>[5] new students a month</b></div>
+
+  <div class="logo-header">
+    <img class="logo-img" src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/banner.jpg?v=1777219122" alt="PRNTR.AI">
+    <a href="https://x.com/prntrai" target="_blank" class="x-follow">Follow @prntrai on X</a>
+  </div>
+
+  <div class="video"><iframe src="https://www.youtube.com/embed/dkllBVYwXZA?autoplay=1&mute=1&playlist=dkllBVYwXZA&loop=1" allow="autoplay; encrypted-media" allowfullscreen title="PRNTR.AI"></iframe></div>
+
+  <span class="eyebrow">SIGNALS · MENTORSHIP · THE PRNTR METHOD</span>
+  <h1>Trade Like a Market Maker</h1>
+  <p class="lead">Signals sent the moment a setup confirms, with the exact entry, stop loss and take profits. Built by a doctor-turned-trader who turned $7K into over $1M, and now runs it through a system that skips almost everything.</p>
+  <div class="row-btns">
+    <a href="#work-with-me" class="btn btn-main">See the ways to join</a>
+    <a href="https://discord.gg/MX8hdHWgcE" target="_blank" class="btn btn-discord">Join the free Discord</a>
+  </div>
+
+  <!-- DOCTOR STORY -->
+  <section class="box glow doctor center">
+    <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/doctor.jpg?v=1780088757" alt="The founder in his white coat" data-zoom>
+    <h3>From the white coat to full-time trader</h3>
+    <p>I spent years in pharmacy school, wearing the white coat and grinding 14-hour clinical rotations. Deep down I knew a 9-5 would never set me free.</p>
+    <p>So I took my last $7,000, basically my rent money, and placed the trade that changed my life. In 72 hours it became $1,000,000. I didn't sleep. I walked away from medicine and never went back.</p>
+    <p>Since then I've spent every day turning what I did into rules, and the rules into a system that watches crypto, forex, stocks, indices, commodities and metals around the clock. It only sends a trade when every check passes, the moment it confirms. Most of the time, it does nothing. That's the point.</p>
+    <img class="proof-img" src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/1m.jpg?v=1778517296" alt="Proof of the $1M account" data-zoom>
+  </section>
+
+  <!-- WHERE IT TOOK ME -->
+  <section class="celebs">
+    <h2>Where it took me</h2>
+    <div class="grid-2">
+      <div class="box">
+        <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/Screenshot_2026-04-26_at_10.22.27_AM.png?v=1777213379" alt="Leo Cousineau's message" data-zoom>
+        <p>I helped <b>Leo Cousineau</b>. This is what he sent me.</p>
+      </div>
+      <div class="box">
+        <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/mike.jpg?v=1780017712" alt="With Mike Tyson's son" data-zoom>
+        <p>Trading <b>allowed me to meet Mike Tyson's son.</b></p>
+      </div>
+    </div>
+    <p class="center" style="margin-top:0.8rem;"><b>Luke Belmar</b> messaged me on Instagram, curious where I'd gone after I made my $1.1M in crypto. And along the way I've helped many students and friends.</p>
+  </section>
+
+  <!-- HOW SIGNALS WORK NOW -->
+  <section class="box">
+    <h2>How a PRNTR signal works</h2>
+    <div class="steps">
+      <div class="step"><b class="n">1</b><div><b>The setup forms.</b> Price builds a range, fakes out one side, then comes back in. Most charts never get this far.</div></div>
+      <div class="step"><b class="n">2</b><div><b>It confirms.</b> A candle closes and breaks structure. Every check has to pass: the setup, the risk and a reward several times bigger than the risk.</div></div>
+      <div class="step"><b class="n">3</b><div><b>You get it that second.</b> Entry, stop loss and take profits, only while price is still at the entry. If price has already moved away, the signal isn't sent at all. No late signals.</div></div>
+      <div class="step"><b class="n">4</b><div><b>Every trade is public.</b> Wins and losses go on the results page, so you can judge it yourself.</div></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>92%</b><span>win rate · [period] of Discord signals</span></div>
+      <div class="stat"><b>6</b><span>markets watched 24/7</span></div>
+      <div class="stat"><b>0</b><span>late signals: if price moved, it's not sent</span></div>
+    </div>
+    <div class="row-btns"><a href="[RESULTS_PAGE_LINK]" class="btn btn-ghost">See every trade on the results page</a></div>
+  </section>
+
+  <!-- PROOF -->
+  <section>
+    <h2>Real results</h2>
+    <div class="grid-2">
+      <div class="box">
+        <h3>A student: $2K → $250,000</h3>
+        <p>He followed the same framework and the PRNTR signals.</p>
+        <img class="proof-img" src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/ije.jpg?v=1778517168" alt="Student result" data-zoom>
+      </div>
+      <div class="box">
+        <h3>A Silver member: $33 → $504.23 in 4 days</h3>
+        <p>He started with pocket change and followed the Silver signals.</p>
+        <div class="thumbs">
+          <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/sz1.jpg?v=1777131150" alt="Silver member result 1" data-zoom>
+          <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/sz2.jpg?v=1777131150" alt="Silver member result 2" data-zoom>
+          <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/sz4.jpg?v=1777131150" alt="Silver member result 3" data-zoom>
+          <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/sz5.jpg?v=1777131150" alt="Silver member result 4" data-zoom>
+        </div>
+      </div>
+    </div>
+    <div class="box" style="margin-top:1rem;">
+      <h3>My own trades, live account</h3>
+      <div class="thumbs">
+        <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/entry3.jpg?v=1776876346" alt="Trade" data-zoom>
+        <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/entry1.jpg?v=1776876346" alt="Trade" data-zoom>
+        <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/entry6.jpg?v=1776876345" alt="Trade" data-zoom>
+        <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/entry2.jpg?v=1776876345" alt="Trade" data-zoom>
+        <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/entry5.jpg?v=1776876345" alt="Trade" data-zoom>
+        <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/susdt.webp?v=1776949812" alt="Trade" data-zoom>
+        <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/aave.webp?v=1776949810" alt="Trade" data-zoom>
+        <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/bch.webp?v=1776949800" alt="Trade" data-zoom>
+        <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/btc.webp?v=1776949799" alt="Trade" data-zoom>
+        <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/xrp.webp?v=1776949797" alt="Trade" data-zoom>
+        <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/sol.webp?v=1776949795" alt="Trade" data-zoom>
+      </div>
+    </div>
+  </section>
+
+  <!-- WAYS TO WORK WITH ME -->
+  <section id="work-with-me">
+    <h2>Ways to work with me</h2>
+    <p class="center mute">From free signals to working with me directly. Pick the one that fits where you are.</p>
+
+    <div class="box glow offer" style="margin-top:1.4rem;">
+      <span class="tag">THE FASTEST WAY</span>
+      <h3 style="font-size:1.4rem;">1-on-1 Mentorship · 90 days</h3>
+      <div class="price">$5,000 <small>or 2 payments of $3,000</small></div>
+      <p>90 days working directly with me to trade leverage with rules instead of gut feeling.</p>
+      <ul class="check">
+        <li>A private call with me every two weeks</li>
+        <li>Direct chat with me between calls</li>
+        <li>The full PRNTR Method: risk, sizing, staying clear of liquidation, taking profit, moving gains into a real plan</li>
+        <li>Every signal for every market, for the full 90 days</li>
+        <li>Your own dashboard of your trades and win rate</li>
+        <li>14 days to decide: if it isn't what I described, full refund</li>
+      </ul>
+      <p class="small mute">For people who have traded 6+ months, have lost money on leverage or given gains back, and are ready to follow rules. Limited to [5] new students a month because it's me on every call.</p>
+      <div class="row-btns"><a href="[APPLICATION_LINK]" class="btn btn-main">Apply for a call</a></div>
+    </div>
+
+    <div class="box offer" style="margin-top:1.4rem;">
+      <h3 style="font-size:1.3rem;">The PRNTR Method · course</h3>
+      <div class="price">$997 <small>or 2 payments of $600</small></div>
+      <p>The method on video, at your own pace: reading the chart, the Box, the Fake-Out and Return, the Turn, risk and sizing, managing a trade and using the signals safely.</p>
+      <ul class="check">
+        <li>The full PRNTR course, workbook and slides</li>
+        <li>60 days of signals included</li>
+        <li>What you pay counts toward the mentorship if you upgrade</li>
+      </ul>
+      <div class="row-btns"><a href="[COURSE_CHECKOUT_LINK]" class="btn btn-ghost">Get the course</a></div>
+    </div>
+
+    <h3 class="center" style="margin-top:2rem; font-size:1.3rem;">Signals only: Silver, Gold, Platinum</h3>
+    <p class="center mute small">Real-time signals in private Discord channels: entry, stop loss and take profits.</p>
+    <div class="tiers">
+      <div class="tier">
+        <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/silver_14e6ce22-9a3c-43bf-bfaa-2978563f713f.jpg?v=1777218408" alt="Silver">
+        <div class="t">SILVER</div><p class="mute small">Curated high-conviction</p>
+        <ul class="check"><li>2–3 top signals weekly</li><li>Major market alerts</li><li>Beginner-friendly pacing</li><li>Real-time delivery</li></ul>
+        <a href="https://whop.com/checkout/plan_aDiWqerUAICpc" target="_blank" class="btn btn-main">Get Silver</a>
+        <div class="vol" style="margin-top:1rem;">Or reach <b>$50K weekly volume</b> for free Silver access (DM proof)</div>
+      </div>
+      <div class="tier">
+        <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/gold_2550deee-f2a5-49a9-b455-93ae16029608.jpg?v=1777218414" alt="Gold">
+        <div class="t">GOLD</div><p class="mute small">Advanced + priority</p>
+        <ul class="check"><li>4–7 signals weekly</li><li>Swing + intraday</li><li>Early alerts</li><li>Weekly outlook</li></ul>
+        <a href="https://whop.com/checkout/plan_H6tm6IyiWl6kc" target="_blank" class="btn btn-main">Get Gold</a>
+        <div class="vol" style="margin-top:1rem;">Or reach <b>$250K weekly volume</b> for free Gold access (DM proof)</div>
+      </div>
+      <div class="tier">
+        <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/ChatGPT_Image_Apr_26_2026_09_23_24_AM.png?v=1777210604" alt="Platinum">
+        <div class="t">PLATINUM</div><p class="mute small">Full live feed</p>
+        <ul class="check"><li>Earliest entries + scalps</li><li>High-frequency opportunities</li><li>Real-time support</li></ul>
+        <a href="https://whop.com/checkout/plan_GRcln9MY0DSAR" target="_blank" class="btn btn-main">Get Platinum</a>
+        <div class="vol" style="margin-top:1rem;">Or reach <b>$500K weekly volume</b> for free Platinum access (DM proof)</div>
+      </div>
+    </div>
+
+    <div class="tablewrap">
+      <table class="compare">
+        <tr><th></th><th>Free (Scout / Core)</th><th>Silver / Gold / Platinum</th><th>Course</th><th>1-on-1 Mentorship</th></tr>
+        <tr><td>Signals</td><td>Scout 15-min delay · Core live</td><td>Live</td><td>60 days</td><td>90 days, every market</td></tr>
+        <tr><td>Learn the method</td><td>Free content</td><td>—</td><td>Full course</td><td>Full course + me</td></tr>
+        <tr><td>Calls with me</td><td>—</td><td>—</td><td>—</td><td>Every two weeks</td></tr>
+        <tr><td>Direct chat with me</td><td>—</td><td>Support</td><td>—</td><td>Yes</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- FREE SIGNALS -->
+  <section class="box">
+    <h2>Free signals: Scout and Core</h2>
+    <p class="center mute">Free access through my BloFin partner program.</p>
+    <div class="steps">
+      <div class="step"><b class="n">1</b><div>Join the free Discord.<div class="row-btns" style="justify-content:flex-start;margin-top:0.5rem;"><a href="https://discord.gg/MX8hdHWgcE" target="_blank" class="btn btn-discord">Join the free Discord</a></div></div></div>
+      <div class="step"><b class="n">2</b><div>Tap "Free High Accuracy Signals" and create your BloFin account with my referral link.</div></div>
+      <div class="step"><b class="n">3</b><div>Complete KYC verification on BloFin.</div></div>
+      <div class="step"><b class="n">4</b><div>Use the BloFin Community Bot in <b>#registration</b>: click "Sign Up For Blofin", enter your UID, and you're verified.
+        <img class="proof-img" src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/Screenshot_2026-05-14_at_2.42.01_PM.png?v=1778784545" alt="Registration guide" data-zoom></div></div>
+    </div>
+    <div class="grid-2" style="margin-top:1rem;">
+      <div class="note"><h3>Scout</h3>Deposit <b>$250</b> in your BloFin futures account. You get the Scout role and <b>#scout-signals-delayed</b>: the same signals with a 15-minute delay.</div>
+      <div class="note"><h3>Core</h3>Reach <b>$25,000 weekly trading volume</b>. You get <b>#core-signals-live</b>: real-time signals, no delay. Volume is checked weekly; below it you keep Scout.</div>
+    </div>
+    <p class="small mute">Trade your normal size. Never raise your leverage just to hit a volume target: a few bad trades at high leverage can wipe out a small account. The free tiers use my BloFin referral link, and I earn a commission from BloFin on referred accounts.</p>
+  </section>
+
+  <!-- FREE GUIDE -->
+  <section class="box glow center">
+    <h2>Free guide: how my bot decides</h2>
+    <p>"The 7-point checklist my bot runs before it risks a dollar." Plain language, one real trade as the example.</p>
+    <p><b>DM the word BOT</b> to <a href="https://instagram.com/[YOUR_HANDLE]" target="_blank">@[YOUR_HANDLE]</a> on Instagram and I'll send it to you.</p>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section>
+    <h2>From real members</h2>
+    <p class="center mute small">Every screenshot is from a real member. Tap any to see it full size.</p>
+    <div class="thumbs">
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/Screenshot_2026-04-26_at_10.21.16_AM.png?v=1777213316" alt="Member testimonial" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/L.png?v=1776827514" alt="Member testimonial" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/J.jpg?v=1776827512" alt="Member testimonial" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/I.png?v=1776827502" alt="Member testimonial" data-zoom>
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/C.webp?v=1776827493" alt="Member testimonial" data-zoom>
+      <!-- PASTE THE REST OF YOUR TESTIMONIAL IMAGES HERE, one line each, like this:
+      <img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/FILENAME" alt="Member testimonial" data-zoom>
+      -->
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section>
+    <h2>Questions</h2>
+    <div class="faq"><b>When do signals arrive?</b>The moment a setup confirms, and only while price is still at the entry. If price has already moved away, the signal isn't sent.</div>
+    <div class="faq"><b>What markets?</b>Crypto futures, forex, indices, commodities, metals and stocks.</div>
+    <div class="faq"><b>Do I need experience?</b>No. Each signal gives you the entry, stop loss and take profits. The course and the mentorship teach you why, so you understand every trade you take.</div>
+    <div class="faq"><b>Mentorship, course or signals?</b>Signals give you the trades. The course teaches the method. The mentorship is 90 days with me, signals included, for people who want to stop losing on leverage for good.</div>
+    <div class="faq"><b>How do the free tiers work?</b>Scout: deposit $250 on BloFin, signals with a 15-minute delay. Core: $25K weekly volume, live signals. Both through my BloFin referral link.</div>
+    <div class="faq"><b>Silver, Gold or Platinum?</b>Silver: 2–3 curated signals a week. Gold: 4–7 a week plus early alerts and a weekly outlook. Platinum: the full live feed with scalps and the earliest entries. You can also unlock them free with weekly volume.</div>
+    <div class="faq"><b>Can I lose money?</b>Yes. Every trade has a stop loss and some trades lose. Leverage magnifies losses as well as gains. Only trade money you can afford to lose.</div>
+  </section>
+
+  <section class="box center">
+    <h3>The "No BS" guarantee</h3>
+    <p>Signals plans: try any paid plan for 30 days. If you don't see value, email for a full refund. Mentorship: 14 days, full refund if it isn't what I described.</p>
+  </section>
+
+  <footer>
+    <p>© 2026 PRNTR.AI · Doctor founder, from pharmacy to full-time trading.</p>
+    <p><a href="https://x.com/prntrai" target="_blank">Follow @prntrai on X</a></p>
+    <p>Trading, and especially leverage trading, carries a high risk of loss; you can lose more than you deposit. Past results, mine, students' or the signals', do not guarantee future results, and the results shown are not typical. This is education, not financial advice. The free signal tiers use my BloFin referral link, and I earn a commission on referred accounts.</p>
+    <p>This site is not part of Facebook™ or Meta™.</p>
+  </footer>
+</div>
+
+<script>
+  document.querySelectorAll('[data-zoom]').forEach(function (img) {
+    img.addEventListener('click', function (e) {
+      e.stopPropagation();
+      document.getElementById('modalImg').src = img.src;
+      document.getElementById('modal').style.display = 'flex';
+    });
+  });
+</script>
+</body>
+</html>
