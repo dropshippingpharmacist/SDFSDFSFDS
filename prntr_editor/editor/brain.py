@@ -130,6 +130,8 @@ def _frame(video, t, work, width=768):
 
 
 def _call(content, schema, effort="high", log=None):
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        raise BrainError("No Anthropic API key yet. Add ANTHROPIC_API_KEY in the Render dashboard (Environment), then click Re-edit or upload again.")
     client = anthropic.Anthropic()
     with client.beta.messages.stream(
         model=MODEL, max_tokens=64000, system=SYSTEM,

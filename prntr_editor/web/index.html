@@ -1,6 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PRNTR Editor</title>
 <link rel="stylesheet" href="/static/base.css"></head><body><div class="wrap">
 <header><div class="logo">PRNTR<span>.</span>EDITOR</div><div class="tag">Long-form videos, edited for you</div></header>
+<div class="card err" id="nokey" hidden>The AI editor isn't switched on yet: add your Anthropic API key as ANTHROPIC_API_KEY in Render → prntr-editor → Environment.</div>
 <form id="f" class="card">
   <h1>New video</h1><p class="sub">Drop your raw recording. It cuts the dead air and retakes, adds the hook, captions, text, pointers, zooms and your charts, then makes two thumbnails and the YouTube copy.</p>
   <label>Raw video</label>
@@ -32,6 +33,7 @@ $('#f').onsubmit=e=>{e.preventDefault();if(!$('#video').files.length){$('#msg').
  x.upload.onprogress=p=>{if(p.lengthComputable){const f=p.loaded/p.total;$('#ub i').style.width=(f*100)+'%';$('#msg').textContent='Uploading '+Math.round(f*100)+'%'}};
  x.onload=()=>{if(x.status==200){location='/job/'+JSON.parse(x.responseText).id}else{$('#go').disabled=false;$('#msg').textContent='Upload failed: '+(JSON.parse(x.responseText||'{}').detail||x.status)}};
  x.onerror=()=>{$('#go').disabled=false;$('#msg').textContent='Upload failed. Check your connection and try again.'};x.send(fd)};
+fetch('/healthz').then(r=>r.json()).then(h=>{if(!h.api_key_set)$('#nokey').hidden=false});
 const label={done:'Done',running:'Editing',queued:'In line',error:'Failed'};
 fetch('/api/jobs').then(r=>r.json()).then(js=>{if(!js.length)return;$('#jobs').innerHTML=js.map(j=>`<a href="/job/${j.id}"><span>${(j.title||j.name||'Video').replace(/[<>&]/g,'')}<br><span class="hint">${new Date(j.created*1000).toLocaleString()}</span></span><span class="chip ${j.state}">${label[j.state]||j.state}${j.state=='running'?' '+Math.round(j.progress*100)+'%':''}</span></a>`).join('')});
 </script></body></html>
