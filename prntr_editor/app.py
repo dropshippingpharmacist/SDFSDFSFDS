@@ -18,6 +18,15 @@ VIDEO_EXT = {".mp4", ".mov", ".m4v", ".mkv", ".webm", ".avi"}
 IMAGE_EXT = {".png", ".jpg", ".jpeg", ".webp"}
 
 app = FastAPI(title="PRNTR Editor")
+NEW_HOME = os.environ.get("MOVED_TO", "https://youtubevideomaker.onrender.com")
+
+
+@app.middleware("http")
+async def _moved(request, call_next):
+    """This copy is retired: the editor lives at youtubevideomaker.onrender.com (repo YOUTUBEVIDEOMAKER)."""
+    if NEW_HOME and request.url.path != "/healthz":
+        return RedirectResponse(NEW_HOME + (request.url.path if request.url.path != "/login" else "/"), status_code=301)
+    return await call_next(request)
 app.mount("/static", StaticFiles(directory=os.path.join(HERE, "web")), name="static")
 work_q: "queue.Queue[str]" = queue.Queue()
 
