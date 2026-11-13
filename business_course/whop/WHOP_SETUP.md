@@ -46,3 +46,17 @@ The old archived "PRNTR AI Trading Signals Group" (`prod_CmxVMi4efkkzf`, 3 membe
 | Lifetime $500 (one-time) | plan_soJuhgMrHfa3e | https://whop.com/checkout/plan_soJuhgMrHfa3e |
 
 The links are live in `prntr_site/config.js`. Still to do in the Whop dashboard: Telegram app + channel, bot as admin.
+
+## 1-on-1 Mentorship (created 2026-11-13, HIDDEN — sold only on the call)
+Product **PRNTR 1-on-1 Mentorship (90 days)** `prod_hj7tEFYpRMh59` (route `prntr-mentorship`, hidden: not on the store
+page, reachable only by link). Per the blueprint (section 6): apply → qualify → book → call → send ONE of these links on
+the call and stay on while they pay.
+
+| Option | Id | Checkout (send on the call) |
+|---|---|---|
+| Pay in full $3,000 (90 days of access) | plan_eG9fhO1rRc5aa | https://whop.com/checkout/plan_eG9fhO1rRc5aa |
+| 2 × $1,700 (monthly, stops after 2) | plan_s0iYqzF5Mn44Q | https://whop.com/checkout/plan_s0iYqzF5Mn44Q |
+| 3 × $1,200 (monthly, stops after 3) | plan_jhLxs4R4ydWIY | https://whop.com/checkout/plan_jhLxs4R4ydWIY |
+
+Owner, in the Whop dashboard: add the **Discord** app to this product too (same "Signals Member" role, plus a
+"Mentorship" role if wanted) so students get the signals channels free; set the 14-day refund policy.
