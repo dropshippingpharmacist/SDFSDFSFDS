@@ -9,7 +9,7 @@ window.PRNTR = {
     lifetime: "https://whop.com/checkout/plan_soJuhgMrHfa3e" // $500 lifetime
   },
   formEndpoint: "",                                                      // optional: Formspree / Make / Zapier webhook to keep EVERY application
-  instagram: "[YOUR_HANDLE]",                                            // without the @
+  instagram: "dropshippingpharmacist",                                  // without the @
   discord: "https://discord.gg/MX8hdHWgcE",
   vslLanding: "https://www.youtube.com/embed/dkllBVYwXZA",              // replace with the 5-8 min "apply" video when recorded
   vslBooked: "",                                                         // the 10-15 min "before our call" video
