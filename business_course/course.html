@@ -1,0 +1,1057 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Trading Mentorship Playbook</title>
+<style>
+@page { size: A4; margin: 10mm 12mm 10mm 12mm; }
+:root{
+  --ink:#14213d; --mut:#5b6478; --line:#d9deea; --bg:#f5f7fb;
+  --teal:#0f8b8d; --teal-l:#e2f4f4; --amber:#f2a516; --amber-l:#fff4d9;
+  --red:#c8553d; --red-l:#fbe9e4; --green:#2e8b57; --green-l:#e4f4ea; --navy:#14213d; --pur:#5a4fcf; --pur-l:#ecebfb;
+}
+*{box-sizing:border-box}
+body{font-family:"Inter","Helvetica Neue","DejaVu Sans",Arial,sans-serif;color:var(--ink);font-size:9.5pt;line-height:1.36;margin:0}
+h1{font-size:25pt;line-height:1.1;margin:0 0 6px}
+h2{font-size:17pt;margin:0 0 4px;line-height:1.15}
+h3{font-size:11.5pt;margin:12px 0 4px;color:var(--teal)}
+h4{font-size:10pt;margin:0 0 3px}
+p{margin:0 0 6px}
+ul,ol{margin:2px 0 6px;padding-left:17px}
+li{margin:1.5px 0}
+.sec{break-before:page}
+.eyebrow{font-size:8.5pt;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);font-weight:700;margin-bottom:3px}
+.lead{font-size:11pt;color:var(--mut);margin-bottom:8px}
+.fig{break-inside:avoid;margin:6px 0 7px;border:1px solid var(--line);border-radius:10px;padding:7px 10px;background:#fff}
+.fig .cap{font-size:8.6pt;color:var(--mut);margin-top:6px}
+.figt{font-weight:700;font-size:9.6pt;margin-bottom:7px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.card{border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:#fff;break-inside:avoid}
+.card.t{background:var(--teal-l);border-color:#b9e0e0}
+.card.a{background:var(--amber-l);border-color:#f3dba0}
+.card.r{background:var(--red-l);border-color:#efc4b9}
+.card.g{background:var(--green-l);border-color:#b9dfc8}
+.card.p{background:var(--pur-l);border-color:#cfcbf5}
+.card.n{background:var(--navy);color:#fff;border-color:var(--navy)}
+.hank,.you,.warn{break-inside:avoid;border-radius:9px;padding:8px 11px;margin:7px 0}
+.hank{background:var(--bg);border-left:4px solid var(--navy)}
+.you{background:var(--teal-l);border-left:4px solid var(--teal)}
+.warn{background:var(--red-l);border-left:4px solid var(--red)}
+.tag{display:inline-block;font-size:7.6pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.hank .tag{color:var(--navy)} .you .tag{color:var(--teal)} .warn .tag{color:var(--red)}
+table{border-collapse:collapse;width:100%;font-size:8.7pt;margin:5px 0 8px;break-inside:avoid}
+th,td{border:1px solid var(--line);padding:3px 6px;text-align:left;vertical-align:top}
+th{background:var(--navy);color:#fff;font-weight:600}
+tr:nth-child(even) td{background:#fafbfe}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.flow{display:flex;align-items:stretch;gap:0;flex-wrap:nowrap}
+.flow .b{flex:1;border-radius:8px;padding:7px 6px;text-align:center;font-size:8.8pt;font-weight:600;background:var(--teal-l);border:1px solid #b9e0e0;display:flex;flex-direction:column;justify-content:center}
+.flow .b small{display:block;font-weight:400;color:var(--mut);font-size:7.8pt;margin-top:2px}
+.flow .ar{flex:0 0 16px;display:flex;align-items:center;justify-content:center;color:var(--mut);font-weight:700}
+.b.n{background:var(--navy);color:#fff;border-color:var(--navy)} .b.n small{color:#cdd5ea}
+.b.a{background:var(--amber-l);border-color:#f3dba0} .b.r{background:var(--red-l);border-color:#efc4b9} .b.g{background:var(--green-l);border-color:#b9dfc8} .b.p{background:var(--pur-l);border-color:#cfcbf5}
+.down{text-align:center;color:var(--mut);font-weight:700;line-height:1;margin:3px 0}
+.big{font-size:19pt;font-weight:800;line-height:1.05}
+.mid{font-size:13pt;font-weight:800}
+.mut{color:var(--mut)} .sm{font-size:8.6pt}
+.chk{list-style:none;padding-left:0}
+.chk li{padding-left:19px;position:relative;margin:3px 0}
+.chk li:before{content:"";position:absolute;left:0;top:2.5px;width:10px;height:10px;border:1.5px solid var(--teal);border-radius:2px}
+.phone{width:100%;aspect-ratio:9/15;border-radius:12px;background:linear-gradient(160deg,#1c2b52,#0f8b8d);color:#fff;padding:9px 8px;display:flex;flex-direction:column;font-size:7.9pt;position:relative;border:2px solid #0c1630}
+.phone .hk{color:#ffd166;font-weight:800;font-size:9.6pt;line-height:1.15;margin-bottom:5px}
+.phone .n{position:absolute;top:5px;right:8px;font-size:7pt;opacity:.7}
+.phone .ft{margin-top:auto;font-size:7.2pt;background:rgba(255,255,255,.16);border-radius:6px;padding:3px 5px;text-align:center}
+.pill{display:inline-block;border-radius:20px;padding:1px 8px;font-size:7.8pt;font-weight:700;background:var(--navy);color:#fff}
+.pill.t{background:var(--teal)} .pill.a{background:var(--amber);color:#3a2a00} .pill.r{background:var(--red)} .pill.g{background:var(--green)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .d{border:1px solid var(--line);border-radius:7px;padding:5px 5px;font-size:7.7pt;min-height:62px;background:#fff}
+.cal .d b{display:block;font-size:8pt;color:var(--teal);margin-bottom:2px}
+.cover{height:272mm;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(155deg,#14213d 0%,#1d3466 55%,#0f8b8d 100%);color:#fff;border-radius:14px;padding:22mm 16mm}
+.cover h1{font-size:40pt;line-height:1.02;letter-spacing:-.01em}
+.cover .sub{font-size:14pt;color:#d5def2;max-width:150mm;margin-top:10px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.kpis div{background:rgba(255,255,255,.12);border-radius:10px;padding:10px}
+.kpis b{display:block;font-size:17pt}
+.kpis span{font-size:8.6pt;color:#d5def2}
+.toc{columns:2;column-gap:18px;font-size:9.8pt}
+.toc div{break-inside:avoid;margin-bottom:4px;display:flex;gap:7px}
+.toc b{color:var(--teal);min-width:20px}
+.stairs{display:flex;align-items:flex-end;gap:6px}
+.stairs .s{flex:1;border-radius:8px 8px 0 0;padding:8px 8px;color:#fff;font-size:8.5pt}
+.stairs .s b{display:block;font-size:10.5pt}
+.wire{border:2px solid var(--navy);border-radius:10px;padding:9px;background:#fff}
+.wire .w{border:1.5px dashed #9aa6c2;border-radius:6px;padding:6px 8px;margin-bottom:5px;font-size:8.6pt}
+.wire .w b{color:var(--teal)}
+.wire .vid{background:var(--navy);color:#fff;border:none;text-align:center;padding:18px 8px}
+.wire .btn{background:var(--amber);border:none;text-align:center;font-weight:800;color:#3a2a00}
+.tl{display:flex;gap:4px;align-items:stretch}
+.tl .t{flex:1;text-align:center;font-size:7.8pt;border-radius:7px;padding:5px 3px;background:var(--teal-l);border:1px solid #b9e0e0}
+.tl .t b{display:block;font-size:8.8pt}
+.tile{border-radius:9px;padding:8px 9px;background:#fff;border:1px solid var(--line)}
+.tile .v{font-size:15pt;font-weight:800}
+.tile .l{font-size:7.8pt;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+.tile .tg{font-size:7.8pt;color:var(--green);font-weight:700}
+.q{font-style:italic;color:var(--mut);border-left:3px solid var(--amber);padding-left:8px;margin:6px 0}
+.tight{zoom:.86}
+.foot{font-size:8pt;color:var(--mut);margin-top:8px}
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div>
+    <div style="font-size:9.5pt;letter-spacing:.2em;text-transform:uppercase;color:#9fe3e3;font-weight:700">Personal course · built from 25 videos</div>
+    <h1 style="margin-top:14px">The Trading<br>Mentorship<br>Playbook</h1>
+    <div class="sub">Everything Hank teaches about scaling a trading education business, rebuilt around your business: a former doctor, $7K to $1.1M, a signal bot, a 1-on-1 mentorship and a course.</div>
+  </div>
+  <div>
+    <div class="kpis">
+      <div><b>12</b><span>modules</span></div>
+      <div><b>30+</b><span>diagrams</span></div>
+      <div><b>Day 1</b><span>checklist for tomorrow</span></div>
+      <div><b>30 days</b><span>week-by-week plan</span></div>
+    </div>
+    <div style="margin-top:14px;font-size:8.8pt;color:#c9d3ea">Source: about 113,000 words of transcripts from the HanckFX Business channel. His revenue figures and benchmarks are his own claims and are not verified. This is business education, not legal or financial advice.</div>
+  </div>
+</div>
+
+<!-- HOW TO USE -->
+<div class="sec">
+  <div class="eyebrow">Start here</div>
+  <h2>How this course works</h2>
+  <p class="lead">Each module has the same three parts, colour-coded so you can scan it.</p>
+  <div class="grid3">
+    <div class="hank"><span class="tag">What he teaches</span><br>The principle, in his words and numbers.</div>
+    <div class="you"><span class="tag">Your version</span><br>How it applies to your mentorship, course and bot.</div>
+    <div class="warn"><span class="tag">Careful</span><br>Where I'd do it differently, and why.</div>
+  </div>
+
+  <h3>Contents</h3>
+  <div class="toc">
+    <div><b>1</b><span>The whole machine on one page</span></div>
+    <div><b>2</b><span>Why high ticket: the math</span></div>
+    <div><b>3</b><span>Your positioning: claim, customer, offer</span></div>
+    <div><b>4</b><span>Your offer ladder and pricing</span></div>
+    <div><b>5</b><span>The chain of rates: your numbers</span></div>
+    <div><b>6</b><span>Content: what to post and where</span></div>
+    <div><b>7</b><span>Instagram story sequences</span></div>
+    <div><b>8</b><span>Lead capture: freebie, email, ManyChat</span></div>
+    <div><b>9</b><span>The funnel: page, application, reminders</span></div>
+    <div><b>10</b><span>The sales call and follow-up</span></div>
+    <div><b>11</b><span>Delivery: the 90 days and the flywheel</span></div>
+    <div><b>12</b><span>Tracking, team and when to hire</span></div>
+    <div><b>+</b><span>Pre-launch plan (14 days)</span></div>
+    <div><b>+</b><span>Start tomorrow · First 7 days · 30-day plan</span></div>
+    <div><b>+</b><span>Tool stack · What I would not copy</span></div>
+  </div>
+
+  <h3>The ten ideas he repeats in almost every video</h3>
+  <div class="grid2">
+    <div class="card"><b>1. High ticket only.</b> Fewer, better clients at $3K–$6K+ beat hundreds of $100 subscribers.</div>
+    <div class="card"><b>2. The business is a chain of rates.</b> Views → visits → bookings → shows → closes → cash. Find the weakest link, fix it, repeat.</div>
+    <div class="card"><b>3. YouTube sells. Instagram keeps you in mind.</b> Short form brings strangers; long form turns them into buyers.</div>
+    <div class="card"><b>4. Never sell to cold people.</b> Cold → warm → hot, with top, middle and bottom-of-funnel content.</div>
+    <div class="card"><b>5. Hook → retention → reward.</b> The structure behind every video, story sequence and sales video.</div>
+    <div class="card"><b>6. Each step only sells the next step.</b> The first video sells the click, not the program.</div>
+    <div class="card"><b>7. Organic first.</b> No ads until at least $100K a month. "Organic is the fire, ads are the fuel."</div>
+    <div class="card"><b>8. Close your own calls first.</b> No sales team until about $25K–$30K a month.</div>
+    <div class="card"><b>9. Delivery is the flywheel.</b> Student results become testimonials, which become content, which brings students.</div>
+    <div class="card"><b>10. Track everything.</b> "You cannot fix what you don't know." Decide with 50+ data points, not feelings.</div>
+  </div>
+</div>
+
+<!-- MODULE 1 -->
+<div class="sec">
+  <div class="eyebrow">Module 1</div>
+  <h2>The whole machine on one page</h2>
+  <p class="lead">He calls these the five scaling functions. Miss one and the business stalls.</p>
+
+  <div class="fig">
+    <div class="figt">The five functions, and what each one is in your business</div>
+    <div class="flow">
+      <div class="b n">1 · Attention<small>Reels, shorts, YouTube</small></div><div class="ar">→</div>
+      <div class="b">2 · Warmth<small>Long videos, stories, email, free guide</small></div><div class="ar">→</div>
+      <div class="b a">3 · Conversion<small>Page, application, call</small></div><div class="ar">→</div>
+      <div class="b g">5 · Delivery<small>Mentorship, course, signals</small></div>
+    </div>
+    <div class="down">▲</div>
+    <div class="flow"><div class="b p">4 · Infrastructure<small>Automations, tracking and (later) a team, so it runs without you doing every step by hand</small></div></div>
+    <div class="cap">Delivery feeds back into Attention: student results become your best content.</div>
+  </div>
+
+  <div class="fig">
+    <div class="figt">Cold → warm → hot: how a stranger becomes a student</div>
+    <div class="flow">
+      <div class="b r">COLD<small>Saw 1–5 reels. Doesn't know you.</small></div><div class="ar">→</div>
+      <div class="b a">WARM<small>Watched long videos, follows your stories, took the free guide.</small></div><div class="ar">→</div>
+      <div class="b g">HOT<small>Binged your content, saw results, applies for a call.</small></div>
+    </div>
+    <div class="grid3" style="margin-top:8px">
+      <div class="card r"><b>Top of funnel</b><br>Broad, shareable. Job: reach. Never sell here.</div>
+      <div class="card a"><b>Middle of funnel</b><br>Teaching, your story, behind the scenes. Job: trust.</div>
+      <div class="card g"><b>Bottom of funnel</b><br>Detailed breakdowns, real results, losses, student stories. Job: the booking.</div>
+    </div>
+  </div>
+
+  <div class="fig">
+    <div class="figt">The 7-11-4 rule (he credits a Google study)</div>
+    <div class="grid3">
+      <div class="card n"><div class="big">7 hours</div>of your content consumed</div>
+      <div class="card n"><div class="big">11 touches</div>times they run into you</div>
+      <div class="card n"><div class="big">4 places</div>Instagram, YouTube, email, Discord</div>
+    </div>
+    <div class="cap">This is why a 30-second reel never sells a $5,000 program, and why most students buy 1–4 weeks after finding you.</div>
+  </div>
+
+  <div class="you"><span class="tag">Your version</span>
+    <p>You already have three of the five: an audience on Instagram, a real story, and a product nobody else has (the bot). What's missing is <b>Warmth</b> (long-form YouTube and story sequences), <b>Conversion</b> (a page, an application and a booking link) and <b>Infrastructure</b> (tracking). That is what the first 30 days build.</p>
+  </div>
+</div>
+
+<!-- MODULE 2 -->
+<div class="sec">
+  <div class="eyebrow">Module 2</div>
+  <h2>Why high ticket: the math</h2>
+  <p class="lead">His strongest opinion. The same 100 viewers are worth roughly 20 times more with a call-based offer.</p>
+
+  <div class="fig">
+    <div class="figt">Same 100 warm viewers, two business models (his numbers)</div>
+    <svg viewBox="0 0 700 215" width="100%">
+      <text x="0" y="14" font-size="12" font-weight="700" fill="#14213d">Low ticket: $100/month subscription</text>
+      <g font-size="11" fill="#14213d">
+        <rect x="0" y="24" width="150" height="34" rx="6" fill="#fbe9e4" stroke="#efc4b9"/><text x="75" y="45" text-anchor="middle">100 viewers</text>
+        <text x="160" y="46" fill="#5b6478">→</text>
+        <rect x="178" y="24" width="150" height="34" rx="6" fill="#fbe9e4" stroke="#efc4b9"/><text x="253" y="45" text-anchor="middle">50 click checkout</text>
+        <text x="338" y="46" fill="#5b6478">→</text>
+        <rect x="356" y="24" width="150" height="34" rx="6" fill="#fbe9e4" stroke="#efc4b9"/><text x="431" y="45" text-anchor="middle">8 buy, stay ~2 months</text>
+        <text x="516" y="46" fill="#5b6478">→</text>
+        <rect x="534" y="24" width="18" height="34" rx="4" fill="#c8553d"/><text x="560" y="46" font-weight="800" font-size="15">$800</text>
+      </g>
+      <text x="0" y="96" font-size="12" font-weight="700" fill="#14213d">High ticket: application + sales call</text>
+      <g font-size="11" fill="#14213d">
+        <rect x="0" y="106" width="118" height="34" rx="6" fill="#e2f4f4" stroke="#b9e0e0"/><text x="59" y="127" text-anchor="middle">100 viewers</text>
+        <text x="124" y="128" fill="#5b6478">→</text>
+        <rect x="138" y="106" width="118" height="34" rx="6" fill="#e2f4f4" stroke="#b9e0e0"/><text x="197" y="127" text-anchor="middle">40 book (40%)</text>
+        <text x="262" y="128" fill="#5b6478">→</text>
+        <rect x="276" y="106" width="118" height="34" rx="6" fill="#e2f4f4" stroke="#b9e0e0"/><text x="335" y="127" text-anchor="middle">28 show (70%)</text>
+        <text x="400" y="128" fill="#5b6478">→</text>
+        <rect x="414" y="106" width="118" height="34" rx="6" fill="#e2f4f4" stroke="#b9e0e0"/><text x="473" y="127" text-anchor="middle">8 buy (30%)</text>
+      </g>
+      <rect x="0" y="156" width="560" height="34" rx="6" fill="#0f8b8d"/>
+      <text x="14" y="178" fill="#fff" font-size="12" font-weight="700">8 × $2,500 collected up front</text>
+      <text x="572" y="180" font-weight="800" font-size="19" fill="#14213d">$20,000</text>
+      <text x="0" y="208" font-size="10" fill="#5b6478">"Viewers" here means warm people who reach your page, not raw reel views.</text>
+    </svg>
+  </div>
+
+  <div class="grid2">
+    <div class="card r"><h4>What he says goes wrong with low ticket</h4>
+      <ul><li>Members stay 2–3 months, so lifetime value is only $200–$250.</li>
+      <li>30–40% leave every month. You are always replacing people.</li>
+      <li>More refunds and disputes, which can get a payment account frozen.</li>
+      <li>You feel forced to post trades daily to keep people subscribed.</li>
+      <li>Usually caps at $10K–$20K a month.</li></ul></div>
+    <div class="card g"><h4>What he says high ticket gives you</h4>
+      <ul><li>$10K a month is 3–5 clients, about one sale a week.</li>
+      <li>Buyers have paid enough to do the work, so results are better.</li>
+      <li>Better results mean testimonials, which mean more buyers.</li>
+      <li>Margins of 80%+ with almost no team.</li>
+      <li>Each sale can grow: upgrades, renewals, payment plans.</li></ul></div>
+  </div>
+
+  <div class="hank"><span class="tag">What he teaches</span>
+    <p>"People don't buy into trading signal groups. They buy into people." He calls signal groups "outdated and saturated" and tells signal sellers to build a personal brand with a mentorship instead.</p></div>
+  <div class="you"><span class="tag">Your version</span>
+    <p>This matches the decision you already made: sell the mentorship, downsell the course, and <b>include the signals instead of selling them</b>. Your bot stops being a $50 product and becomes the reason your mentorship is different from everyone else's.</p></div>
+  <div class="warn"><span class="tag">Careful</span>
+    <p>His model assumes your delivery really is worth $5,000. The price only holds if students get a real change, so Module 11 matters as much as the selling.</p></div>
+</div>
+
+<!-- MODULE 3 -->
+<div class="sec">
+  <div class="eyebrow">Module 3</div>
+  <h2>Your positioning: claim, customer, offer</h2>
+  <p class="lead">"A trading brand without a unique selling point will never sell." He asks for four decisions.</p>
+
+  <div class="grid2">
+    <div class="fig" style="margin:0">
+      <div class="figt">Who to sell to: the pain × money grid</div>
+      <div style="display:grid;grid-template-columns:22px 1fr 1fr;grid-template-rows:auto auto 18px;gap:5px;font-size:8.6pt">
+        <div style="writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;font-weight:700;grid-row:1/3">MONEY →</div>
+        <div class="card r" style="padding:7px"><b>Money, no pain</b><br>Curious 9-to-5ers who never traded. Avoid.</div>
+        <div class="card g" style="padding:7px;border-width:2px"><b>Money + pain ✔</b><br>Traded 6–12+ months, lost money, has income. <b>Your customer.</b></div>
+        <div class="card r" style="padding:7px"><b>No money, no pain</b><br>Total beginners. Avoid.</div>
+        <div class="card r" style="padding:7px"><b>Pain, no money</b><br>Wants it, can't pay. Course at most.</div>
+        <div></div><div style="grid-column:2/4;text-align:center;font-weight:700">PAIN →</div>
+      </div>
+      <div class="cap">His rule: the people your content attracts must match the people your offer is for.</div>
+    </div>
+    <div>
+      <div class="hank" style="margin-top:0"><span class="tag">His four decisions</span>
+        <ol><li><b>One market,</b> not "everyone who wants to trade".</li>
+        <li><b>A claim nobody can argue with:</b> verified, with documents.</li>
+        <li><b>One specific person</b> with real pain and real money.</li>
+        <li><b>Show up as yourself.</b> No persona, no script reading, keep the stumbles.</li></ol></div>
+      <div class="q">"If you don't have one, you blend in with tens of thousands of other trading gurus."</div>
+    </div>
+  </div>
+
+  <div class="you"><span class="tag">Your version</span>
+    <table>
+      <tr><th style="width:26%">Decision</th><th>Yours</th></tr>
+      <tr><td><b>One market</b></td><td>Crypto leverage trading, with a system. Memecoins are your origin story and one module, not the brand.</td></tr>
+      <tr><td><b>The claim</b></td><td>"Former doctor. $7K to $1.1M, with the receipts. Now I trade with a rules-based bot whose every trade is public." Three proofs nobody else has together: the medical career, the documented run, the public results page.</td></tr>
+      <tr><td><b>The person</b></td><td>25–45, has a job or business, has traded crypto for 6+ months, has lost money on leverage or given back memecoin gains, and has $3K+ to fix it.</td></tr>
+      <tr><td><b>Yourself</b></td><td>The doctor angle is your personality on camera: checklists, protocols, "first do no harm" applied to risk. Nobody else can copy that.</td></tr>
+    </table>
+    <p><b>Your one-line pitch:</b> "I help people who keep losing on leverage trade like a system instead of a gambler, using the exact rules and signals my own bot trades."</p>
+  </div>
+
+  <div class="fig">
+    <div class="figt">Free content versus the paid program (how he says the best in the niche do it)</div>
+    <div class="flow">
+      <div class="b">Give away 80–90%<small>Risk, sizing, mindset, what a good trade looks like, your results and losses</small></div><div class="ar">+</div>
+      <div class="b n">Sell access and implementation<small>Your time, feedback on their trades, the signals, the structure, accountability</small></div>
+    </div>
+    <div class="cap">This also solves your worry about people copying the system. You teach the principles in public and keep the exact rules private; what people pay for is you and the working signals.</div>
+  </div>
+
+  <div class="warn"><span class="tag">Careful</span>
+    <p>Your $1.1M came from memecoins; the mentorship teaches leverage with a system. Say that plainly in your story. And the bot's public record is still short (about 32 closed trades), so lead with your own documented history now and let the results page grow into the main proof.</p></div>
+</div>
+
+<!-- MODULE 4 -->
+<div class="sec">
+  <div class="eyebrow">Module 4</div>
+  <h2>Your offer ladder and pricing</h2>
+  <p class="lead">He always builds two or three offers so no lead is wasted: a main offer, a downsell and, later, an upsell.</p>
+
+  <div class="fig">
+    <div class="figt">Your ladder</div>
+    <div class="stairs">
+      <div class="s" style="background:#5b6478;height:74px"><b>Free</b>Content, free guide, free Discord</div>
+      <div class="s" style="background:#c8553d;height:112px"><b>Course · $997</b>Downsell. Videos + 60 days of signals. No calls.</div>
+      <div class="s" style="background:#0f8b8d;height:160px"><b>1-on-1 Mentorship · $5,000</b>Main offer. 90 days with you, signals included.</div>
+      <div class="s" style="background:#14213d;height:128px"><b>After day 90</b>Signals continuation monthly, or a limited lifetime seat. Students only.</div>
+    </div>
+    <div class="cap">Later, when 1-on-1 fills up (he says around 10–15 students, $30K–$50K a month): a group mentorship becomes the main offer and 1-on-1 becomes a $10K+ upsell.</div>
+  </div>
+
+  <div class="grid2">
+    <div class="fig" style="margin:0">
+      <div class="figt">Payment plans cost more than paying in full</div>
+      <table>
+        <tr><th>Offer</th><th class="num">Pay in full</th><th class="num">2 payments</th></tr>
+        <tr><td>Mentorship</td><td class="num"><b>$5,000</b></td><td class="num">2 × $3,000</td></tr>
+        <tr><td>Course</td><td class="num"><b>$997</b></td><td class="num">2 × $600</td></tr>
+      </table>
+      <p class="sm"><b>Pay-in-full clearance:</b> anyone on a plan can clear the balance at the pay-in-full price within 30 days. Example: paid $3,000, clears with $2,000 instead of another $3,000. He says this lifts cash up front and plan completion.</p>
+    </div>
+    <div class="fig" style="margin:0">
+      <div class="figt">His three pricing tests</div>
+      <ol class="sm">
+        <li><b>Your hourly rate.</b> $5,000 ÷ about 15 hours of your time = <b>$333/hour</b>. If your business as a whole earns more per hour than that, raise the price.</li>
+        <li><b>Student return.</b> The program should be able to make them about 10× the price over time.</li>
+        <li><b>Your close rate.</b> Closing over 60–80% of calls means you're too cheap. Under 20–30% means too expensive or the wrong leads.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="hank"><span class="tag">What he teaches</span>
+    <ul><li>Start with <b>1-on-1</b> as the main offer. It's the easiest to sell and gives the best results and testimonials.</li>
+    <li>In one case study the split was 65% main offer, 25% downsell, 10% upsell. Without the other two offers, 35% of buyers would have been lost.</li>
+    <li><b>Never sell lifetime coaching or lifetime community.</b> A course's videos can be lifetime, because they cost you no time.</li>
+    <li>Use contracts, signed automatically, for every sale.</li></ul></div>
+  <div class="you"><span class="tag">Your version</span>
+    <ul><li><b>Mentorship, 90 days:</b> a call every two weeks, direct chat with you, the full curriculum, signals for all markets, the dashboard. Optional BloFin auto-trade after the risk module.</li>
+    <li><b>Course:</b> 8–12 recorded lessons plus 60 days of signals. Record it in weeks 2–3. Until it exists, the downsell is "join the waitlist".</li>
+    <li><b>Lifetime signals:</b> his "never offer lifetime" rule is why I suggested capping seats and wording it "for the life of the service". Monthly continuation is the safer default.</li></ul></div>
+  <div class="warn"><span class="tag">Careful</span>
+    <p>He promises results on his pages ("guaranteed") with $1,000 back. Don't guarantee trading profits; in most places that is a legal problem for anything investment-related. Offer a guarantee on what you control: "do the work for 14 days; if it isn't what I described, full refund."</p></div>
+</div>
+
+<!-- MODULE 5 -->
+<div class="sec">
+  <div class="eyebrow">Module 5</div>
+  <h2>The chain of rates: your numbers</h2>
+  <p class="lead">"The entire trading business is math." Write the goal as monthly cash, run the chain backwards, find the weakest link.</p>
+
+  <div class="fig">
+    <div class="figt">The chain</div>
+    <div class="flow">
+      <div class="b n">YouTube views</div><div class="ar">→</div>
+      <div class="b">Page visits<small>5% of views</small></div><div class="ar">→</div>
+      <div class="b">Calls booked<small>10% of visits</small></div><div class="ar">→</div>
+      <div class="b">Shows<small>80% of booked</small></div><div class="ar">→</div>
+      <div class="b">Closes<small>50% of shows</small></div><div class="ar">→</div>
+      <div class="b a">Cash<small>$3,500 average up front</small></div>
+    </div>
+    <div class="cap">The percentages are his benchmark for a tuned business. He counts YouTube views only, because that is where buyers come from.</div>
+  </div>
+
+  <div class="fig">
+    <div class="figt">What each income level needs per month</div>
+    <table>
+      <tr><th>Target</th><th class="num">YouTube views</th><th class="num">Page visits</th><th class="num">Calls booked</th><th class="num">Shows</th><th class="num">Closes</th><th>Who closes</th></tr>
+      <tr><td><b>$10K</b> · your first target</td><td class="num">2,000</td><td class="num">100</td><td class="num">10</td><td class="num">8</td><td class="num">4</td><td>You</td></tr>
+      <tr><td><b>$30K</b></td><td class="num">6,000</td><td class="num">300</td><td class="num">30</td><td class="num">24</td><td class="num">12</td><td>You</td></tr>
+      <tr><td><b>$100K</b></td><td class="num">20,000</td><td class="num">1,000</td><td class="num">100</td><td class="num">80</td><td class="num">40</td><td>1–2 setters + closers</td></tr>
+      <tr><td><b>$250K</b></td><td class="num">50,000</td><td class="num">2,500</td><td class="num">250</td><td class="num">200</td><td class="num">100</td><td>3–5 + manager</td></tr>
+    </table>
+    <div class="cap">In his model $10K a month is about 2.5 booked calls a week. He calls this stage "the easiest".</div>
+  </div>
+
+  <div class="grid2">
+    <div class="fig" style="margin:0">
+      <div class="figt">A cautious first-month version for you</div>
+      <table>
+        <tr><th>Step</th><th class="num">Rate</th><th class="num">Number</th></tr>
+        <tr><td>Calls booked</td><td class="num"></td><td class="num">20</td></tr>
+        <tr><td>Show up</td><td class="num">70%</td><td class="num">14</td></tr>
+        <tr><td>Buy</td><td class="num">30%</td><td class="num">4</td></tr>
+        <tr><td>Cash at $2,500 average</td><td class="num"></td><td class="num"><b>$10,000</b></td></tr>
+      </table>
+      <p class="sm">So plan for <b>five booked calls a week</b>. You have a warm Instagram audience, so many of your first bookings will come from stories and DMs before YouTube catches up.</p>
+    </div>
+    <div class="fig" style="margin:0">
+      <div class="figt">Small fixes compound</div>
+      <svg viewBox="0 0 320 150" width="100%">
+        <text x="0" y="12" font-size="10" fill="#5b6478">Same 100 booked calls, same content</text>
+        <rect x="0" y="24" width="150" height="38" rx="6" fill="#fbe9e4" stroke="#efc4b9"/>
+        <text x="8" y="40" font-size="10">60% show · 25% close</text><text x="8" y="55" font-size="13" font-weight="800">$52,500</text>
+        <rect x="0" y="74" width="280" height="38" rx="6" fill="#0f8b8d"/>
+        <text x="8" y="90" font-size="10" fill="#fff">80% show · 35% close</text><text x="8" y="105" font-size="13" font-weight="800" fill="#fff">$98,000</text>
+        <text x="0" y="134" font-size="10" fill="#14213d">Nearly double, with no extra views or leads.</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="hank"><span class="tag">His six bottlenecks, and the question to ask at each</span>
+    <table>
+      <tr><th>Weak link</th><th>Likely cause</th></tr>
+      <tr><td>Not enough views</td><td>Not enough videos, or weak titles and thumbnails</td></tr>
+      <tr><td>Views but few page visits</td><td>The call to action in your content is weak</td></tr>
+      <tr><td>Visits but few bookings</td><td>The page video isn't strong enough</td></tr>
+      <tr><td>Bookings but no-shows</td><td>Reminders, the after-booking video, no personal contact</td></tr>
+      <tr><td>Shows but few sales</td><td>The call: discovery, handling objections, the pitch</td></tr>
+      <tr><td>Sales but low cash</td><td>Pricing, payment plans, no pay-in-full incentive</td></tr>
+    </table>
+    <p class="sm">Wait for <b>50 or more</b> of an event before trusting its rate. "Two calls tells you nothing." Below about $10K a month, focus on the basics instead of fine-tuning.</p></div>
+</div>
+
+<!-- MODULE 6 -->
+<div class="sec tight">
+  <div class="eyebrow">Module 6</div>
+  <h2>Content: what to post and where</h2>
+  <p class="lead">"Content and getting eyeballs is the biggest lever you can ever pull." But posted with a plan, not at random.</p>
+
+  <div class="grid2">
+    <div class="fig" style="margin:0">
+      <div class="figt">Each platform has one job</div>
+      <table>
+        <tr><th>Platform</th><th>Job</th></tr>
+        <tr><td><b>YouTube</b> long videos</td><td>Turns viewers into buyers. The only views he counts.</td></tr>
+        <tr><td><b>Instagram</b> reels</td><td>Reach strangers, send them to YouTube.</td></tr>
+        <tr><td><b>Instagram</b> stories</td><td>Daily contact. Story sequences build trust.</td></tr>
+        <tr><td><b>TikTok, X</b></td><td>Optional. Repost reels automatically.</td></tr>
+        <tr><td><b>Email, Discord</b></td><td>Keep warming people between videos.</td></tr>
+      </table>
+    </div>
+    <div class="fig" style="margin:0">
+      <div class="figt">The content funnel</div>
+      <svg viewBox="0 0 320 190" width="100%">
+        <polygon points="10,5 310,5 268,62 52,62" fill="#fbe9e4" stroke="#efc4b9"/>
+        <text x="160" y="28" text-anchor="middle" font-size="12" font-weight="800">TOP · reach</text>
+        <text x="160" y="46" text-anchor="middle" font-size="9.5">Doctor story, big numbers, broad lessons</text>
+        <polygon points="56,68 264,68 226,124 94,124" fill="#fff4d9" stroke="#f3dba0"/>
+        <text x="160" y="90" text-anchor="middle" font-size="12" font-weight="800">MIDDLE · trust</text>
+        <text x="160" y="107" text-anchor="middle" font-size="9.5">Risk, sizing, how the bot thinks</text>
+        <polygon points="98,130 222,130 196,184 124,184" fill="#e4f4ea" stroke="#b9dfc8"/>
+        <text x="160" y="152" text-anchor="middle" font-size="12" font-weight="800">BOTTOM</text>
+        <text x="160" y="168" text-anchor="middle" font-size="9">Trades, losses, students</text>
+      </svg>
+      <div class="cap">Rotate all three. Bottom videos get far fewer views and make most of the money.</div>
+    </div>
+  </div>
+
+  <div class="fig">
+    <div class="figt">Your 10 scripted videos, placed in the funnel</div>
+    <table>
+      <tr><th>Stage</th><th>Video (already written for you)</th><th>Why it sits here</th></tr>
+      <tr><td><span class="pill r">Top</span></td><td>02 Doctor to trader · 09 $1,000 starting over · 04 Why most blow accounts</td><td>Broad curiosity. Anyone who trades will click.</td></tr>
+      <tr><td><span class="pill a">Middle</span></td><td>03 Why I built a bot · 05 How I size leverage · 08 Memecoins to leverage</td><td>Teaches your way of thinking. Builds trust.</td></tr>
+      <tr><td><span class="pill g">Bottom</span></td><td>01 4 trades, skipped 300 · 06 Live trade breakdown · 07 30 days of the bot · 10 Member interview</td><td>Proof. The viewer here is close to applying.</td></tr>
+    </table>
+  </div>
+
+  <div class="grid2">
+    <div class="fig" style="margin:0">
+      <div class="figt">The two numbers YouTube rewards</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:8.5pt">
+        <div class="card a" style="padding:6px"><b>Low clicks · high watch</b><br>Good video, bad title or thumbnail. Easiest fix.</div>
+        <div class="card g" style="padding:6px"><b>High clicks · high watch</b><br>Gets pushed. Make more like it.</div>
+        <div class="card r" style="padding:6px"><b>Low clicks · low watch</b><br>The idea is weak. Drop it.</div>
+        <div class="card a" style="padding:6px"><b>High clicks · low watch</b><br>Clickbait. Didn't deliver the title.</div>
+      </div>
+      <div class="cap">His targets: click rate above 6%, average watch time above 5 minutes.</div>
+    </div>
+    <div class="fig" style="margin:0">
+      <div class="figt">How much to post</div>
+      <table>
+        <tr><th>Format</th><th>His number</th><th>Your start</th></tr>
+        <tr><td>YouTube</td><td>6 a month (every 4–6 days)</td><td>1 a week, then 6 a month</td></tr>
+        <tr><td>Reels / shorts</td><td>3–5 a day at the top end; 7 a week for one client</td><td>1 a day, batch-filmed</td></tr>
+        <tr><td>Story sequences</td><td>3–4 a week</td><td>3 a week</td></tr>
+        <tr><td>Mix</td><td colspan="2">90% value, 10% selling</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="you"><span class="tag">Your version: the short-form series</span>
+    <p>His best-performing short format is a <b>numbered daily series</b> ("Day 8 of…"). Viewers see a number, go back to Day 1 and binge. Yours writes itself: <b>"Day N: my bot's trades today"</b> or <b>"Road to 100 public trades"</b>, 30–45 seconds each: what it took, what it skipped, the running result. Wins and losses.</p>
+    <p>More ideas from his list: batch 3–4 talking videos on the weekend; schedule everything so daily posting isn't a chore; make the content your past self needed; ask every student what they struggle with and film the answers; when one video takes off, make more on that topic.</p></div>
+  <div class="hank"><span class="tag">What he teaches about proof and losses</span>
+    <p>A raw 52-minute video of a top creator losing $34,000 made more sales than a "new car" lifestyle video. Lifestyle attracts beginners; honest trading attracts buyers. "Never think you have a boring life," but keep YouTube educational.</p></div>
+</div>
+
+<!-- MODULE 7 -->
+<div class="sec">
+  <div class="eyebrow">Module 7</div>
+  <h2>Instagram story sequences</h2>
+  <p class="lead">Several story slides that tell one story, then get saved to a highlight so they keep working. He calls saved highlights "money assets".</p>
+
+  <div class="fig">
+    <div class="figt">The structure of every sequence: hook → retention → reward. Example for you:</div>
+    <div class="grid4" style="grid-template-columns:repeat(5,1fr)">
+      <div class="phone"><span class="n">1</span><div class="hk">I was a doctor. I quit after one trade changed everything →</div>Photo of you in scrubs.<div class="ft">HOOK · big text, top, arrow</div></div>
+      <div class="phone"><span class="n">2</span><div class="hk" style="color:#fff;font-size:8.6pt">$7,000 became $1.1M</div>Screenshot of the real proof.<div class="ft">RETENTION · show, don't tell</div></div>
+      <div class="phone"><span class="n">3</span><div class="hk" style="color:#fff;font-size:8.6pt">Then I almost gave it back</div>The honest low point.<div class="ft">RETENTION · relatable pain</div></div>
+      <div class="phone"><span class="n">4</span><div class="hk" style="color:#fff;font-size:8.6pt">So I turned my rules into a bot</div>Clip of the results page.<div class="ft">RETENTION · the turn</div></div>
+      <div class="phone"><span class="n">5</span><div class="hk">Want the guide to how it decides?</div>DM me the word BOT.<div class="ft">REWARD · soft call to action</div></div>
+    </div>
+    <div class="cap">Slide rules he gives: hook at the top in bigger, different-coloured text; an arrow to the next slide; a photo of you as the background; screenshots beat plain text.</div>
+  </div>
+
+  <div class="fig">
+    <div class="figt">His nine types, with your version of each</div>
+    <table>
+      <tr><th style="width:21%">Type</th><th>Your version</th><th style="width:15%">How often</th></tr>
+      <tr><td><b>1 Value</b></td><td>A lesson in 5–8 slides: "the 3 checks before any leverage trade".</td><td>Weekly</td></tr>
+      <tr><td><b>2 Launch</b></td><td>A countdown to opening mentorship spots (see the pre-launch plan).</td><td>Every 3–4 months</td></tr>
+      <tr><td><b>3 Journey</b></td><td>Doctor → $7K → $1.1M → quitting → the bot, in sections.</td><td>Once, pinned</td></tr>
+      <tr><td><b>4 Own results</b></td><td>One highlight holding all your proof and the results page.</td><td>Keep updated</td></tr>
+      <tr><td><b>5 Q&amp;A</b></td><td>Answer the objections you hear: "is it too late?", "do I need a big account?"</td><td>Every 2–4 weeks</td></tr>
+      <tr><td><b>6 Life</b></td><td>One photo of your day. No message needed.</td><td>Most days</td></tr>
+      <tr><td><b>7 Behind the scenes</b></td><td>Your desk, the bot's alert arriving, a student call.</td><td>Most days</td></tr>
+      <tr><td><b>8 Case study</b></td><td>One student in 3–5 slides, ending with a link to the full interview.</td><td>Each new result</td></tr>
+      <tr><td><b>9 Documentary</b></td><td>A month-long highlight: the bot's trades day by day, wins, losses, everything.</td><td>One per month</td></tr>
+    </table>
+    <div class="cap">He says the documentary is the hardest and the most valuable: someone who watches a whole month is "super super warm".</div>
+  </div>
+
+  <div class="grid2">
+    <div class="hank" style="margin:0"><span class="tag">Soft versus hard call to action</span>
+      <p><b>Soft:</b> "DM me BOT", "watch the full video". Use on most sequences.<br><b>Hard:</b> "Apply for a call". Use at the end of a launch or a documentary, after the trust is built.</p></div>
+    <div class="you" style="margin:0"><span class="tag">Your highlights, in this order</span>
+      <p>My story · Proof · Bot results (monthly) · Students 1, 2, 3 · Q&amp;A · How to work with me. The first slide of each must be a strong hook, with a cover people want to tap.</p></div>
+  </div>
+  <div class="warn"><span class="tag">Careful</span>
+    <p>For testimonials from well-known people, get written permission before using their name or face in sales content, and never imply they earned money from your program if they didn't.</p></div>
+</div>
+
+<!-- MODULE 8 -->
+<div class="sec">
+  <div class="eyebrow">Module 8</div>
+  <h2>Lead capture: freebie, email and ManyChat</h2>
+  <p class="lead">Most people won't apply the first time they see you. Capture them, then keep showing up.</p>
+
+  <div class="fig">
+    <div class="figt">Your capture flow</div>
+    <div class="flow">
+      <div class="b n">Reel, story or video<small>"Comment or DM the word BOT"</small></div><div class="ar">→</div>
+      <div class="b p">ManyChat replies<small>Voice note from you + asks for email</small></div><div class="ar">→</div>
+      <div class="b">Free guide sent<small>PDF by email</small></div><div class="ar">→</div>
+      <div class="b a">Email sequence<small>6 emails over 10 days</small></div><div class="ar">→</div>
+      <div class="b g">Application<small>Link to your page</small></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="hank" style="margin:0"><span class="tag">What he teaches: ManyChat voice notes</span>
+      <p>The call to action on a story is a <b>DM keyword</b>. ManyChat then sends an automatic <b>voice note</b> you recorded once on your phone, a few seconds after they message. "Voice notes work so good" because they feel personal.</p>
+      <p>His example keyword is a number of spots, such as "10". The voice note says spots are limited and asks what they struggle with. A person then continues the chat.</p></div>
+    <div class="you" style="margin:0"><span class="tag">Your version</span>
+      <p><b>Keyword BOT</b> → voice note: "Hey, thanks for reaching out. I'll send the guide now. Quick question while it arrives: how long have you been trading, and what's been the hardest part?"</p>
+      <p>Their answer decides the next step: serious and able to invest → application link. Not ready → guide and emails. This is the setter's job done by you plus automation until you can hire one.</p></div>
+  </div>
+
+  <div class="grid2" style="margin-top:8px">
+    <div class="fig" style="margin:0">
+      <div class="figt">Your free guide (he uses 10–16 page PDFs and checklists)</div>
+      <p><b>"The 7-point checklist my bot runs before it risks a dollar."</b></p>
+      <ul class="sm"><li>Plain language, no system names.</li><li>One real finished trade as the example.</li><li>Last page: your story and the application link.</li></ul>
+      <p class="sm">A second one later, for people closer to buying: "How I size a leverage trade so one loss can't hurt me."</p>
+    </div>
+    <div class="fig" style="margin:0">
+      <div class="figt">The email sequence he outlines</div>
+      <ol class="sm">
+        <li>Their pain: why they keep losing. Deliver the guide.</li>
+        <li>Your best bottom-of-funnel YouTube video.</li>
+        <li>Your story: doctor, the run, quitting.</li>
+        <li>A free lesson that really helps.</li>
+        <li>"Where you are versus where you want to be."</li>
+        <li>How the mentorship closes that gap. Apply here.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="fig">
+    <div class="figt">Free Discord: the waiting room</div>
+    <div class="flow">
+      <div class="b">#announcements</div><div class="ar">·</div>
+      <div class="b">#new-videos</div><div class="ar">·</div>
+      <div class="b">#bot-results<small>delayed, entry/stop/target only</small></div><div class="ar">·</div>
+      <div class="b">#free-guide</div><div class="ar">·</div>
+      <div class="b">#support-tickets</div>
+    </div>
+    <div class="cap">He recommends turning off DMs from non-friends and using a ticket channel, so support can be handed to someone else later.</div>
+  </div>
+  <div class="warn"><span class="tag">Careful</span>
+    <p>His voice notes lean on "only 10 spots". Only say a number if it's true. For 1-on-1 it is true: you can honestly take about 10–15 students, so "I take 5 new students a month" is real scarcity. Also let the chat say it is an automated assistant when someone asks, and never let it promise returns.</p></div>
+</div>
+
+<!-- MODULE 9 -->
+<div class="sec tight">
+  <div class="eyebrow">Module 9</div>
+  <h2>The funnel: page, application, reminders</h2>
+  <p class="lead">One rule runs through it: every step only sells the next step.</p>
+
+  <div class="grid2">
+    <div class="fig" style="margin:0">
+      <div class="figt">Page 1: your application page</div>
+      <div class="wire">
+        <div class="w"><b>Headline</b> · "Stop gambling on leverage. Trade a system, with a former doctor who turned $7K into $1.1M beside you for 90 days."</div>
+        <div class="w"><b>Promise you control</b> · "14 days: if it isn't what I described, full refund."</div>
+        <div class="w vid">▶ Step 1 · Watch this video (5–8 min)</div>
+        <div class="w btn">Step 2 · Start application</div>
+        <div class="w"><b>Proof wall</b> · results, student stories, testimonials</div>
+      </div>
+      <div class="cap">The video's only job is the click on "Start application". It does not explain the program.</div>
+    </div>
+    <div class="fig" style="margin:0">
+      <div class="figt">Page 2: after they book</div>
+      <div class="wire">
+        <div class="w"><b>"You're booked."</b> · Date and time confirmed.</div>
+        <div class="w vid">▶ Watch before our call (10–15 min)</div>
+        <div class="w"><b>What the video covers</b> · how the 90 days work, what they get, who it suits, student results, what to prepare.</div>
+        <div class="w"><b>"Reply YES to the email"</b> · confirms the call and keeps your emails out of spam.</div>
+      </div>
+      <div class="cap">He calls this video "an absolute must". It lifts both show rate and close rate because people arrive already understanding the offer.</div>
+    </div>
+  </div>
+
+  <div class="fig">
+    <div class="figt">Your application questions (adapted from his)</div>
+    <table>
+      <tr><th>Question</th><th>Why he asks it</th></tr>
+      <tr><td>What's your biggest struggle with trading right now?</td><td>You repeat their words back on the call.</td></tr>
+      <tr><td>What's your goal, and why now?</td><td>Their reason to act.</td></tr>
+      <tr><td>Which describes you? New · Trading under a year · 1+ years, not profitable · Profitable, want to scale</td><td>Makes them name where they are.</td></tr>
+      <tr><td>This is 1-on-1 mentorship, not a signals group. What can you invest in getting this right? Under $1K · $1K–$3K · $3K–$5K · $5K+</td><td>The money filter.</td></tr>
+      <tr><td>Your Instagram handle</td><td>So you can message them before the call.</td></tr>
+    </table>
+  </div>
+
+  <div class="fig">
+    <div class="figt">What happens after the application</div>
+    <div class="flow">
+      <div class="b n">Application sent</div><div class="ar">→</div>
+      <div class="b">Budget $3K+?</div><div class="ar">→</div>
+      <div class="b g">YES · books a call<small>calendar shows the next 4 days only</small></div><div class="ar">→</div>
+      <div class="b g">After-booking video + reminders</div><div class="ar">→</div>
+      <div class="b a">Call with you</div>
+    </div>
+    <div class="down">▼ no</div>
+    <div class="flow">
+      <div class="b r">Under $3K<small>you message to check; some understate</small></div><div class="ar">→</div>
+      <div class="b r">Course offer<small>short video + checkout link</small></div><div class="ar">→</div>
+      <div class="b p">Later: upgrade to mentorship<small>course price counted toward it</small></div>
+    </div>
+    <div class="cap">He limits booking to 4 days ahead because show rate "drops drastically" for calls a week out. He estimates rescuing lost leads is worth 10–20% extra revenue.</div>
+  </div>
+
+  <div class="fig">
+    <div class="figt">Reminder timeline (he recommends 4–6, not 12)</div>
+    <div class="tl">
+      <div class="t n" style="background:#14213d;color:#fff"><b>Booked</b>Confirm + video. You message within minutes.</div>
+      <div class="t"><b>1 day before</b>Email + a student story like theirs</div>
+      <div class="t"><b>6 hours</b>Email</div>
+      <div class="t"><b>2 hours</b>Instagram DM or WhatsApp</div>
+      <div class="t"><b>1 hour</b>Email</div>
+      <div class="t"><b>15 min</b>Text with the link</div>
+      <div class="t" style="background:#fff4d9;border-color:#f3dba0"><b>+5 min</b>If no show: "Still joining?"</div>
+    </div>
+    <div class="cap">Put a video or testimonial inside the reminders. Match it to their application answer: someone with a 9-to-5 gets the story of a student with a 9-to-5.</div>
+  </div>
+
+  <div class="hank"><span class="tag">Three rescue sequences he runs</span>
+    <ol><li><b>Started the form, didn't finish:</b> message them the same day.</li><li><b>Booked, didn't show:</b> message to rebook.</li><li><b>Had the call, didn't buy:</b> follow up; offer a second call or the course.</li></ol></div>
+  <div class="you"><span class="tag">Pre-call videos</span>
+    <p>Record 3 short videos (about 5 minutes each), one per common problem: <b>overtrading</b>, <b>position sizing and liquidations</b>, <b>giving back profits</b>. Send the matching one before the call based on their application.</p></div>
+</div>
+
+<!-- MODULE 10 -->
+<div class="sec">
+  <div class="eyebrow">Module 10</div>
+  <h2>The sales call and follow-up</h2>
+  <p class="lead">Below about $25K–$30K a month you close yourself. He says it is the only way to learn what your buyers actually say.</p>
+
+  <div class="fig">
+    <div class="figt">The call structure he lists (30–45 minutes)</div>
+    <div class="flow">
+      <div class="b n">1 Agenda<small>"Here's how this call works"</small></div><div class="ar">→</div>
+      <div class="b">2 Discovery<small>Their situation, goal, what's stopping them, the cost of staying there</small></div><div class="ar">→</div>
+      <div class="b">3 Pre-handle objections<small>Raise the doubts before they do</small></div><div class="ar">→</div>
+      <div class="b a">4 Pitch<small>The 90 days as the bridge from here to there</small></div><div class="ar">→</div>
+      <div class="b g">5 Close<small>Price, plan, payment on the call</small></div>
+    </div>
+    <div class="cap">He gives the stages but not a word-for-word script; his scripts are for paying clients. I can write yours as a next step.</div>
+  </div>
+
+  <div class="grid2">
+    <div class="fig" style="margin:0">
+      <div class="figt">Who should be talking</div>
+      <svg viewBox="0 0 320 96" width="100%">
+        <text x="0" y="12" font-size="10" fill="#5b6478">One client before coaching</text>
+        <rect x="0" y="18" width="288" height="20" rx="4" fill="#c8553d"/><rect x="288" y="18" width="32" height="20" rx="4" fill="#d9deea"/>
+        <text x="8" y="32" font-size="10" fill="#fff">You talk 90%</text>
+        <text x="0" y="60" font-size="10" fill="#5b6478">After</text>
+        <rect x="0" y="66" width="144" height="20" rx="4" fill="#0f8b8d"/><rect x="144" y="66" width="176" height="20" rx="4" fill="#d9deea"/>
+        <text x="8" y="80" font-size="10" fill="#fff">You talk 40–50%</text><text x="152" y="80" font-size="10" fill="#14213d">They talk</text>
+      </svg>
+      <div class="cap">Record every call (he uses Fathom) and check the talk ratio. That client turned the training into a one-page checklist and followed it on each call.</div>
+    </div>
+    <div class="fig" style="margin:0">
+      <div class="figt">The three outcomes on the call</div>
+      <div class="flow" style="flex-direction:column;gap:5px">
+        <div class="b g">Fits and can invest → Mentorship, pay in full or 2 payments</div>
+        <div class="b a">Fits, truly can't afford it → Course, on the call</div>
+        <div class="b r">Doesn't fit → say so, send free content</div>
+      </div>
+      <div class="cap">He prefers taking payment on the call, with contracts signed automatically after.</div>
+    </div>
+  </div>
+
+  <div class="hank"><span class="tag">How he says to raise the close rate</span>
+    <ul><li><b>Match their pain.</b> Use the application answers and the pre-call video they watched.</li>
+    <li><b>Pre-handle objections in public.</b> If "will this work with a small account?" keeps coming up, answer it in a Q&amp;A story, the after-booking page and a video.</li>
+    <li><b>Ask every new student why they bought.</b> A 15-question form after purchase: what made you buy, the tipping point, what almost stopped you. After 50 answers you know exactly what to say in content.</li>
+    <li><b>Don't hire friends or students to sell.</b> And not before the offer is selling well with you on the calls.</li></ul></div>
+
+  <div class="you"><span class="tag">Your version: the objections you'll hear</span>
+    <table>
+      <tr><th style="width:32%">They say</th><th>Where you answer it before the call</th></tr>
+      <tr><td>"Is the bot's record long enough?"</td><td>Public results page; the 30-day video; your own documented history.</td></tr>
+      <tr><td>"I only have a small account."</td><td>The sizing video: risk is a percentage, not a dollar figure.</td></tr>
+      <tr><td>"Why not just buy the signals?"</td><td>Story sequence: signals without sizing and discipline still lose money. The mentorship is the sizing and discipline.</td></tr>
+      <tr><td>"I need to think about it."</td><td>The 14-day refund promise and the pay-in-full clearance window.</td></tr>
+    </table></div>
+  <div class="warn"><span class="tag">Careful</span>
+    <p>Sell with their real situation, not pressure. If someone would be putting in money they can't afford to lose, the right answer is the free content, even if they want to buy. That protects them and your reputation.</p></div>
+</div>
+
+<!-- MODULE 11 -->
+<div class="sec">
+  <div class="eyebrow">Module 11</div>
+  <h2>Delivery: the 90 days and the flywheel</h2>
+  <p class="lead">"Fulfillment, fulfillment, fulfillment." He calls delivery the most important of the five functions and bad delivery "a ticking time bomb".</p>
+
+  <div class="fig">
+    <div class="figt">The flywheel</div>
+    <div class="flow">
+      <div class="b g">Students get results</div><div class="ar">→</div>
+      <div class="b">Interviews + case studies</div><div class="ar">→</div>
+      <div class="b">Better content</div><div class="ar">→</div>
+      <div class="b">More applications</div><div class="ar">→</div>
+      <div class="b g">More students</div>
+    </div>
+    <div class="cap">He says about 90% of his own videos and stories are client results. Interview a student as soon as they hit a first milestone.</div>
+  </div>
+
+  <div class="fig">
+    <div class="figt">Your 90 days in three phases (he structures programs in phases so people finish, and finish paying)</div>
+    <div class="grid3">
+      <div class="card t"><span class="pill t">Weeks 1–4</span><h4 style="margin-top:4px">Protect</h4>
+        <ul class="sm"><li>Onboarding call, account setup</li><li>Risk per trade, sizing, liquidation check</li><li>Follow the signals at minimum size</li><li>Journal every trade</li></ul>
+        <p class="sm"><b>Milestone:</b> 10 trades taken exactly by the rules.</p></div>
+      <div class="card a"><span class="pill a">Weeks 5–8</span><h4 style="margin-top:4px">Build</h4>
+        <ul class="sm"><li>Reading a signal: why this one, why not that one</li><li>Taking profit, moving memecoin gains into a trading plan</li><li>Trade reviews on calls</li><li>Unlocks: optional auto-trade on demo</li></ul>
+        <p class="sm"><b>Milestone:</b> a full month without breaking a rule.</p></div>
+      <div class="card g"><span class="pill g">Weeks 9–12</span><h4 style="margin-top:4px">Independence</h4>
+        <ul class="sm"><li>Their own written plan</li><li>Scaling size slowly</li><li>Results interview</li><li>Continuation offer for signals</li></ul>
+        <p class="sm"><b>Milestone:</b> they can explain every trade without you.</p></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="hank" style="margin:0"><span class="tag">What he teaches about 1-on-1 delivery</span>
+      <ul><li><b>Calls every two weeks, not weekly.</b> People bring real questions; chat covers the rest. "If there's no agenda, it's a waste of time."</li>
+      <li>After about half the program, good students need you half as much.</li>
+      <li>Keep delivery under 1–2 hours a day. Write everything down so the program "does the call for them".</li>
+      <li><b>Hold them accountable.</b> Don't say "just don't overtrade next week". Ask why it happened.</li>
+      <li>A dashboard of total student profit, shared in stories, gets reposted by students.</li></ul></div>
+    <div class="you" style="margin:0"><span class="tag">Your version</span>
+      <ul><li>The <b>member dashboard</b> you asked for (their win rate, their trades) is exactly his "dashboard" idea. It becomes part of delivery and of your content.</li>
+      <li>Signals give students a win in week 1, which is rare in mentorships.</li>
+      <li>Automate onboarding: payment → contract → welcome email → Discord role → "why did you buy" form.</li>
+      <li>Ask for feedback after month one: what's good, what's missing.</li></ul></div>
+  </div>
+
+  <div class="fig">
+    <div class="figt">Money after the first sale (he says the back end adds about 30–50% on top)</div>
+    <div class="flow">
+      <div class="b">Payment plans completing</div><div class="ar">+</div>
+      <div class="b">Course → mentorship upgrade</div><div class="ar">+</div>
+      <div class="b">Signals continuation</div><div class="ar">+</div>
+      <div class="b">Renewal or advanced round</div><div class="ar">+</div>
+      <div class="b">Exchange referral link</div>
+    </div>
+    <div class="cap">Each gets its own short video, shown only to the students it applies to.</div>
+  </div>
+  <div class="warn"><span class="tag">Careful</span>
+    <p>If you earn a referral fee from an exchange, tell students. And auto-trading other people's accounts can count as regulated activity depending on country, so get legal advice before charging for it.</p></div>
+</div>
+
+<!-- MODULE 12 -->
+<div class="sec">
+  <div class="eyebrow">Module 12</div>
+  <h2>Tracking, team and when to hire</h2>
+  <p class="lead">"If you don't track it, you don't know what you don't know." A weak number is a symptom; trace it back to its cause.</p>
+
+  <div class="fig">
+    <div class="figt">Your dashboard: start in a Google Sheet, one row per week</div>
+    <div class="grid4">
+      <div class="tile"><div class="l">YouTube views</div><div class="v">2,000</div><div class="tg">first target / month</div></div>
+      <div class="tile"><div class="l">Page visits</div><div class="v">100</div><div class="tg">5% of views</div></div>
+      <div class="tile"><div class="l">Calls booked</div><div class="v">10–20</div><div class="tg">10% of visits</div></div>
+      <div class="tile"><div class="l">Show rate</div><div class="v">80%</div><div class="tg">under 60% = problem</div></div>
+      <div class="tile"><div class="l">Close rate</div><div class="v">30–50%</div><div class="tg">over 60% = raise price</div></div>
+      <div class="tile"><div class="l">Cash per sale</div><div class="v">$3,500</div><div class="tg">average up front</div></div>
+      <div class="tile"><div class="l">Cash ÷ contract value</div><div class="v">60–70%</div><div class="tg">over 90% = raise price</div></div>
+      <div class="tile"><div class="l">Cash per booked call</div><div class="v">$700–2,000</div><div class="tg">the one number to watch</div></div>
+    </div>
+    <div class="cap">Also log where each booking came from (which video or story). One of his clients traced $2.5M to a single video, then made more like it.</div>
+  </div>
+
+  <div class="fig">
+    <div class="figt">The weekly loop</div>
+    <div class="flow">
+      <div class="b n">1 Measure<small>every rate</small></div><div class="ar">→</div>
+      <div class="b">2 Compare<small>to the target</small></div><div class="ar">→</div>
+      <div class="b">3 Pick one<small>the weakest link</small></div><div class="ar">→</div>
+      <div class="b">4 Ship a fix</div><div class="ar">→</div>
+      <div class="b a">5 Keep or kill</div><div class="ar">↺</div>
+    </div>
+    <div class="cap">One fix at a time, or you never learn what worked.</div>
+  </div>
+
+  <div class="fig">
+    <div class="figt">Who you need at each stage (his roadmap)</div>
+    <table>
+      <tr><th>Monthly cash</th><th>Content</th><th>Sales</th><th>Systems</th><th>Delivery</th></tr>
+      <tr><td><b>$0–$10K</b></td><td>You</td><td>You</td><td>Simple, you</td><td>You, 1-on-1</td></tr>
+      <tr><td><b>$10K–$30K</b></td><td>+ editor, thumbnail designer</td><td>You</td><td>You</td><td>You, up to 10–15 students</td></tr>
+      <tr><td><b>$30K–$100K</b></td><td>Same</td><td>1–2 setters, 1–2 closers</td><td>+ an assistant</td><td>Switch main offer to group</td></tr>
+      <tr><td><b>$100K–$250K</b></td><td>Same</td><td>3–5 + sales manager</td><td>+ ops manager</td><td>+ student success manager</td></tr>
+      <tr><td><b>$1M+</b></td><td>Same</td><td>5–10 reps</td><td>Same</td><td>+ community manager; ads start</td></tr>
+    </table>
+    <div class="cap">One setter plus one closer handles about $100K a month. He quotes 10% commission for closers. His first hire, before any closer, is a <b>setter</b>.</div>
+  </div>
+
+  <div class="grid2">
+    <div class="hank" style="margin:0"><span class="tag">His time budget for you</span>
+      <ul><li>Content: 1–2 hours a day</li><li>Delivery: 1–2 hours a day</li><li>Admin, tracking, chasing: as close to zero as automation allows</li></ul>
+      <p>His test for every task: "Could I do this if 100 people booked tomorrow?" If not, simplify it, then automate it.</p></div>
+    <div class="warn" style="margin:0"><span class="tag">Careful</span>
+      <p>He says no ads before $100K a month and no "we run it all for a share" agencies before $250K. I agree with both. Any agency keen to take over a small business for a revenue share is, in his words, probably not good.</p></div>
+  </div>
+</div>
+
+<!-- PRE-LAUNCH -->
+<div class="sec">
+  <div class="eyebrow">Bonus</div>
+  <h2>Your 14-day pre-launch</h2>
+  <p class="lead">He opens a program with a 2–3 week build-up: 8–12 story sequences, 6–7 emails, Discord announcements and a waitlist. You have an audience, so this is how you open the mentorship.</p>
+
+  <div class="fig">
+    <div class="figt">Day by day</div>
+    <div class="cal">
+      <div class="d"><b>Day 1</b>Journey sequence: doctor → $1.1M. Soft: "something's coming."</div>
+      <div class="d"><b>Day 2</b>Reel: "Why I built a bot." Email 1: your story.</div>
+      <div class="d"><b>Day 3</b>Student result sequence. Soft CTA to interview.</div>
+      <div class="d"><b>Day 4</b>YouTube: doctor story video. Discord announcement.</div>
+      <div class="d"><b>Day 5</b>Waitlist opens. Sequence: what I'm opening and for whom. Email 2.</div>
+      <div class="d"><b>Day 6</b>Q&amp;A stories: answer objections.</div>
+      <div class="d"><b>Day 7</b>Bot results sequence: every trade this week.</div>
+      <div class="d"><b>Day 8</b>YouTube: "4 trades, skipped 300." Email 3: a lesson.</div>
+      <div class="d"><b>Day 9</b>Second student result. "5 days."</div>
+      <div class="d"><b>Day 10</b>Behind the scenes: building the program. Email 4.</div>
+      <div class="d"><b>Day 11</b>Value sequence: the 3 checks. "3 days."</div>
+      <div class="d"><b>Day 12</b>YouTube: live trade breakdown. Email 5: who it's for.</div>
+      <div class="d"><b>Day 13</b>"Tomorrow." Hard CTA: waitlist gets first access. Email 6.</div>
+      <div class="d" style="background:#e4f4ea;border-color:#b9dfc8"><b>Day 14 · OPEN</b>Launch email + sequence. Waitlist books first. Message every booking yourself.</div>
+    </div>
+    <div class="cap">Pattern he uses: soft calls to action in the first half, hard ones at the end. After launch: one or two "last spots" emails, then back to normal content.</div>
+  </div>
+
+  <div class="grid2">
+    <div class="hank" style="margin:0"><span class="tag">What he teaches</span>
+      <ul><li>A waitlist turned into 330 booked calls in 24 hours for one client with about 4,200 on the list.</li>
+      <li>Waitlist leads book first, and close better.</li>
+      <li>Send emails at the time your audience is most active (his client's was 12:30).</li>
+      <li>Seasonal angles work. He calls New Year "a gold mine": "don't waste another year."</li>
+      <li>A pre-launch needs an existing audience. With 10 followers, build first.</li></ul></div>
+    <div class="you" style="margin:0"><span class="tag">Your version</span>
+      <ul><li>Have the page, application, booking link and after-booking video ready <b>before day 1</b>.</li>
+      <li>Open a real, limited number: for example 8 mentorship spots.</li>
+      <li>It's mid-November now. A build-up through December with a January opening fits his New Year angle exactly.</li>
+      <li>Expect a few sales from a first launch, not hundreds. The goal is your first 4–8 students and their results.</li></ul></div>
+  </div>
+</div>
+
+<!-- START TOMORROW -->
+<div class="sec">
+  <div class="eyebrow">Action plan</div>
+  <h2>Start tomorrow</h2>
+  <p class="lead">About four hours. By the end of the day someone can find you, apply, and book a call.</p>
+
+  <div class="grid2">
+    <div class="card t"><span class="pill t">Morning · 2 hours</span>
+      <ul class="chk">
+        <li><b>Write your one-line pitch and your customer</b> (Module 3). 20 min.</li>
+        <li><b>Create the mentorship on Whop:</b> $5,000 in full, or 2 × $3,000. 20 min.</li>
+        <li><b>Build the application</b> with the 5 questions (Typeform or Whop form). 30 min.</li>
+        <li><b>Set up a booking calendar:</b> 45-minute calls, next 4 days only, 3 slots a day. 20 min.</li>
+        <li><b>Start a tracking sheet:</b> date, name, source, booked, showed, bought, cash. 15 min.</li>
+      </ul></div>
+    <div class="card a"><span class="pill a">Afternoon · 2 hours</span>
+      <ul class="chk">
+        <li><b>Record the page video</b> (5–8 min, phone is fine): who you are, who this is for, the problem, what changes, "apply below". 45 min.</li>
+        <li><b>Put the application link</b> in your Instagram bio and YouTube descriptions. 5 min.</li>
+        <li><b>Post story sequence #1:</b> the journey (Module 7). Save it as the "My story" highlight. 40 min.</li>
+        <li><b>Message 10 warm people</b> who've asked about your trading: "I'm opening a few 1-on-1 spots. Want the details?" 30 min.</li>
+      </ul></div>
+  </div>
+
+  <h3>Your first 7 days</h3>
+  <table>
+    <tr><th style="width:11%">Day</th><th>Build</th><th>Post</th></tr>
+    <tr><td><b>1</b></td><td>Offer on Whop, application, calendar, tracking sheet, page video</td><td>Journey story sequence</td></tr>
+    <tr><td><b>2</b></td><td>Record the after-booking video (10–15 min). Write 5 reminder messages.</td><td>Reel 1 · proof highlight</td></tr>
+    <tr><td><b>3</b></td><td>Film YouTube video 02 (doctor story) with your script and the recording guide</td><td>Reel 2 · behind-the-scenes story</td></tr>
+    <tr><td><b>4</b></td><td>Write the free guide. Set up ManyChat keyword BOT with a voice note.</td><td>Publish YouTube 02 · value sequence with "DM BOT"</td></tr>
+    <tr><td><b>5</b></td><td>Write the 6 emails. Contract template.</td><td>Reel 3 · Q&amp;A stories</td></tr>
+    <tr><td><b>6</b></td><td>Batch-film 4 reels and YouTube video 03</td><td>Reel 4 · student story</td></tr>
+    <tr><td><b>7</b></td><td>Review the sheet: views, applications, calls. Pick one thing to fix.</td><td>Reel 5 · start "Day 1" of the bot series</td></tr>
+  </table>
+
+  <div class="you"><span class="tag">What "done" looks like after week one</span>
+    <div class="grid4">
+      <div class="tile"><div class="v">1</div><div class="l">YouTube video live</div></div>
+      <div class="tile"><div class="v">5</div><div class="l">Reels posted</div></div>
+      <div class="tile"><div class="v">3</div><div class="l">Story sequences in highlights</div></div>
+      <div class="tile"><div class="v">3–5</div><div class="l">Calls booked</div></div>
+    </div></div>
+  <div class="warn"><span class="tag">Careful</span>
+    <p>This is separate from the trading bot. Nothing in this plan changes it. The members' signal feed and dashboard are a separate build that starts once you create the new repository.</p></div>
+</div>
+
+<!-- 30 DAY PLAN -->
+<div class="sec">
+  <div class="eyebrow">Action plan</div>
+  <h2>Your 30-day plan</h2>
+  <p class="lead">His 30-day plan for a client, rebuilt for a business where you are still the whole team.</p>
+
+  <div class="grid4">
+    <div class="card t"><span class="pill t">Week 1</span><h4 style="margin-top:4px">Foundation</h4>
+      <ul class="sm"><li>Offer, application, calendar</li><li>Page video + after-booking video</li><li>Tracking sheet</li><li>Highlights: story, proof</li><li>YouTube 02 live</li><li>Message warm contacts</li></ul>
+      <p class="sm"><b>Target:</b> 3–5 calls booked</p></div>
+    <div class="card a"><span class="pill a">Week 2</span><h4 style="margin-top:4px">Capture</h4>
+      <ul class="sm"><li>Free guide + ManyChat + emails</li><li>Free Discord set up</li><li>3 pre-call videos</li><li>Reminders automated</li><li>YouTube 03 and 04</li><li>Daily bot series running</li></ul>
+      <p class="sm"><b>Target:</b> first 1–2 students</p></div>
+    <div class="card p"><span class="pill" style="background:#5a4fcf">Week 3</span><h4 style="margin-top:4px">Delivery</h4>
+      <ul class="sm"><li>Record the course (8–12 lessons)</li><li>Onboarding automated: contract, welcome, role, form</li><li>Course on Whop as the downsell</li><li>YouTube 05 and 01</li><li>First case study sequence</li></ul>
+      <p class="sm"><b>Target:</b> 5 calls a week</p></div>
+    <div class="card g"><span class="pill g">Week 4</span><h4 style="margin-top:4px">Tune</h4>
+      <ul class="sm"><li>Review every rate; fix the weakest</li><li>Rescue messages for no-shows and "not yet"</li><li>First student interview filmed</li><li>YouTube 06</li><li>Plan the pre-launch for January</li></ul>
+      <p class="sm"><b>Target:</b> $10K collected</p></div>
+  </div>
+
+  <div class="fig">
+    <div class="figt">Your weekly rhythm once it's running</div>
+    <div class="cal">
+      <div class="d"><b>Mon</b>Reel · story sequence (value) · review last week's numbers</div>
+      <div class="d"><b>Tue</b>Reel · calls · publish YouTube</div>
+      <div class="d"><b>Wed</b>Reel · story sequence (case study) · student calls</div>
+      <div class="d"><b>Thu</b>Reel · calls · behind the scenes</div>
+      <div class="d"><b>Fri</b>Reel · story sequence (bot week recap) · email</div>
+      <div class="d"><b>Sat</b>Film: 1 YouTube + 4 reels. Life story.</div>
+      <div class="d"><b>Sun</b>Schedule the week. Q&amp;A stories. Rest.</div>
+    </div>
+    <div class="cap">About 3–4 hours a day: 1–2 on content, 1–2 on students, plus calls.</div>
+  </div>
+
+  <h3>Milestones, in his order</h3>
+  <table>
+    <tr><th>When you reach</th><th>Do this next</th></tr>
+    <tr><td>First 3 students</td><td>Film their results as they come. Ask each why they bought.</td></tr>
+    <tr><td>$10K a month</td><td>Hire an editor and a thumbnail designer. Go to 6 YouTube videos a month.</td></tr>
+    <tr><td>10–15 students at once</td><td>Raise the 1-on-1 price. Design the group mentorship as the new main offer.</td></tr>
+    <tr><td>$25K–$30K a month</td><td>Hire a setter first, then a closer. Move the sheet to a proper dashboard.</td></tr>
+    <tr><td>$100K a month</td><td>Sales manager, assistant, and only now consider ads.</td></tr>
+  </table>
+</div>
+
+<!-- TOOLS + CAUTIONS -->
+<div class="sec">
+  <div class="eyebrow">Reference</div>
+  <h2>Tool stack</h2>
+  <p class="lead">What he names, and the lean version to start with. You already have Whop and Discord.</p>
+  <table>
+    <tr><th style="width:21%">Job</th><th>Start with</th><th>He uses, for later</th></tr>
+    <tr><td>Payments, access</td><td><b>Whop</b> (you have it)</td><td>Whop, Fanbasis (larger payments, financing), wires, crypto</td></tr>
+    <tr><td>Community</td><td><b>Discord</b> (you have it)</td><td>Discord, with ticket support</td></tr>
+    <tr><td>Application</td><td>Typeform or a Whop form</td><td>iClosed, GoHighLevel</td></tr>
+    <tr><td>Booking</td><td>Calendly</td><td>iClosed, GoHighLevel calendars</td></tr>
+    <tr><td>Page + video hosting</td><td>A simple one-page site; video unlisted</td><td>GoHighLevel or Lovable; Wistia for the videos</td></tr>
+    <tr><td>DM automation</td><td>ManyChat (keyword + voice note)</td><td>ManyChat</td></tr>
+    <tr><td>Email</td><td>Kit</td><td>Kit ("way better" than sending from the funnel tool)</td></tr>
+    <tr><td>Call recording</td><td>Fathom</td><td>Fathom</td></tr>
+    <tr><td>Contracts</td><td>PandaDoc or DocuSign</td><td>DocuSign, signed automatically</td></tr>
+    <tr><td>Tracking</td><td>Google Sheet</td><td>Sheet → Looker Studio dashboard</td></tr>
+    <tr><td>Scheduling posts</td><td>Metricool</td><td>Metricool, Repurpose.io (auto-repost reels)</td></tr>
+    <tr><td>Video ideas</td><td>vidIQ</td><td>vidIQ: find videos doing 10–20× a channel's normal</td></tr>
+    <tr><td>Glue</td><td>Zapier</td><td>Zapier, Make, n8n</td></tr>
+  </table>
+
+  <h2 style="margin-top:14px">What I would not copy</h2>
+  <p class="lead">His system works because of the structure, not because of these tactics. Leaving them out costs little and protects you.</p>
+  <div class="grid2">
+    <div class="warn" style="margin:0"><span class="tag">Guaranteed results</span><p>"Become a six-figure trader, guaranteed." Promising trading outcomes invites legal trouble and refunds. Guarantee your delivery, not their profits.</p></div>
+    <div class="warn" style="margin:0"><span class="tag">Fake scarcity</span><p>A spots counter coded to drop by itself, and "reply YES or your call is cancelled" when he admits it won't be. Use real limits; you have them.</p></div>
+    <div class="warn" style="margin:0"><span class="tag">Pretending to be you</span><p>A setter writing as "the coach", or a video faked to look personally recorded. Have helpers say they're on your team.</p></div>
+    <div class="warn" style="margin:0"><span class="tag">Blocking whole countries</span><p>He auto-rejects by phone prefix. The budget question already does the job fairly, person by person.</p></div>
+    <div class="warn" style="margin:0"><span class="tag">Income claims</span><p>Show your real numbers with context and "results not typical". Never suggest a student will repeat $7K to $1.1M.</p></div>
+    <div class="warn" style="margin:0"><span class="tag">His numbers</span><p>Every revenue figure and benchmark in this course is self-reported by someone selling a service. Treat them as targets to test, not promises.</p></div>
+  </div>
+
+  <div class="you" style="margin-top:10px"><span class="tag">What I can build next</span>
+    <p>The page video script · the after-booking video script · the sales-call checklist · the ManyChat flow and voice-note scripts · the 6 emails · the free guide · the course outline · 30 reel hooks · the story sequence slide copy.</p></div>
+  <div class="foot">Business education only. Not legal, tax or financial advice. Trading with leverage carries a high risk of loss.</div>
+</div>
+
+</body>
+</html>
