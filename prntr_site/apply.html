@@ -104,7 +104,7 @@
     function finish() {
       var qualified = (ans.investN || 0) >= PRNTR.minBudget && ans.stage !== 'New to trading';
       ans.qualified = qualified; ans.submitted = new Date().toISOString(); save();
-      var done = function () { location.href = qualified ? 'book.html' : 'course.html?from=apply'; };
+      var done = function () { location.href = qualified ? 'book.html' : 'start.html?from=apply'; };
       if (PRNTR.formEndpoint) {
         fetch(PRNTR.formEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(ans) })
           .then(done, done);

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Start Here · PRNTR.AI</title>
+  <meta name="description" content="Where to start with PRNTR: the signals from $9.99, the free Discord and the free guide.">
+  <meta property="og:title" content="Start here · PRNTR.AI">
+  <meta property="og:description" content="Where to start with PRNTR: the signals from $9.99, the free Discord and the free guide.">
+  <meta property="og:image" content="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/banner.jpg?v=1777219122">
+  <meta name="twitter:card" content="summary_large_image">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+</head>
+<body>
+<div id="modal" class="modal" onclick="this.style.display='none'"><img id="modalImg" alt=""></div>
+<div class="container">
+  <div class="topbar"><a href="index.html"><img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/banner.jpg?v=1777219122" alt="PRNTR.AI"></a><a href="apply.html" class="btn btn-main">Apply</a></div>
+
+  <span class="eyebrow">START HERE</span>
+  <h1 style="font-size:2rem;" id="startTitle">Where to start</h1>
+  <p class="lead" id="startLead">Three ways in, from free to the full signals.</p>
+
+  <section class="box glow">
+    <h2>Get the signals</h2>
+    <p>Every Grade A signal, sent to the private Discord the moment it confirms: the market, long or short, the entry, the stop, the target and a clean chart. Every one, win or loss, is on the public record.</p>
+    <div class="plans">
+      <a class="plan" data-plan="day" href="#"><b>$9.99</b><span>1 day</span></a>
+      <a class="plan" data-plan="week" href="#"><b>$35</b><span>per week</span></a>
+      <a class="plan best" data-plan="month" href="#"><em>Most popular</em><b>$125</b><span>per month</span></a>
+      <a class="plan" data-plan="quarter" href="#"><b>$300</b><span>3 months</span></a>
+      <a class="plan" data-plan="lifetime" href="#"><b>$500</b><span>lifetime</span></a>
+    </div>
+    <p class="small mute center"><a href="index.html#tracker">See the track record</a> · Checkout through Whop · Education only, not financial advice; some signals lose.</p>
+  </section>
+
+  <section class="box">
+    <h2>Join the free Discord</h2>
+    <p>See every new Grade A signal announced in the lobby, ask questions and learn with the community.</p>
+    <div class="row-btns"><a href="#" id="discordLink" class="btn btn-main" target="_blank" rel="noopener">Join free</a></div>
+  </section>
+
+  <section class="box">
+    <h2>Get the free guide</h2>
+    <p>"The 7-point checklist my bot runs before it risks a dollar." DM the word <b>BOT</b> to <a class="ig-link ig-handle" href="#" target="_blank" rel="noopener">@instagram</a> on Instagram and I'll send it.</p>
+  </section>
+
+  <section class="box center">
+    <h3>Ready for 1-on-1 later?</h3>
+    <p>When you're ready, the mentorship is 90 days with me, signals included. <a href="apply.html">Apply here</a>.</p>
+  </section>
+
+  <footer>
+    <p>© 2026 PRNTR.AI · Doctor founder, from pharmacy to full-time trading.</p>
+    <p><a href="https://x.com/prntrai" target="_blank" rel="noopener">@prntrai on X</a> · <a href="#" class="ig-link" target="_blank" rel="noopener">Instagram</a></p>
+    <p>Trading, and especially leverage trading, carries a high risk of loss; you can lose more than you deposit. Past results, mine, students' or the signals', do not guarantee future results, and the results shown are not typical. This is education, not financial advice.</p>
+    <p>This site is not part of Facebook™ or Meta™.</p>
+  </footer>
+</div>
+<script>
+  document.querySelectorAll('[data-zoom]').forEach(function (img) {
+    img.addEventListener('click', function (e) { e.stopPropagation(); document.getElementById('modalImg').src = img.src; document.getElementById('modal').style.display = 'flex'; });
+  });
+  document.querySelectorAll('.ig-link').forEach(function (a) { a.href = 'https://instagram.com/' + PRNTR.instagram; });
+  document.querySelectorAll('.ig-handle').forEach(function (e) { e.textContent = '@' + PRNTR.instagram; });
+  document.querySelectorAll('.spots-n').forEach(function (e) { e.textContent = PRNTR.spotsPerMonth; });
+
+  document.getElementById('discordLink').href = PRNTR.discord;
+  document.querySelectorAll('.plan').forEach(function (a) {
+    var u = (PRNTR.signals || {})[a.dataset.plan];
+    if (u && u.indexOf('[') !== 0) { a.href = u; a.target = '_blank'; a.rel = 'noopener'; } else { a.removeAttribute('href'); a.classList.add('soon'); }
+  });
+  if (/from=apply/.test(location.search)) {
+    var a = {}; try { a = JSON.parse(sessionStorage.getItem('prntr_app') || '{}'); } catch (e) {}
+    document.getElementById('startTitle').textContent = (a.name ? 'Thanks, ' + a.name + '. ' : '') + "Here's the best place to start";
+    document.getElementById('startLead').textContent = "From your answers, the 1-on-1 mentorship isn't the right fit yet. These are.";
+  }
+</script>
+</body>
+</html>

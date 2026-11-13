@@ -6,6 +6,8 @@ Built from the scaling videos you gave me (about 25 videos, 113,000 words). Wher
 
 ## 1. The offers
 
+> **Update 2026-11-13: the $997 course is paused.** Applicants who aren't a fit for 1-on-1 now go to `start.html`: the signals (from $9.99 on Whop), the free Discord and the free guide. The course rows below stay for when it comes back.
+
 There are only two things for sale to the public, plus one thing only students can buy.
 
 | | What | Price | Who gets it |
