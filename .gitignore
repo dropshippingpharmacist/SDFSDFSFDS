@@ -4,3 +4,5 @@ node_modules/
 *_roster.json
 dominance_hist.json
 selfcheck_sent.json
+videos_out/
+prntr_editor/**/__pycache__/

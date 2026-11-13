@@ -1,0 +1,6 @@
+faster-whisper
+opencv-python-headless<5
+rembg[cpu]
+numpy
+pillow
+# system: ffmpeg with libass (Ubuntu's ffmpeg has it)
