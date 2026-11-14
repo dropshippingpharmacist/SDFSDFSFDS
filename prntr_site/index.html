@@ -34,6 +34,7 @@
   <section class="tracker" id="tracker">
     <h2>Every signal, tracked</h2>
     <p class="center mute small">From the moment it was sent: the entry, the stop, the target and where price went. Wins and losses.</p>
+    <p class="center mute small" id="tkSince"></p>
     <div class="tk-sum">
       <div class="tk-sum-head"><b>Last 30 days</b><span id="tkSub">Loading…</span></div>
       <div class="tk-stats">
@@ -429,6 +430,7 @@
       document.getElementById('tkLost').textContent = done.length ? done.length - won : '–';
       var te = document.getElementById('tkTotal'); te.textContent = done.length ? pct(tot) : '–'; te.className = done.length ? (tot >= 0 ? 'w' : 'l') : '';
       document.getElementById('tkNote').textContent = d.note || '';
+      document.getElementById('tkSince').textContent = d.since ? 'Record started ' + new Date(d.since * 1000).toLocaleString(undefined, {month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'}) + '. Every signal sent since then is counted.' : '';
       var wk = (d.week || {}).sent_all || ((d.week || {}).sent || {}).A, days = (d.week || {}).days || 7;
       function setWk(id, v, cls) { var e = document.getElementById(id); e.textContent = v; e.className = cls || ''; }
       if (wk && wk.sent) {
