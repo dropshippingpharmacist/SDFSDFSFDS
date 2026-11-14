@@ -32,7 +32,7 @@
 
   <!-- SIGNAL TRACKER -->
   <section class="tracker" id="tracker">
-    <h2>Every Grade A signal, tracked</h2>
+    <h2>Every signal, tracked</h2>
     <p class="center mute small">From the moment it was sent: the entry, the stop, the target and where price went. Wins and losses.</p>
     <div class="tk-sum">
       <div class="tk-sum-head"><b>Last 30 days</b><span id="tkSub">Loading…</span></div>
@@ -60,7 +60,7 @@
   <!-- SIGNALS ONLY -->
   <section class="box signals" id="signals">
     <h2>Just want the signals?</h2>
-    <p class="center mute small">The same Grade A signals tracked above, posted in private Discord channels (one per market) the moment they confirm: the market, long or short, the entry, the stop, the target and a clean chart. Crypto, stocks, forex, indices, metals and commodities. Included free for mentorship students.</p>
+    <p class="center mute small">Signals posted in private Discord channels (one per market) the moment they confirm: the market, long or short, the entry, the stop, the target and a clean chart. Crypto, stocks, forex, indices, metals and commodities. Included free for mentorship students.</p>
     <div class="plans">
       <a class="plan" data-plan="day" href="#"><b>$9.99</b><span>1 day</span></a>
       <a class="plan" data-plan="week" href="#"><b>$35</b><span>per week</span></a>
@@ -281,7 +281,7 @@
     <div class="faq"><b>What markets?</b>Memecoins on-chain, plus leverage on crypto, forex, indices, commodities, metals and stocks.</div>
     <div class="faq"><b>Is memecoin copy trading safe?</b>No trading is safe. Most memecoins go to zero and some are scams. That's why the mentorship starts with security and small size, and why profits move out of memecoins quickly. You learn to lose small and keep what you win.</div>
     <div class="faq"><b>What happens after the 90 days?</b>You keep the course for good. Students can keep the signals with any of the signal plans, or continue working with me.</div>
-    <div class="faq"><b>Can I get just the signals?</b>Yes: $9.99 for a day, $35 a week, $125 a month, $300 for 3 months or $500 lifetime, through Whop. You get the same Grade A signals the tracker above shows, in private Discord channels. The mentorship includes them free.</div>
+    <div class="faq"><b>Can I get just the signals?</b>Yes: $9.99 for a day, $35 a week, $125 a month, $300 for 3 months or $500 lifetime, through Whop. You get the signals in private Discord channels. The mentorship includes them free.</div>
     <div class="faq"><b>Can I lose money?</b>Yes. Every trade has a stop loss and some trades lose. Leverage magnifies losses as well as gains. Only trade money you can afford to lose.</div>
   </section>
 
@@ -396,7 +396,7 @@
       head.appendChild(logo(t));
       head.insertAdjacentHTML('beforeend',
         '<div class="tk-id"><div><b class="tk-sym">' + base(t.symbol) + '</b> <span class="tk-side ' + t.side + '">' + (t.side === 'long' ? 'Long' : 'Short') + '</span></div>' +
-        '<div class="tk-meta">Grade A · ' + t.tf + ' · ' + (MKT[t.market] || 'Crypto') + '</div></div>' +
+        '<div class="tk-meta">' + t.tf + ' · ' + (MKT[t.market] || 'Crypto') + '</div></div>' +
         '<div class="tk-roi"><b class="' + (r == null ? 'o' : r >= 0 ? 'w' : 'l') + '">' + (r == null ? 'Open' : pct(r)) + '</b>' +
         '<span>ROI · ' + t.leverage + '×</span><span class="tk-status">' + status + '</span></div>');
       el.appendChild(head);
@@ -422,29 +422,29 @@
       all = all.filter(function (t) { return t.result === 'win' || t.result === 'loss'; });   // open trades are paid signals: never shown
       var tot = done.reduce(function (a, t) { return a + (roi(t) || 0); }, 0);
       MARGIN = d.margin || 1000;
-      document.getElementById('tkSub').textContent = (done.length ? done.length + ' closed · Grade A only' : 'No closed signals yet') +
+      document.getElementById('tkSub').textContent = (done.length ? done.length + ' closed · every signal sent' : 'No closed signals yet') +
         (open ? ' · ' + open + ' open now, shown here when ' + (open === 1 ? 'it closes' : 'they close') : '');
       document.getElementById('tkRate').textContent = done.length ? Math.round(100 * won / done.length) + '%' : '–';
       document.getElementById('tkWon').textContent = done.length ? won : '–';
       document.getElementById('tkLost').textContent = done.length ? done.length - won : '–';
       var te = document.getElementById('tkTotal'); te.textContent = done.length ? pct(tot) : '–'; te.className = done.length ? (tot >= 0 ? 'w' : 'l') : '';
       document.getElementById('tkNote').textContent = d.note || '';
-      var wk = ((d.week || {}).sent || {}).A, days = (d.week || {}).days || 7;
+      var wk = (d.week || {}).sent_all || ((d.week || {}).sent || {}).A, days = (d.week || {}).days || 7;
       function setWk(id, v, cls) { var e = document.getElementById(id); e.textContent = v; e.className = cls || ''; }
       if (wk && wk.sent) {
         var wd = wk.wins + wk.losses;
         setWk('wkSent', wk.sent); setWk('wkWon', wk.wins, wk.wins ? 'w' : ''); setWk('wkLost', wk.losses, wk.losses ? 'l' : '');
         setWk('wkOpen', wk.open);
-        document.getElementById('wkSub').textContent = 'Grade A · ' + (wd ? Math.round(100 * wk.wins / wd) + '% won' : 'none closed yet') +
+        document.getElementById('wkSub').textContent = (wd ? Math.round(100 * wk.wins / wd) + '% won' : 'none closed yet') +
           (wk.no_entry ? ' · ' + wk.no_entry + ' never reached the entry' : '');
       } else if (!d.week) {
         document.getElementById('wkSub').textContent = 'Updating…';
       } else {
         ['wkSent', 'wkWon', 'wkLost', 'wkOpen'].forEach(function (id) { setWk(id, '0'); });
-        document.getElementById('wkSub').textContent = 'No Grade A signals in the last ' + days + ' days';
+        document.getElementById('wkSub').textContent = 'No signals in the last ' + days + ' days';
       }
       var feed = document.getElementById('tkFeed');
-      if (!all.length) { feed.innerHTML = '<div class="tk-empty">' + (open ? open + ' Grade A ' + (open === 1 ? 'signal is' : 'signals are') + ' open right now. Members have the levels; ' + (open === 1 ? 'it appears' : 'they appear') + ' here, win or loss, once closed.' : 'The first Grade A signals are being tracked now. Every one will appear here, win or loss, once it closes.') + ' <a href="#signals">Get the live signals</a></div>'; return; }
+      if (!all.length) { feed.innerHTML = '<div class="tk-empty">' + (open ? open + ' ' + (open === 1 ? 'signal is' : 'signals are') + ' open right now. Members have the levels; ' + (open === 1 ? 'it appears' : 'they appear') + ' here, win or loss, once closed.' : 'The first signals are being tracked now. Every one will appear here, win or loss, once it closes.') + ' <a href="#signals">Get the live signals</a></div>'; return; }
       feed.innerHTML = '';
       var shown = 0, step = 6;
       function more() { all.slice(shown, shown + step).forEach(function (t) { feed.appendChild(card(t)); }); shown += step; document.getElementById('tkMoreWrap').hidden = shown >= all.length; }
