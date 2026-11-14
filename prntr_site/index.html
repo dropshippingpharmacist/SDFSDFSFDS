@@ -43,6 +43,15 @@
         <div class="tk-stat"><span>Total on margin</span><b id="tkTotal">–</b></div>
       </div>
     </div>
+    <div class="tk-sum">
+      <div class="tk-sum-head"><b>Past 7 days</b><span id="wkSub">Loading…</span></div>
+      <div class="tk-stats">
+        <div class="tk-stat"><span>Signals sent</span><b id="wkSent">–</b></div>
+        <div class="tk-stat"><span>Won</span><b id="wkWon">–</b></div>
+        <div class="tk-stat"><span>Lost</span><b id="wkLost">–</b></div>
+        <div class="tk-stat"><span>Still running</span><b id="wkOpen">–</b></div>
+      </div>
+    </div>
     <div class="tk-feed" id="tkFeed"><div class="tk-empty">Loading the latest signals…</div></div>
     <div class="row-btns" id="tkMoreWrap" hidden><button type="button" class="btn" id="tkMore">Show more signals</button></div>
     <p class="small mute" id="tkNote" style="margin-top:0.8rem;"></p>
@@ -51,7 +60,7 @@
   <!-- SIGNALS ONLY -->
   <section class="box signals" id="signals">
     <h2>Just want the signals?</h2>
-    <p class="center mute small">The same Grade A signals tracked above, sent to a private Telegram channel the moment they confirm: the market, long or short, the entry, the stop, the target and a clean chart. Crypto, stocks, forex, metals and oil. Included free for mentorship students.</p>
+    <p class="center mute small">The same Grade A signals tracked above, posted in private Discord channels (one per market) the moment they confirm: the market, long or short, the entry, the stop, the target and a clean chart. Crypto, stocks, forex, indices, metals and commodities. Included free for mentorship students.</p>
     <div class="plans">
       <a class="plan" data-plan="day" href="#"><b>$9.99</b><span>1 day</span></a>
       <a class="plan" data-plan="week" href="#"><b>$35</b><span>per week</span></a>
@@ -272,7 +281,7 @@
     <div class="faq"><b>What markets?</b>Memecoins on-chain, plus leverage on crypto, forex, indices, commodities, metals and stocks.</div>
     <div class="faq"><b>Is memecoin copy trading safe?</b>No trading is safe. Most memecoins go to zero and some are scams. That's why the mentorship starts with security and small size, and why profits move out of memecoins quickly. You learn to lose small and keep what you win.</div>
     <div class="faq"><b>What happens after the 90 days?</b>You keep the course for good. Students can keep the signals with any of the signal plans, or continue working with me.</div>
-    <div class="faq"><b>Can I get just the signals?</b>Yes: $9.99 for a day, $35 a week, $125 a month, $300 for 3 months or $500 lifetime, through Whop. You get the same Grade A signals the tracker above shows, in a private Telegram channel. The mentorship includes them free.</div>
+    <div class="faq"><b>Can I get just the signals?</b>Yes: $9.99 for a day, $35 a week, $125 a month, $300 for 3 months or $500 lifetime, through Whop. You get the same Grade A signals the tracker above shows, in private Discord channels. The mentorship includes them free.</div>
     <div class="faq"><b>Can I lose money?</b>Yes. Every trade has a stop loss and some trades lose. Leverage magnifies losses as well as gains. Only trade money you can afford to lose.</div>
   </section>
 
@@ -420,6 +429,20 @@
       document.getElementById('tkLost').textContent = done.length ? done.length - won : '–';
       var te = document.getElementById('tkTotal'); te.textContent = done.length ? pct(tot) : '–'; te.className = done.length ? (tot >= 0 ? 'w' : 'l') : '';
       document.getElementById('tkNote').textContent = d.note || '';
+      var wk = ((d.week || {}).sent || {}).A, days = (d.week || {}).days || 7;
+      function setWk(id, v, cls) { var e = document.getElementById(id); e.textContent = v; e.className = cls || ''; }
+      if (wk && wk.sent) {
+        var wd = wk.wins + wk.losses;
+        setWk('wkSent', wk.sent); setWk('wkWon', wk.wins, wk.wins ? 'w' : ''); setWk('wkLost', wk.losses, wk.losses ? 'l' : '');
+        setWk('wkOpen', wk.open);
+        document.getElementById('wkSub').textContent = 'Grade A · ' + (wd ? Math.round(100 * wk.wins / wd) + '% won' : 'none closed yet') +
+          (wk.no_entry ? ' · ' + wk.no_entry + ' never reached the entry' : '');
+      } else if (!d.week) {
+        document.getElementById('wkSub').textContent = 'Updating…';
+      } else {
+        ['wkSent', 'wkWon', 'wkLost', 'wkOpen'].forEach(function (id) { setWk(id, '0'); });
+        document.getElementById('wkSub').textContent = 'No Grade A signals in the last ' + days + ' days';
+      }
       var feed = document.getElementById('tkFeed');
       if (!all.length) { feed.innerHTML = '<div class="tk-empty">' + (open ? open + ' Grade A ' + (open === 1 ? 'signal is' : 'signals are') + ' open right now. Members have the levels; ' + (open === 1 ? 'it appears' : 'they appear') + ' here, win or loss, once closed.' : 'The first Grade A signals are being tracked now. Every one will appear here, win or loss, once it closes.') + ' <a href="#signals">Get the live signals</a></div>'; return; }
       feed.innerHTML = '';
