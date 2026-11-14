@@ -450,9 +450,17 @@
       function more() { all.slice(shown, shown + step).forEach(function (t) { feed.appendChild(card(t)); }); shown += step; document.getElementById('tkMoreWrap').hidden = shown >= all.length; }
       document.getElementById('tkMore').onclick = more; more();
     }
-    fetch(window.PRNTR_TRACK_API || API).then(function (r) { return r.json(); }).then(render).catch(function () {
-      document.getElementById('tkFeed').innerHTML = '<div class="tk-empty">The tracker is updating. Check back in a minute.</div>';
-    });
+    // the bot answers 503 "warming" for a few seconds after a restart while it rebuilds the record: retry quietly
+    function load(tries) {
+      fetch(window.PRNTR_TRACK_API || API).then(function (r) {
+        if (!r.ok) throw new Error('warming');
+        return r.json();
+      }).then(render).catch(function () {
+        document.getElementById('tkFeed').innerHTML = '<div class="tk-empty">The tracker is updating. Check back in a minute.</div>';
+        if (tries < 6) setTimeout(function () { load(tries + 1); }, 15000);
+      });
+    }
+    load(0);
   })();
 </script>
 </body>
