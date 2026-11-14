@@ -33,15 +33,18 @@
   <!-- SIGNAL TRACKER -->
   <section class="tracker" id="tracker">
     <h2>Every Grade A signal, tracked</h2>
-    <p class="center mute small">Each one from the moment it was sent: the entry, the stop, the take profit, and where price went. Wins and losses.</p>
-    <div class="tk-stats">
-      <div class="tk-stat"><b id="tkRate">–</b><span>Win rate</span></div>
-      <div class="tk-stat"><b id="tkWL">–</b><span>Wins / losses</span></div>
-      <div class="tk-stat"><b id="tkTotal">–</b><span id="tkTotalLbl">$1,000 per signal</span></div>
+    <p class="center mute small">From the moment it was sent: the entry, the stop, the target and where price went. Wins and losses.</p>
+    <div class="tk-sum">
+      <div class="tk-sum-head"><b>Last 30 days</b><span id="tkSub">Loading…</span></div>
+      <div class="tk-stats">
+        <div class="tk-stat"><span>Win rate</span><b id="tkRate">–</b></div>
+        <div class="tk-stat"><span>Won</span><b id="tkWon">–</b></div>
+        <div class="tk-stat"><span>Lost</span><b id="tkLost">–</b></div>
+        <div class="tk-stat"><span>Total on margin</span><b id="tkTotal">–</b></div>
+      </div>
     </div>
-    <div class="tk-stage" id="tkStage"><div class="tk-empty">Loading the latest signals…</div></div>
-    <div class="tk-dots" id="tkDots"></div>
-    <div class="tk-list" id="tkList"></div>
+    <div class="tk-feed" id="tkFeed"><div class="tk-empty">Loading the latest signals…</div></div>
+    <div class="row-btns" id="tkMoreWrap" hidden><button type="button" class="btn" id="tkMore">Show more signals</button></div>
     <p class="small mute" id="tkNote" style="margin-top:0.8rem;"></p>
   </section>
 
@@ -356,49 +359,74 @@
         g.beginPath(); g.arc(x(iOut), y(t.exit), 4.5, 0, Math.PI * 2); g.fill();
       }
     }
-    function card(t) {
-      var el = document.createElement('div'); el.className = 'tk-card';
-      var res = t.result === 'win' ? 'WIN' : t.result === 'loss' ? 'LOSS' : 'OPEN';
-      var ex = t.example == null ? '' : '<div class="tk-ex">Example: $1,000 at ' + t.leverage + 'x → <b class="' + (t.example >= 0 ? 'pos' : 'neg') + '">' + money(t.example) + '</b></div>';
-      el.innerHTML = '<div class="tk-head"><div><span class="tk-sym">' + t.symbol + '</span> <span class="tk-meta">' + (t.side === 'long' ? 'Long' : 'Short') + ' · ' + t.tf + ' · ' + day(t.opened) + '</span></div><span class="tk-pill ' + t.result + '">' + res + '</span></div>' +
-        '<canvas class="tk-canvas"></canvas>' +
-        '<div class="tk-levels"><div><i>Entry</i>' + px(t.entry) + '</div><div><i>Stop loss</i>' + px(t.stop) + '</div><div><i>Take profit</i>' + px(t.tp) + '</div></div>' + ex;
+    var MARGIN = 1000;
+    function base(sym) { return String(sym || '').split('/')[0].toUpperCase(); }
+    function iconKey(b) { return b.replace(/^1000+|^1M/, '').toLowerCase(); }
+    function hue(str) { var h = 0; for (var i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) % 360; return h; }
+    function logo(t) {
+      var b = base(t.symbol), el = document.createElement('div'); el.className = 'tk-logo';
+      el.style.background = 'hsl(' + hue(b) + ',55%,38%)'; el.textContent = b.replace(/^1000/, '').slice(0, 1);
+      if (t.market === 'crypto') {
+        var k = iconKey(b), srcs = ['https://cdn.jsdelivr.net/npm/cryptocurrency-icons@0.18.1/128/color/' + k + '.png',
+                                    'https://assets.coincap.io/assets/icons/' + k + '@2x.png'];
+        var img = new Image(); img.alt = '';
+        img.onload = function () { el.textContent = ''; el.style.background = '#fff'; el.appendChild(img); };
+        img.onerror = function () { if (srcs.length) img.src = srcs.shift(); };   // next source, else the letter stays
+        img.src = srcs.shift();
+      }
       return el;
     }
-    fetch(API).then(function (r) { return r.json(); }).then(function (d) {
-      var tr = (d.trades || []).filter(function (t) { return t.bars && t.bars.length; }), st = d.stats || {};
-      document.getElementById('tkRate').textContent = st.win_rate == null ? '–' : st.win_rate + '%';
-      document.getElementById('tkWL').textContent = (st.wins || 0) + ' / ' + (st.losses || 0);
-      var tot = document.getElementById('tkTotal'); tot.textContent = st.example_total == null ? '–' : money(st.example_total);
-      tot.style.color = (st.example_total || 0) >= 0 ? '#3fd1b4' : '#ff7a73';
+    function roi(t) { return t.example == null ? null : t.example / MARGIN * 100; }
+    function pct(v) { return (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2) + '%'; }
+    function utc(ms) { return ms ? new Date(ms).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' }) + ' UTC' : ''; }
+    var MKT = { crypto: 'Crypto', stock: 'Stock', forex: 'Forex', index: 'Index', metals: 'Metal', energy: 'Commodity', commodity: 'Commodity' };
+    function card(t) {
+      var el = document.createElement('article'); el.className = 'tk-card ' + t.result;
+      var r = roi(t), status = t.result === 'win' ? 'Target hit' : t.result === 'loss' ? 'Stopped out' : 'In progress';
+      var head = document.createElement('div'); head.className = 'tk-top';
+      head.appendChild(logo(t));
+      head.insertAdjacentHTML('beforeend',
+        '<div class="tk-id"><div><b class="tk-sym">' + base(t.symbol) + '</b> <span class="tk-side ' + t.side + '">' + (t.side === 'long' ? 'Long' : 'Short') + '</span></div>' +
+        '<div class="tk-meta">Grade A · ' + t.tf + ' · ' + (MKT[t.market] || 'Crypto') + '</div></div>' +
+        '<div class="tk-roi"><b class="' + (r == null ? 'o' : r >= 0 ? 'w' : 'l') + '">' + (r == null ? 'Open' : pct(r)) + '</b>' +
+        '<span>ROI · ' + t.leverage + '×</span><span class="tk-status">' + status + '</span></div>');
+      el.appendChild(head);
+      el.insertAdjacentHTML('beforeend',
+        '<div class="tk-grid"><div><i>Entry</i>' + px(t.entry) + '</div><div><i>Stop loss</i><em class="l">' + px(t.stop) + '</em></div>' +
+        '<div><i>' + (t.result === 'win' ? 'Target hit' : 'Target') + '</i><em class="w">' + px(t.tp) + '</em></div>' +
+        '<div><i>' + (t.result === 'open' ? 'Opened' : 'Closed') + '</i>' + utc(t.result === 'open' ? t.opened : t.closed) + '</div></div>' +
+        '<div class="tk-actions"><span class="tk-ex">' + (t.example == null ? 'Still open' : '$1,000 at ' + t.leverage + '× → <b class="' + (t.example >= 0 ? 'w' : 'l') + '">' + money(t.example) + '</b>') + '</span>' +
+        '<button type="button" class="tk-chart-btn" aria-expanded="false">Chart</button></div>' +
+        '<canvas class="tk-canvas" hidden></canvas>');
+      var btn = el.querySelector('.tk-chart-btn'), cv = el.querySelector('canvas'), drawn = false;
+      btn.onclick = function () {
+        var open = cv.hidden; cv.hidden = !open; btn.setAttribute('aria-expanded', String(open)); btn.textContent = open ? 'Hide chart' : 'Chart';
+        if (open && !drawn) { draw(cv, t); drawn = true; }
+      };
+      return el;
+    }
+    function render(d) {
+      var all = d.trades || [], cutoff = Date.now() - 30 * 86400000;
+      var recent = all.filter(function (t) { return (t.closed || t.opened || 0) >= cutoff; });
+      var done = recent.filter(function (t) { return t.result === 'win' || t.result === 'loss'; });
+      var won = done.filter(function (t) { return t.result === 'win'; }).length, open = recent.length - done.length;
+      var tot = done.reduce(function (a, t) { return a + (roi(t) || 0); }, 0);
+      MARGIN = d.margin || 1000;
+      document.getElementById('tkSub').textContent = done.length ? (done.length + ' closed' + (open ? ' · ' + open + ' still open' : '') + ' · Grade A only') : (open ? open + ' open now' : 'No closed signals yet');
+      document.getElementById('tkRate').textContent = done.length ? Math.round(100 * won / done.length) + '%' : '–';
+      document.getElementById('tkWon').textContent = done.length ? won : '–';
+      document.getElementById('tkLost').textContent = done.length ? done.length - won : '–';
+      var te = document.getElementById('tkTotal'); te.textContent = done.length ? pct(tot) : '–'; te.className = done.length ? (tot >= 0 ? 'w' : 'l') : '';
       document.getElementById('tkNote').textContent = d.note || '';
-      var stage = document.getElementById('tkStage'), dots = document.getElementById('tkDots');
-      if (!tr.length) { stage.innerHTML = '<div class="tk-empty">The first Grade A signals are being tracked now. Every one will appear here, win or loss.</div>'; return; }
-      stage.innerHTML = '';
-      var cards = tr.slice(0, 20).map(function (t, i) {
-        var c = card(t); stage.appendChild(c);
-        var b = document.createElement('button'); b.setAttribute('aria-label', 'Show signal ' + (i + 1));
-        b.onclick = function () { show(i); restart(); }; dots.appendChild(b);
-        return { el: c, t: t, drawn: false, dot: b };
-      });
-      var cur = -1, timer = null;
-      function show(i) {
-        if (cur >= 0) { cards[cur].el.classList.remove('show'); cards[cur].dot.classList.remove('on'); }
-        cur = i; var k = cards[i];
-        k.el.classList.add('show'); k.dot.classList.add('on');
-        if (!k.drawn) { draw(k.el.querySelector('canvas'), k.t); k.drawn = true; }
-      }
-      function restart() { clearInterval(timer); timer = setInterval(function () { show((cur + 1) % cards.length); }, 6500); }
-      stage.onmouseenter = function () { clearInterval(timer); }; stage.onmouseleave = restart;
-      show(0); restart();
-      var list = document.getElementById('tkList');
-      list.innerHTML = '<div class="tk-row mute"><span>Market</span><span>Result</span><span>Date</span><span>$1,000 example</span></div>' +
-        (d.trades || []).slice(0, 12).map(function (t) {
-          var c = t.result === 'win' ? 'w' : t.result === 'loss' ? 'l' : 'o';
-          return '<div class="tk-row"><span>' + t.symbol + ' · ' + (t.side === 'long' ? 'Long' : 'Short') + '</span><span class="' + c + '">' + t.result.toUpperCase() + '</span><span>' + day(t.opened) + '</span><span>' + (t.example == null ? '–' : money(t.example) + ' <span class="mute">(' + t.leverage + 'x)</span>') + '</span></div>';
-        }).join('');
-    }).catch(function () {
-      document.getElementById('tkStage').innerHTML = '<div class="tk-empty">The tracker is updating. Check back in a minute.</div>';
+      var feed = document.getElementById('tkFeed');
+      if (!all.length) { feed.innerHTML = '<div class="tk-empty">The first Grade A signals are being tracked now. Every one will appear here, win or loss.</div>'; return; }
+      feed.innerHTML = '';
+      var shown = 0, step = 6;
+      function more() { all.slice(shown, shown + step).forEach(function (t) { feed.appendChild(card(t)); }); shown += step; document.getElementById('tkMoreWrap').hidden = shown >= all.length; }
+      document.getElementById('tkMore').onclick = more; more();
+    }
+    fetch(window.PRNTR_TRACK_API || API).then(function (r) { return r.json(); }).then(render).catch(function () {
+      document.getElementById('tkFeed').innerHTML = '<div class="tk-empty">The tracker is updating. Check back in a minute.</div>';
     });
   })();
 </script>

@@ -78,32 +78,35 @@
     /* SIGNAL TRACKER */
     .tracker { background: linear-gradient(180deg, rgba(31,43,92,0.55), rgba(2,1,7,0.9)); border: 1px solid var(--line); border-radius: 28px; padding: 1.3rem 1.1rem 1.1rem; opacity: 0; transform: translateY(14px); transition: opacity .9s ease, transform .9s ease; }
     .tracker.in { opacity: 1; transform: none; }
-    .tk-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin: 0.9rem 0 1rem; }
-    .tk-stat { background: rgba(0,0,0,0.35); border-radius: 16px; padding: 0.7rem; text-align: center; }
-    .tk-stat b { display: block; font-size: 1.35rem; font-variant-numeric: tabular-nums; }
-    .tk-stat span { font-size: 0.72rem; color: var(--mute); letter-spacing: .04em; text-transform: uppercase; }
-    .tk-stage { position: relative; min-height: 352px; }
-    .tk-card { position: absolute; inset: 0; opacity: 0; transition: opacity 1s ease; pointer-events: none; }
-    .tk-card.show { opacity: 1; pointer-events: auto; }
-    .tk-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; margin-bottom: 0.4rem; }
-    .tk-sym { font-weight: 800; font-size: 1.05rem; }
-    .tk-meta { font-size: 0.75rem; color: var(--mute); }
-    .tk-pill { font-size: 0.72rem; font-weight: 800; letter-spacing: .06em; padding: 0.2rem 0.7rem; border-radius: 30px; }
-    .tk-pill.win { background: rgba(38,166,154,0.18); color: #3fd1b4; border: 1px solid rgba(63,209,180,0.5); }
-    .tk-pill.loss { background: rgba(239,83,80,0.15); color: #ff7a73; border: 1px solid rgba(255,122,115,0.5); }
-    .tk-pill.open { background: rgba(42,171,227,0.15); color: var(--cyan); border: 1px solid var(--line); }
-    .tk-canvas { width: 100%; height: 230px; display: block; border-radius: 14px; background: rgba(0,0,0,0.35); }
-    .tk-levels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; margin-top: 0.5rem; font-size: 0.78rem; font-variant-numeric: tabular-nums; }
-    .tk-levels div { background: rgba(0,0,0,0.3); border-radius: 10px; padding: 0.35rem 0.5rem; }
-    .tk-levels i { font-style: normal; color: var(--mute); display: block; font-size: 0.68rem; }
-    .tk-ex { margin-top: 0.5rem; font-size: 0.85rem; text-align: center; }
-    .tk-ex b.pos { color: #3fd1b4; } .tk-ex b.neg { color: #ff7a73; }
-    .tk-dots { display: flex; justify-content: center; gap: 6px; margin-top: 0.8rem; flex-wrap: wrap; }
-    .tk-dots button { width: 8px; height: 8px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.25); padding: 0; cursor: pointer; }
-    .tk-dots button.on { background: var(--cyan); }
-    .tk-list { margin-top: 1rem; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
-    .tk-row { display: grid; grid-template-columns: 1.3fr 0.7fr 0.6fr 0.9fr; gap: 0.4rem; padding: 0.45rem 0.2rem; border-top: 1px solid var(--line); align-items: center; }
-    .tk-row .w { color: #3fd1b4; font-weight: 700; } .tk-row .l { color: #ff7a73; font-weight: 700; } .tk-row .o { color: var(--cyan); font-weight: 700; }
+    .tk-sum { background: rgba(0,0,0,0.35); border: 1px solid var(--line); border-radius: 20px; padding: 1rem 1.1rem; margin: 0.9rem 0 1rem; }
+    .tk-sum-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.3rem 1rem; }
+    .tk-sum-head b { font-size: 1.35rem; } .tk-sum-head span { color: var(--mute); font-size: 0.82rem; }
+    .tk-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.6rem; margin-top: 0.8rem; }
+    .tk-stat span { display: block; font-size: 0.72rem; color: var(--mute); letter-spacing: .04em; text-transform: uppercase; }
+    .tk-stat b { display: block; font-size: 1.5rem; font-variant-numeric: tabular-nums; margin-top: 0.15rem; }
+    .tk-stat b.w, .tk-roi b.w, .tk-grid em.w, .tk-ex b.w { color: #3fd1b4; } .tk-stat b.l, .tk-roi b.l, .tk-grid em.l, .tk-ex b.l { color: #ff7a73; }
+    .tk-roi b.o { color: var(--cyan); }
+    .tk-feed { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.8rem; align-items: start; }
+    #tkMoreWrap[hidden] { display: none; }
+    .tk-card { background: rgba(0,0,0,0.4); border: 1px solid var(--line); border-radius: 20px; padding: 1rem; display: flex; flex-direction: column; gap: 0.8rem; }
+    .tk-card.win { border-color: rgba(63,209,180,0.35); } .tk-card.loss { border-color: rgba(255,122,115,0.3); }
+    .tk-top { display: grid; grid-template-columns: auto 1fr auto; gap: 0.7rem; align-items: center; }
+    .tk-logo { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 1.1rem; overflow: hidden; }
+    .tk-logo img { width: 80%; height: 80%; object-fit: contain; }
+    .tk-sym { font-size: 1.15rem; font-weight: 800; color: var(--cyan); }
+    .tk-side { font-size: 0.8rem; font-weight: 700; } .tk-side.long { color: #3fd1b4; } .tk-side.short { color: #ff7a73; }
+    .tk-meta { font-size: 0.8rem; color: var(--mute); margin-top: 0.1rem; }
+    .tk-roi { text-align: right; display: flex; flex-direction: column; gap: 0.05rem; }
+    .tk-roi b { font-size: 1.45rem; font-variant-numeric: tabular-nums; } .tk-roi span { font-size: 0.72rem; color: var(--mute); }
+    .tk-roi .tk-status { color: #fff; font-size: 0.78rem; }
+    .tk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 0.8rem; font-variant-numeric: tabular-nums; font-size: 0.95rem; }
+    .tk-grid i { display: block; font-style: normal; font-size: 0.72rem; color: var(--mute); } .tk-grid em { font-style: normal; font-weight: 700; }
+    .tk-actions { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; font-size: 0.82rem; }
+    .tk-chart-btn { background: var(--cyan); color: #02010a; border: 0; border-radius: 12px; padding: 0.5rem 1rem; font: inherit; font-weight: 800; cursor: pointer; }
+    .tk-chart-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+    .tk-canvas { width: 100%; height: 220px; display: block; border-radius: 14px; background: rgba(0,0,0,0.35); }
+    .tk-canvas[hidden] { display: none; }
+    @media (max-width: 520px) { .tk-stats { grid-template-columns: repeat(2, 1fr); } }
     .tk-empty { text-align: center; color: var(--mute); padding: 3rem 1rem; }
     @media (prefers-reduced-motion: reduce) { .tracker, .tk-card { transition: none; } }
     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.94); z-index: 50; align-items: center; justify-content: center; cursor: zoom-out; }
