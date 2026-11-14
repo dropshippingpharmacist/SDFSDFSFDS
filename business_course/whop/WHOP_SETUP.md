@@ -60,3 +60,9 @@ the call and stay on while they pay.
 
 Owner, in the Whop dashboard: add the **Discord** app to this product too (same "Signals Member" role, plus a
 "Mentorship" role if wanted) so students get the signals channels free; set the 14-day refund policy.
+
+## PRNTR Crossover and Crypto Income (added 2026-11-14)
+- Course `cors_ROKhd4Ptf0chQ` in PRNTR Courses `exp_gmmmKclmHkx1st` (attached to the mentorship), visible.
+- Lessons: "Start here" `lesn_l6ysEzjS25Fay` (text), the book `lesn_eJbcUG5RdfjWy` (PDF `file_PAiHlRky34Kk5`).
+- Source: `business_course/crossover/` (build_cases.py draws the charts, build_deck.js builds the 142-page deck, SOURCES.md has every link).
+- The mentorship product description now lists "PRNTR Crossover".
