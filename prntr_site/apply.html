@@ -32,6 +32,7 @@
         <input name="email" type="email" placeholder="Email" autocomplete="email" required>
         <input name="phone" type="tel" placeholder="Phone (for call reminders)" autocomplete="tel" required>
         <input name="instagram" placeholder="Instagram handle (optional)">
+        <input name="heard" placeholder="Which video or post brought you here? (optional)" maxlength="200">
         <label class="smsok"><input type="checkbox" name="sms_ok" value="1"> Text me call reminders and updates from PRNTR. Up to 6 texts per application. Msg &amp; data rates may apply. Reply STOP to opt out, HELP for help. Not a condition of purchase.</label>
         <p class="hint">By applying you agree to the <a href="terms.html" target="_blank">terms</a> and <a href="privacy.html" target="_blank">privacy policy</a>.</p></div>
       <div class="q" data-k="stage"><h3>Which describes you best?</h3>
@@ -95,7 +96,14 @@
       if (!ok) err.textContent = 'Please fill this in to continue.';
       return ok;
     }
-    function go() { if (!valid(qs[i])) return; save(); if (i < qs.length - 1) { i++; show(i); } else finish(); }
+    var sentPartial = false;
+    function partial() {                       // they gave contact details: if they stop here, follow up (lead recovery)
+      if (sentPartial || !PRNTR.applyEndpoint || !ans.email) return; sentPartial = true;
+      var src = (new URLSearchParams(location.search).get('src') || 'site').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40);
+      try { fetch(PRNTR.applyEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
+        body: JSON.stringify({ partial: '1', name: ans.name, email: ans.email, phone: ans.phone, instagram: ans.instagram, heard: ans.heard, sms_ok: ans.sms_ok, source: src }) }).catch(function () {}); } catch (e) {}
+    }
+    function go() { if (!valid(qs[i])) return; save(); if (qs[i].dataset.k === 'contact') partial(); if (i < qs.length - 1) { i++; show(i); } else finish(); }
     next.onclick = go;
     back.onclick = function () { if (i) { i--; show(i); } };
     document.getElementById('app').addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); go(); } });

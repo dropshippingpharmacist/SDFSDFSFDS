@@ -59,7 +59,7 @@
     window.addEventListener('message', function (e) {
       if (e.data && e.data.event === 'calendly.event_scheduled') {
         // tell the bot the call is booked (pipeline.py), so the 'pick your call time' reminders stop
-        try { if (PRNTR.eventEndpoint && a.email) navigator.sendBeacon(PRNTR.eventEndpoint, new Blob([JSON.stringify({ email: a.email, kind: 'booked' })], { type: 'text/plain' })); } catch (x) {}
+        try { if (PRNTR.eventEndpoint && a.email) navigator.sendBeacon(PRNTR.eventEndpoint, new Blob([JSON.stringify({ email: a.email, kind: 'booked', event: ((e.data.payload || {}).event || {}).uri || '' })], { type: 'text/plain' })); } catch (x) {}
         setTimeout(function () { location.href = 'booked.html'; }, 150);
       }
     });
