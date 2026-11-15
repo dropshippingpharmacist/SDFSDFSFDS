@@ -10,6 +10,7 @@ window.PRNTR = {
     quarter: "https://whop.com/checkout/plan_8LlB6MUwp5JD1",  // $300 / 3 months
     lifetime: "https://whop.com/checkout/plan_soJuhgMrHfa3e" // $500 lifetime
   },
+  leadEndpoint: "https://excellentnqtct-va.onrender.com/api/lead",      // the free-guide email signups (the bot keeps the list)
   formEndpoint: "",                                                      // optional: Formspree / Make / Zapier webhook to keep EVERY application
   instagram: "dropshippingpharmacist",                                  // without the @
   discord: "https://discord.gg/MX8hdHWgcE",

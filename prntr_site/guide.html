@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Free Guide · PRNTR.AI</title>
+  <meta name="description" content="Free: the 7-point checklist my trading bot runs before it risks a dollar.">
+  <meta property="og:title" content="The 7-point checklist my bot runs before it risks a dollar">
+  <meta property="og:description" content="Free guide from PRNTR.AI. Enter your email and get it instantly.">
+  <meta property="og:image" content="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/banner.jpg?v=1777219122">
+  <meta name="twitter:card" content="summary_large_image">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+  <style>
+    .optin { display: grid; gap: 0.7rem; margin-top: 1rem; }
+    .optin label { font-size: 0.85rem; color: var(--mute); }
+    .optin input { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid var(--line); border-radius: 14px;
+                   color: #fff; font: inherit; padding: 0.85rem 1rem; }
+    .optin input:focus, .optin button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+    .optin button { border: 0; cursor: pointer; font: inherit; width: 100%; }
+    .optin .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+    .optin .err { color: #ff8a8a; font-size: 0.9rem; min-height: 1.2em; margin: 0; }
+    .points { list-style: none; padding: 0; margin: 1rem 0 0; display: grid; gap: 0.55rem; }
+    .points li { display: flex; gap: 0.7rem; align-items: baseline; }
+    .points b.n { color: var(--cyan); min-width: 1.4rem; font-variant-numeric: tabular-nums; }
+    #done { display: none; }
+    .row-btns { display: flex; gap: 0.7rem; flex-wrap: wrap; justify-content: center; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar"><a href="index.html"><img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/banner.jpg?v=1777219122" alt="PRNTR.AI"></a><a href="apply.html" class="btn btn-main">Apply</a></div>
+
+  <span class="eyebrow">FREE GUIDE</span>
+  <h1 style="font-size:2rem;">The 7-point checklist my bot runs before it risks a dollar</h1>
+  <p class="lead">Most traders lose because they enter on a feeling. My bot can't. Every trade has to pass seven checks first, and if one fails, it waits. Get the full checklist free.</p>
+
+  <section class="box glow" id="form">
+    <h2>Get the checklist</h2>
+    <ul class="points">
+      <li><b class="n">1</b><span>What a real setup looks like before the bot even looks closer</span></li>
+      <li><b class="n">2</b><span>The stop hunt the big players run, and how to trade with it</span></li>
+      <li><b class="n">3</b><span>Where the bot puts the entry, the stop and the target</span></li>
+      <li><b class="n">4</b><span>The trades it always skips, and why that saves you money</span></li>
+    </ul>
+    <form class="optin" id="optin" novalidate>
+      <div><label for="fname">First name</label><input id="fname" name="name" autocomplete="given-name" maxlength="80" placeholder="Your first name"></div>
+      <div><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" maxlength="254" placeholder="you@email.com" required></div>
+      <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <p class="err" id="err" role="alert"></p>
+      <button type="submit" class="btn btn-main" id="send">Send me the checklist</button>
+      <p class="small mute center">Free. I'll also email you my best trade breakdowns. Unsubscribe any time.</p>
+    </form>
+  </section>
+
+  <section class="box glow center" id="done">
+    <h2 id="doneTitle">It's yours</h2>
+    <p>Here's the checklist. Save it, and run it on the next chart you look at.</p>
+    <div class="row-btns">
+      <a class="btn btn-main" href="checklist.html">Open the checklist</a>
+      <a class="btn" href="checklist.pdf" download>Download the PDF</a>
+    </div>
+    <p style="margin-top:1.4rem;">Next: join the free Discord for trade recaps and breakdowns.</p>
+    <div class="row-btns"><a class="btn" id="discordLink" href="#" target="_blank" rel="noopener">Join the free Discord</a></div>
+  </section>
+
+  <section class="box center">
+    <h3>Want me to run it with you?</h3>
+    <p>The mentorship is 90 days working with me on your own trades, signals included. <a href="apply.html">Apply here</a>.</p>
+  </section>
+
+  <footer>
+    <p>© 2026 PRNTR.AI · Doctor founder, from pharmacy to full-time trading.</p>
+    <p class="small mute">Trading, and especially leverage trading, carries a high risk of loss; you can lose more than you deposit. This is education, not financial advice.</p>
+    <p><a href="terms.html">Terms and refund policy</a></p>
+  </footer>
+</div>
+<script>
+  (function () {
+    var src = (new URLSearchParams(location.search).get('src') || 'site').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40);
+    document.getElementById('discordLink').href = PRNTR.discord;
+    var f = document.getElementById('optin'), err = document.getElementById('err'), btn = document.getElementById('send');
+    function done(name) {
+      try { localStorage.setItem('prntr_guide', '1'); } catch (e) {}
+      document.getElementById('form').style.display = 'none';
+      var d = document.getElementById('done');
+      d.style.display = 'block';
+      if (name) document.getElementById('doneTitle').textContent = "It's yours, " + name;
+      d.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    f.addEventListener('submit', function (e) {
+      e.preventDefault();
+      err.textContent = '';
+      var name = f.name.value.trim(), email = f.email.value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = 'Please enter a valid email.'; f.email.focus(); return; }
+      var url = PRNTR.leadEndpoint;
+      if (!url) { done(name); return; }
+      btn.disabled = true; btn.textContent = 'Sending…';
+      var body = new URLSearchParams({ name: name, email: email, source: src, website: f.website.value });
+      fetch(url, { method: 'POST', body: body })
+        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (res) {
+          if (res.ok) { done(name); return; }
+          err.textContent = (res.j && res.j.why) || 'That did not go through. Please try again.';
+          btn.disabled = false; btn.textContent = 'Send me the checklist';
+        })
+        .catch(function () {
+          err.textContent = 'That did not go through. Check your connection and try again.';
+          btn.disabled = false; btn.textContent = 'Send me the checklist';
+        });
+    });
+  })();
+</script>
+</body>
+</html>

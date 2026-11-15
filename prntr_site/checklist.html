@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>The 7-Point Checklist · PRNTR.AI</title>
+  <meta name="robots" content="noindex">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+  <style>
+    .check { display: grid; grid-template-columns: 2.6rem 1fr; gap: 0.2rem 0.9rem; align-items: start; }
+    .check > :not(.n) { grid-column: 2; }
+    .check .n { grid-row: 1 / span 3; grid-column: 1; width: 2.6rem; height: 2.6rem; border-radius: 50%; display: grid; place-items: center;
+                font-weight: 800; color: #03122e; background: var(--cyan); font-variant-numeric: tabular-nums; }
+    .check h2 { font-size: 1.2rem; margin: 0.25rem 0 0; text-align: left; }
+    .check p { margin: 0.35rem 0 0; }
+    .check .why { color: var(--mute); font-size: 0.92rem; }
+    .skip { list-style: none; padding: 0; margin: 0.6rem 0 0; display: grid; gap: 0.45rem; }
+    .skip li::before { content: "✕"; color: #ff8a8a; font-weight: 800; margin-right: 0.6rem; }
+    .print { margin-top: 0.8rem; }
+    @media print {
+      body { background: #fff !important; color: #111 !important; }
+      .topbar .btn, .print, .cta, footer .noprint { display: none !important; }
+      .box { border: 1px solid #ccc !important; box-shadow: none !important; background: #fff !important; break-inside: avoid; margin: 0.5rem 0 !important; padding: 0.8rem 1rem !important; }
+      h1 { border: 0 !important; box-shadow: none !important; font-size: 1.6rem !important; }
+      .topbar img { max-height: 48px; }
+      .check h2, h1, h2, h3 { color: #111 !important; }
+      .check .why, .lead, .mute { color: #444 !important; }
+      .check .n { background: #111 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar"><a href="index.html"><img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/banner.jpg?v=1777219122" alt="PRNTR.AI"></a><a href="apply.html" class="btn btn-main">Apply</a></div>
+
+  <span class="eyebrow">FREE GUIDE</span>
+  <h1 style="font-size:2rem;">The 7-point checklist my bot runs before it risks a dollar</h1>
+  <p class="lead">Most traders lose because they enter on a feeling. My bot can't. Every trade has to pass these seven checks, in this order. If one fails, it doesn't trade. It waits for the next one.</p>
+  <div class="print"><button class="btn" type="button" onclick="window.print()">Save as PDF / print</button></div>
+
+  <section class="box check">
+    <span class="n">1</span><h2>A real range, at least a day long</h2>
+    <p>Price has to move sideways between a clear high and a clear low for at least 24 hours before the bot looks closer. A sharp V-shaped bounce doesn't count.</p>
+    <p class="why">Why: a range is where big players quietly build their position. No range, no plan.</p>
+  </section>
+
+  <section class="box check">
+    <span class="n">2</span><h2>Three taps at the edge</h2>
+    <p>Price has to touch the bottom of the range (or the top, for a short) three times. Each touch shows the other side running out of steam.</p>
+    <p class="why">Why: two touches is a guess. Three is a pattern you can measure.</p>
+  </section>
+
+  <section class="box check">
+    <span class="n">3</span><h2>The stop hunt</h2>
+    <p>The best setups have a tap that pokes just past the low and snaps back inside the range. That's everyone's stop losses getting taken out before the real move.</p>
+    <p class="why">Why: once those stops are gone, there's fuel for price to go the other way. The bot wants to be on the side that took the liquidity, not the side that lost it.</p>
+  </section>
+
+  <section class="box check">
+    <span class="n">4</span><h2>A hidden order block underneath</h2>
+    <p>The strongest taps land on a hidden order block: a spot on a higher timeframe where large orders were left behind and price moved away fast. Even better when it sits at the deep 0.705 to 0.786 pullback of the last move.</p>
+    <p class="why">Why: those leftover orders defend the level. You're buying where the big money is still waiting to buy.</p>
+  </section>
+
+  <section class="box check">
+    <span class="n">5</span><h2>A break of structure, on a candle close</h2>
+    <p>Nothing happens until a candle closes beyond the last swing inside the range. A wick through it doesn't count. Then the bot zooms in to the 3-minute chart for the exact trigger.</p>
+    <p class="why">Why: the close is proof the other side gave up. Entering before it is guessing.</p>
+  </section>
+
+  <section class="box check">
+    <span class="n">6</span><h2>At least 3 to 1</h2>
+    <p>The stop goes just past the third tap. The first target is the other side of the range, and the runner rides to where the most traders get force-closed. If the trade can't pay at least three times what it risks, it's skipped.</p>
+    <p class="why">Why: at 3 to 1 you can be wrong more often than you're right and still grow the account.</p>
+  </section>
+
+  <section class="box check">
+    <span class="n">7</span><h2>Still at the entry, and the market agrees</h2>
+    <p>The trade is only taken while price is still at the entry. If it already ran, the bot lets it go. For altcoins, Bitcoin has to be setting up the same way. Every trade risks the same fixed amount.</p>
+    <p class="why">Why: chasing a move that already happened is how good setups turn into bad trades.</p>
+  </section>
+
+  <section class="box">
+    <h2 style="text-align:left;">What the bot always skips</h2>
+    <ul class="skip">
+      <li>No clear range, or a range younger than a day</li>
+      <li>A wick through the level with no candle close</li>
+      <li>Anything that pays less than 3 to 1</li>
+      <li>A move that already left the entry</li>
+      <li>Altcoins fighting the direction of Bitcoin</li>
+    </ul>
+  </section>
+
+  <section class="box center cta">
+    <h3>Want me to run this with you?</h3>
+    <p>The mentorship is 90 days working with me on your own trades, with the bot's signals included.</p>
+    <div class="row-btns" style="display:flex;gap:0.7rem;flex-wrap:wrap;justify-content:center;margin-top:0.8rem;">
+      <a class="btn btn-main" href="apply.html">Apply for the mentorship</a>
+      <a class="btn" id="discordLink" href="#" target="_blank" rel="noopener">Join the free Discord</a>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 PRNTR.AI · prntr-ai.onrender.com</p>
+    <p class="small mute">Trading, and especially leverage trading, carries a high risk of loss; you can lose more than you deposit. Some trades lose, even when every check passes. Past results don't guarantee future results. This is education, not financial advice.</p>
+  </footer>
+</div>
+<script>document.getElementById('discordLink').href = (window.PRNTR || {}).discord || '#';</script>
+</body>
+</html>
