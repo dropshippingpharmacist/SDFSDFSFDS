@@ -41,6 +41,18 @@
     .calcout b { font-size: 1.15rem; color: #fff; font-variant-numeric: tabular-nums; }
     .calcout .bad b { color: #ff8a8a; } .calcout .good b { color: #7ee787; }
     .calcmsg { grid-column: 1 / -1; font-size: 0.92rem; }
+    .socials { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; justify-content: center; margin: 0.9rem 0 0; }
+    .socials a { display: inline-flex; align-items: center; gap: 0.4rem; color: #fff; text-decoration: none; font-weight: 600; font-size: 0.9rem;
+                 border: 1px solid var(--line); border-radius: 999px; padding: 0.35rem 0.8rem 0.35rem 0.55rem; }
+    .socials a:hover, .socials a:focus-visible { border-color: var(--cyan); outline: none; }
+    .socials svg { width: 1.15rem; height: 1.15rem; flex: none; color: var(--cyan); }
+    .mcta { border: 1px solid var(--cyan); border-radius: 18px; padding: 1rem 1.1rem; margin: 1rem 0; background: rgba(42,171,227,0.08);
+            display: grid; gap: 0.5rem; text-align: center; break-inside: avoid; }
+    .mcta p { margin: 0; } .mcta b { color: #fff; }
+    .mcta .btn { justify-self: center; text-decoration: none; }
+    .mcta.big h2 { text-align: center; font-size: 1.5rem; margin: 0; }
+    .mcta ul { text-align: left; margin: 0.2rem auto; max-width: 30rem; }
+    .mcta .fine { font-size: 0.82rem; color: var(--mute); }
     .printonly { display: none; }
     .print { margin-top: 0.8rem; }
     @media (max-width: 560px) { .toc { columns: 1; } }
@@ -48,6 +60,13 @@
       body { background: #fff !important; color: #111 !important; }
       .topbar .btn, .print, .cta, .noprint { display: none !important; }
       .printonly { display: block !important; }
+      .mcta { background: #eef8fc !important; border: 2px solid #1f8fc4 !important; }
+      .mcta b, .mcta h2 { color: #111 !important; }
+      .mcta .btn { background: #1f8fc4 !important; color: #fff !important; border: 0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .mcta .btn::after { content: "  →  prntru.com/apply.html"; font-weight: 600; }
+      .socials a { color: #111 !important; border-color: #bbb !important; }
+      .socials svg { color: #1f8fc4 !important; }
+      .mcta .fine { color: #555 !important; }
       .box { border: 1px solid #ccc !important; box-shadow: none !important; background: #fff !important; margin: 0.5rem 0 !important; padding: 0.8rem 1rem !important; }
       .pb h2, .pb h3, h1, b, .boxes b { color: #111 !important; }
       .mute, .lead, .tbl th { color: #444 !important; }
@@ -63,12 +82,15 @@
 </head>
 <body>
 <div class="container">
-  <div class="topbar"><a href="index.html"><img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/banner.jpg?v=1777219122" alt="PRNTR.AI"></a><a href="apply.html" class="btn btn-main">Apply</a></div>
+  <div class="topbar"><a href="https://prntru.com/"><img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/banner.jpg?v=1777219122" alt="PRNTR.AI"></a><a href="apply.html" class="btn btn-main">Apply</a></div>
 
   <span class="eyebrow">FREE PLAYBOOK</span>
   <h1 style="font-size:2rem;">From memecoins to cash flow</h1>
   <p class="lead">The PRNTR Playbook: how I protect my money, trade memecoins without getting rugged, use leverage without getting liquidated, and turn wins into income I actually keep. Including the 7-point checklist my bot runs before it risks a dollar.</p>
   <div class="print"><button class="btn" type="button" onclick="window.print()">Save as PDF / print</button> <a class="btn" href="pb-p0g7iee5f4agg4.pdf" download>Download the PDF</a></div>
+
+  <div class="mcta"><p><b>Want to do this with me, 1-on-1?</b> I take on a few people a month and work on their actual trades for 90 days. Two minutes to apply.</p><a class="btn btn-main" href="https://prntru.com/apply.html?src=playbook" target="_blank" rel="noopener">See if you're a fit</a></div>
+  <div class="socials"><a href="https://instagram.com/dropshippingpharmacist" target="_blank" rel="noopener" aria-label="Instagram @dropshippingpharmacist"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.6" cy="6.4" r="1.3" fill="currentColor"/></svg><span>@dropshippingpharmacist</span></a><a href="https://x.com/prntrai" target="_blank" rel="noopener" aria-label="X @prntrai"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg><span>@prntrai</span></a><a href="https://discord.gg/MX8hdHWgcE" target="_blank" rel="noopener" aria-label="Free Discord"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.865-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.74 19.74 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.058a.082.082 0 0 0 .031.056 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.873-1.295 1.226-1.994a.076.076 0 0 0-.042-.106 13.1 13.1 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .078-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.009c.12.099.246.198.373.292a.077.077 0 0 1-.007.128 12.3 12.3 0 0 1-1.873.891.077.077 0 0 0-.041.107c.36.698.772 1.363 1.225 1.993a.076.076 0 0 0 .084.029 19.84 19.84 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.029ZM8.02 15.331c-1.183 0-2.157-1.086-2.157-2.42 0-1.332.956-2.418 2.157-2.418 1.21 0 2.176 1.095 2.157 2.419 0 1.333-.956 2.419-2.157 2.419Zm7.975 0c-1.183 0-2.157-1.086-2.157-2.42 0-1.332.955-2.418 2.157-2.418 1.21 0 2.176 1.095 2.157 2.419 0 1.333-.946 2.419-2.157 2.419Z"/></svg><span>Free Discord</span></a><a href="https://prntru.com" target="_blank" rel="noopener" aria-label="prntru.com"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 12h19M12 2.5c2.6 2.6 3.9 5.8 3.9 9.5s-1.3 6.9-3.9 9.5c-2.6-2.6-3.9-5.8-3.9-9.5S9.4 5.1 12 2.5Z" fill="none" stroke="currentColor" stroke-width="2"/></svg><span>prntru.com</span></a></div>
 
   <section class="box pb">
     <h2>Before you start</h2>
@@ -185,6 +207,8 @@
     </ol>
   </section>
 
+  <div class="mcta"><p><b>The rug check keeps you out of the worst coins.</b> The wallets I actually follow, and how I find new ones early, are what I share 1-on-1.</p><a class="btn btn-main" href="https://prntru.com/apply.html?src=playbook" target="_blank" rel="noopener">See if you're a fit</a></div>
+
   <section class="box pb" id="p5">
     <span class="part">Part 5</span>
     <h2>Copy trading: how to judge a wallet before you follow it</h2>
@@ -267,6 +291,8 @@
     </table></div>
     <div class="key">With trades that pay 3 to 1, you can lose 6 out of 10 and still be up. That's why the bot skips anything that doesn't pay several times its risk.</div>
   </section>
+
+  <div class="mcta"><p><b>That's the math.</b> The exact rules my bot uses to find trades worth 3R or more, and every signal it sends, come with the mentorship.</p><a class="btn btn-main" href="https://prntru.com/apply.html?src=playbook" target="_blank" rel="noopener">See if you're a fit</a></div>
 
   <section class="box pb" id="p10">
     <span class="part">Part 10</span>
@@ -357,6 +383,8 @@
     </ol>
   </section>
 
+  <div class="mcta"><p><b>Knowing the rules isn't the hard part. Following them is.</b> In the mentorship I review your real trades with you every two weeks.</p><a class="btn btn-main" href="https://prntru.com/apply.html?src=playbook" target="_blank" rel="noopener">See if you're a fit</a></div>
+
   <section class="box pb" id="calc">
     <span class="part">Tool</span>
     <h2>Position size calculator</h2>
@@ -425,22 +453,27 @@
     <p>That's the 90-day mentorship. It's 1-on-1, it's limited to a few people a month, and it starts with a short application.</p>
   </section>
 
-  <section class="box center cta">
-    <h3>Want me to build this with you?</h3>
-    <p>90 days working with me on your own trades, with the bot's signals included.</p>
-    <div style="display:flex;gap:0.7rem;flex-wrap:wrap;justify-content:center;margin-top:0.8rem;">
-      <a class="btn btn-main" href="apply.html?src=playbook">Apply for the mentorship</a>
-      <a class="btn" id="discordLink" href="#" target="_blank" rel="noopener">Join the free Discord</a>
-    </div>
+  <section class="mcta big">
+    <h2>Ready to do this with me?</h2>
+    <p>The 90-day 1-on-1 mentorship is everything this playbook leaves out:</p>
+    <ul class="chk">
+      <li>The exact rules my bot uses, taught on your own charts</li>
+      <li>Every signal the bot sends, the moment it confirms</li>
+      <li>Calls with me every two weeks on your actual trades</li>
+      <li>Your own written plan for sizing, risk and paying yourself</li>
+    </ul>
+    <p><b>A few spots a month, by application.</b> Answer a few questions and see if you qualify. I read every one myself.</p>
+    <a class="btn btn-main" href="https://prntru.com/apply.html?src=playbook" target="_blank" rel="noopener">See if you qualify</a>
+    <p class="fine">Not ready yet? Follow along for free:</p>
+    <div class="socials"><a href="https://instagram.com/dropshippingpharmacist" target="_blank" rel="noopener" aria-label="Instagram @dropshippingpharmacist"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.6" cy="6.4" r="1.3" fill="currentColor"/></svg><span>@dropshippingpharmacist</span></a><a href="https://x.com/prntrai" target="_blank" rel="noopener" aria-label="X @prntrai"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg><span>@prntrai</span></a><a href="https://discord.gg/MX8hdHWgcE" target="_blank" rel="noopener" aria-label="Free Discord"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.865-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.74 19.74 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.058a.082.082 0 0 0 .031.056 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.873-1.295 1.226-1.994a.076.076 0 0 0-.042-.106 13.1 13.1 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .078-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.009c.12.099.246.198.373.292a.077.077 0 0 1-.007.128 12.3 12.3 0 0 1-1.873.891.077.077 0 0 0-.041.107c.36.698.772 1.363 1.225 1.993a.076.076 0 0 0 .084.029 19.84 19.84 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.029ZM8.02 15.331c-1.183 0-2.157-1.086-2.157-2.42 0-1.332.956-2.418 2.157-2.418 1.21 0 2.176 1.095 2.157 2.419 0 1.333-.956 2.419-2.157 2.419Zm7.975 0c-1.183 0-2.157-1.086-2.157-2.42 0-1.332.955-2.418 2.157-2.418 1.21 0 2.176 1.095 2.157 2.419 0 1.333-.946 2.419-2.157 2.419Z"/></svg><span>Free Discord</span></a><a href="https://prntru.com" target="_blank" rel="noopener" aria-label="prntru.com"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 12h19M12 2.5c2.6 2.6 3.9 5.8 3.9 9.5s-1.3 6.9-3.9 9.5c-2.6-2.6-3.9-5.8-3.9-9.5S9.4 5.1 12 2.5Z" fill="none" stroke="currentColor" stroke-width="2"/></svg><span>prntru.com</span></a></div>
   </section>
 
   <footer>
-    <p>© 2026 PRNTR.AI · prntru.com</p>
+    <p>© 2026 PRNTR.AI · <a href="https://prntru.com">prntru.com</a> · <a href="https://instagram.com/dropshippingpharmacist">Instagram</a> · <a href="https://x.com/prntrai">X</a> · <a href="https://discord.gg/MX8hdHWgcE">Discord</a></p>
     <p class="small mute">Trading, and especially leverage and memecoin trading, carries a high risk of loss; you can lose more than you deposit, and most memecoins go to zero. Tools named here are examples, not endorsements; always verify what you use. Past results, mine or anyone's, don't guarantee future results and are not typical. This is education, not financial advice.</p>
   </footer>
 </div>
 <script>
-  document.getElementById('discordLink').href = (window.PRNTR || {}).discord || '#';
   (function () {
     var ids = ['cA', 'cR', 'cE', 'cS', 'cT', 'cL'], out = document.getElementById('cOut');
     function n(id) { var v = parseFloat(document.getElementById(id).value); return isFinite(v) ? v : NaN; }
