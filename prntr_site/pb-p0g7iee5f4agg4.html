@@ -128,5 +128,9 @@
     });
   })();
 </script>
+<script>/* mc-forward: keep the ManyChat contact id on the way to the application */
+(function(){var m=(new URLSearchParams(location.search).get('mc')||'').replace(/\D/g,'');if(!m)return;
+document.querySelectorAll('a[href*="apply.html"],a[href*="-read.html"],a[href$=".pdf"]').forEach(function(a){
+if(/\.pdf$/.test(a.getAttribute('href')))return;var u=new URL(a.getAttribute('href'),location.href);u.searchParams.set('mc',m);a.href=u.toString();});})();</script>
 </body>
 </html>

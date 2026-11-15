@@ -96,12 +96,14 @@
       if (!ok) err.textContent = 'Please fill this in to continue.';
       return ok;
     }
+    // their ManyChat contact id, when they came from a DM link (&mc=...): lets the bot send the right voice note later
+    var mcId = (new URLSearchParams(location.search).get('mc') || '').replace(/\D/g, '').slice(0, 25);
     var sentPartial = false;
     function partial() {                       // they gave contact details: if they stop here, follow up (lead recovery)
       if (sentPartial || !PRNTR.applyEndpoint || !ans.email) return; sentPartial = true;
       var src = (new URLSearchParams(location.search).get('src') || 'site').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40);
       try { fetch(PRNTR.applyEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
-        body: JSON.stringify({ partial: '1', name: ans.name, email: ans.email, phone: ans.phone, instagram: ans.instagram, heard: ans.heard, sms_ok: ans.sms_ok, source: src }) }).catch(function () {}); } catch (e) {}
+        body: JSON.stringify({ partial: '1', name: ans.name, email: ans.email, phone: ans.phone, instagram: ans.instagram, heard: ans.heard, sms_ok: ans.sms_ok, source: src, mc: mcId }) }).catch(function () {}); } catch (e) {}
     }
     function go() { if (!valid(qs[i])) return; save(); if (qs[i].dataset.k === 'contact') partial(); if (i < qs.length - 1) { i++; show(i); } else finish(); }
     next.onclick = go;
@@ -121,7 +123,7 @@
       // if it can't be reached, the same rule runs here so nobody is ever stuck
       var qualified = (ans.investN || 0) >= PRNTR.minBudget && ans.stage !== 'New to trading';
       ans.source = (new URLSearchParams(location.search).get('src') || 'site').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40);
-      ans.submitted = new Date().toISOString();
+      ans.submitted = new Date().toISOString(); if (mcId) ans.mc = mcId;
       next.disabled = true; next.textContent = 'Sending…';
       var go = function (q) { ans.qualified = q; save(); location.href = q ? 'book.html' : 'next.html'; };
       var extra = PRNTR.formEndpoint ? fetch(PRNTR.formEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(ans) }).catch(function () {}) : Promise.resolve();
