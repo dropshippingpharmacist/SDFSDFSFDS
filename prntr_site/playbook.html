@@ -30,11 +30,24 @@
     .chk li { list-style: none; position: relative; padding-left: 1.6rem; }
     .chk li::before { content: "☐"; position: absolute; left: 0; color: var(--cyan); }
     .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.92rem; }
+    .calc { display: grid; gap: 0.6rem; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 0.8rem 0; }
+    .calc label { display: grid; gap: 0.25rem; font-size: 0.85rem; color: var(--mute); }
+    .calc input { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid var(--line); border-radius: 12px; color: #fff;
+                  font: inherit; padding: 0.65rem 0.8rem; font-variant-numeric: tabular-nums; }
+    .calc input:focus { outline: 2px solid var(--cyan); outline-offset: 2px; }
+    .calcout { display: grid; gap: 0.5rem; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 0.4rem 0 0.6rem; }
+    .calcout div { border: 1px solid var(--line); border-radius: 12px; padding: 0.6rem 0.8rem; }
+    .calcout span { display: block; font-size: 0.8rem; color: var(--mute); }
+    .calcout b { font-size: 1.15rem; color: #fff; font-variant-numeric: tabular-nums; }
+    .calcout .bad b { color: #ff8a8a; } .calcout .good b { color: #7ee787; }
+    .calcmsg { grid-column: 1 / -1; font-size: 0.92rem; }
+    .printonly { display: none; }
     .print { margin-top: 0.8rem; }
     @media (max-width: 560px) { .toc { columns: 1; } }
     @media print {
       body { background: #fff !important; color: #111 !important; }
       .topbar .btn, .print, .cta, .noprint { display: none !important; }
+      .printonly { display: block !important; }
       .box { border: 1px solid #ccc !important; box-shadow: none !important; background: #fff !important; margin: 0.5rem 0 !important; padding: 0.8rem 1rem !important; }
       .pb h2, .pb h3, h1, b, .boxes b { color: #111 !important; }
       .mute, .lead, .tbl th { color: #444 !important; }
@@ -63,6 +76,7 @@
     <p>This playbook is everything I wish someone had handed me before that trade. It's free because most people lose money in crypto for reasons that have nothing to do with picking the right coin: a hacked wallet, a rug, a liquidation, or giving it all back. Fix those, and you're already ahead of most traders.</p>
     <h3>What's inside</h3>
     <ul class="toc">
+      <li><a href="#start">0 · Start today: your first hour</a></li>
       <li><a href="#p1">1 · The money loop</a></li>
       <li><a href="#p2">2 · Lock down your setup</a></li>
       <li><a href="#p3">3 · How memecoins actually move</a></li>
@@ -77,8 +91,27 @@
       <li><a href="#p12">12 · Paying yourself</a></li>
       <li><a href="#p13">13 · The journal and the routine</a></li>
       <li><a href="#p14">14 · 10 rules for your head</a></li>
+      <li><a href="#calc">Tool · Position size calculator</a></li>
+      <li><a href="#card">Tool · The trade plan card</a></li>
+      <li><a href="#week">Your first 7 days</a></li>
       <li><a href="#p15">15 · What the mentorship adds</a></li>
     </ul>
+  </section>
+
+  <section class="box pb" id="start">
+    <span class="part">Part 0</span>
+    <h2>Start today: your first hour</h2>
+    <p>You don't need to read everything before you start. Do these steps today, in this order, and you'll have placed your first trade the right way: small, planned, and protected.</p>
+    <ol>
+      <li><b>Pick your test money (5 min).</b> An amount you could lose completely without it changing your week. Write the number down. That's your starting bankroll, and you don't add to it this month.</li>
+      <li><b>Set up the burner wallet (15 min).</b> Install one wallet app in a separate browser profile, write the seed phrase on paper, and send only your test money to it. (Part 2 has the full security list for later.)</li>
+      <li><b>Find a coin from a wallet that keeps winning (15 min).</b> Open a wallet tracker, pick one wallet that passes the six filters in Part 5, and look at its newest buy.</li>
+      <li><b>Run the 12-point rug check on it (5 min).</b> If it fails any of the first five checks, skip it and go back to step 3. Skipping is a win.</li>
+      <li><b>Fill in the trade plan card (5 min).</b> Your amount (a small slice of the test money), where you take profit (the ladder in Part 6) and the point where you'll accept it's not working.</li>
+      <li><b>Place the buy, then set alerts (5 min).</b> Price alerts at 2x and 5x so the plan runs even when you're not watching.</li>
+      <li><b>Journal it (5 min).</b> Write down why you took it. Win or lose, this is the trade you learn the most from.</li>
+    </ol>
+    <div class="key">Leverage comes after a week of this, not today. When you do start, use the calculator below at the smallest size your exchange allows. The goal of week one is to follow the rules every time, not to get rich. That part comes from repetition.</div>
   </section>
 
   <section class="box pb" id="p1">
@@ -324,6 +357,60 @@
     </ol>
   </section>
 
+  <section class="box pb" id="calc">
+    <span class="part">Tool</span>
+    <h2>Position size calculator</h2>
+    <p>Type your numbers. It tells you how big the trade should be, the margin it needs, roughly where liquidation sits, and what the trade pays in R.</p>
+    <div class="calc noprint">
+      <label>Account size ($)<input id="cA" type="number" inputmode="decimal" value="1000" min="0"></label>
+      <label>Risk per trade (%)<input id="cR" type="number" inputmode="decimal" value="1" min="0" step="0.1"></label>
+      <label>Entry price<input id="cE" type="number" inputmode="decimal" value="100" min="0" step="any"></label>
+      <label>Stop price<input id="cS" type="number" inputmode="decimal" value="98" min="0" step="any"></label>
+      <label>Target price<input id="cT" type="number" inputmode="decimal" value="106" min="0" step="any"></label>
+      <label>Leverage (x)<input id="cL" type="number" inputmode="decimal" value="10" min="1" step="1"></label>
+    </div>
+    <div class="calcout noprint" id="cOut" aria-live="polite"></div>
+    <p class="mute small">Liquidation is an estimate for isolated margin (about 100% ÷ leverage from your entry, less fees and maintenance margin). Your exchange shows the exact price; always check it before you confirm.</p>
+    <div class="printonly">
+      <p class="mono key">Position size = $ at risk ÷ stop distance (%) · Margin = position size ÷ leverage · Liquidation ≈ 100% ÷ leverage from entry</p>
+      <p>The interactive calculator is on the web version of this playbook: prntr-ai.onrender.com/playbook.html#calc</p>
+    </div>
+  </section>
+
+  <section class="box pb" id="card">
+    <span class="part">Tool</span>
+    <h2>The trade plan card (fill it in before every trade)</h2>
+    <p>Screenshot it, print it, or copy it into your notes. If you can't fill in every line, you don't have a trade yet.</p>
+    <div class="wrap"><table class="tbl">
+      <tr><th style="width:42%">Line</th><th>Your answer</th></tr>
+      <tr><td>Market and direction</td><td>&nbsp;</td></tr>
+      <tr><td>Why (one sentence)</td><td>&nbsp;</td></tr>
+      <tr><td>Checklist passed? (7 points / 12-point rug check)</td><td>&nbsp;</td></tr>
+      <tr><td>Entry</td><td>&nbsp;</td></tr>
+      <tr><td>Where I'm wrong (stop)</td><td>&nbsp;</td></tr>
+      <tr><td>Target(s) / profit ladder</td><td>&nbsp;</td></tr>
+      <tr><td>$ at risk · position size · leverage</td><td>&nbsp;</td></tr>
+      <tr><td>Reward in R</td><td>&nbsp;</td></tr>
+      <tr><td>Liquidation is past my stop? (yes / no)</td><td>&nbsp;</td></tr>
+      <tr><td>What would make me skip it?</td><td>&nbsp;</td></tr>
+    </table></div>
+  </section>
+
+  <section class="box pb" id="week">
+    <span class="part">Plan</span>
+    <h2>Your first 7 days</h2>
+    <div class="wrap"><table class="tbl">
+      <tr><th>Day</th><th>Do this</th></tr>
+      <tr><td>1</td><td>Part 0: your first hour, and your first small memecoin trade with the full plan card.</td></tr>
+      <tr><td>2</td><td>Lock everything down (Part 2): three wallets, approvals checked, 2FA, bookmarks only.</td></tr>
+      <tr><td>3</td><td>Build a list of 5 wallets that pass the filters in Part 5. Watch them, don't copy yet.</td></tr>
+      <tr><td>4</td><td>Write your risk rules (Part 11) and your pay-yourself split (Part 12). Stick them where you trade.</td></tr>
+      <tr><td>5</td><td>Open an exchange account for leverage. Practice the calculator on 5 charts without placing anything.</td></tr>
+      <tr><td>6</td><td>One leverage trade at the smallest size allowed, only if it passes the 7-point checklist. If nothing passes, no trade: that's a pass too.</td></tr>
+      <tr><td>7</td><td>Sunday review (Part 13): total R, rules broken, one fix. Then decide if you want to do this with me.</td></tr>
+    </table></div>
+  </section>
+
   <section class="box pb" id="p15">
     <span class="part">Part 15</span>
     <h2>What this playbook doesn't include</h2>
@@ -352,6 +439,34 @@
     <p class="small mute">Trading, and especially leverage and memecoin trading, carries a high risk of loss; you can lose more than you deposit, and most memecoins go to zero. Tools named here are examples, not endorsements; always verify what you use. Past results, mine or anyone's, don't guarantee future results and are not typical. This is education, not financial advice.</p>
   </footer>
 </div>
-<script>document.getElementById('discordLink').href = (window.PRNTR || {}).discord || '#';</script>
+<script>
+  document.getElementById('discordLink').href = (window.PRNTR || {}).discord || '#';
+  (function () {
+    var ids = ['cA', 'cR', 'cE', 'cS', 'cT', 'cL'], out = document.getElementById('cOut');
+    function n(id) { var v = parseFloat(document.getElementById(id).value); return isFinite(v) ? v : NaN; }
+    function money(v) { return '$' + v.toLocaleString(undefined, { maximumFractionDigits: v >= 100 ? 0 : 2 }); }
+    function cell(label, val, cls) { return '<div class="' + (cls || '') + '"><span>' + label + '</span><b>' + val + '</b></div>'; }
+    function calc() {
+      var A = n('cA'), R = n('cR'), E = n('cE'), S = n('cS'), T = n('cT'), L = Math.max(1, n('cL'));
+      if (!(A > 0 && R > 0 && E > 0 && S > 0 && S !== E)) { out.innerHTML = '<p class="calcmsg">Fill in the account, risk, entry and a stop that isn\'t the entry.</p>'; return; }
+      var long = S < E, risk = A * R / 100, dist = Math.abs(E - S) / E, size = risk / dist, margin = size / L;
+      var liq = long ? E * (1 - 1 / L) : E * (1 + 1 / L);
+      var liqOk = long ? liq < S : liq > S;
+      var rr = (T > 0 && T !== E) ? (long ? (T - E) : (E - T)) / Math.abs(E - S) : NaN;
+      var h = cell('Direction', long ? 'Long' : 'Short') + cell('$ at risk', money(risk)) + cell('Position size', money(size)) +
+              cell('Margin needed', money(margin), margin > A ? 'bad' : '') +
+              cell('Liquidation (approx.)', liq.toPrecision(6).replace(/\.?0+$/, ''), liqOk ? 'good' : 'bad') +
+              cell('Reward', isFinite(rr) ? rr.toFixed(1) + 'R' : '–', isFinite(rr) ? (rr >= 3 ? 'good' : rr < 2 ? 'bad' : '') : '');
+      var msg = [];
+      if (!liqOk) msg.push('Liquidation comes before your stop: lower the leverage.');
+      if (margin > A) msg.push('The margin is more than your account: lower the risk %, or raise the leverage while keeping liquidation past your stop.');
+      if (isFinite(rr) && rr < 3) msg.push('The reward is under 3R. The bot would skip this one.');
+      if (isFinite(rr) && (long ? T <= E : T >= E)) msg.push('Your target is on the wrong side of the entry.');
+      out.innerHTML = h + '<p class="calcmsg">' + (msg.length ? '⚠️ ' + msg.join(' ') : '✓ The stop comes before liquidation and the math works.') + '</p>';
+    }
+    ids.forEach(function (id) { document.getElementById(id).addEventListener('input', calc); });
+    calc();
+  })();
+</script>
 </body>
 </html>
