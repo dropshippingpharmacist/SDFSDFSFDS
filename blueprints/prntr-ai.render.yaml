@@ -1,0 +1,15 @@
+# The PRNTR website (static site prntr-ai). Same settings as in the Render dashboard, plus the custom domain
+# prntru.com (Namecheap DNS: A @ 216.24.57.1, CNAME www prntr-ai.onrender.com). Only this site is managed here.
+services:
+  - type: web
+    runtime: static
+    name: prntr-ai
+    repo: https://github.com/dropshippingpharmacist/SDFSDFSFDS
+    branch: claude/peaceful-cerf-vohjyb
+    autoDeployTrigger: commit
+    buildCommand: echo "static page, no build"
+    staticPublishPath: prntr_site
+    pullRequestPreviewsEnabled: false
+    domains:
+      - prntru.com
+      - www.prntru.com
