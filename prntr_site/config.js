@@ -19,7 +19,7 @@ window.PRNTR = {
   discord: "https://discord.gg/MX8hdHWgcE",
   vslLanding: "https://www.youtube.com/embed/dkllBVYwXZA",              // replace with the 5-8 min "apply" video when recorded
   vslBooked: "",                                                         // the 10-15 min "before our call" video
-  minBudget: 1000,                                                       // the '$1,000–$3,000' answer and up get a call; under that -> next.html (signals)
+  minBudget: 1000,                                                       // '$1,000–$2,000' and up get a call (course $997 · group $1,997 · 1-on-1 $2,997); under -> next.html
   spotsPerMonth: 5,
   showTracker: false                                                     // the public signal track record (index.html#tracker): true shows it again
 };

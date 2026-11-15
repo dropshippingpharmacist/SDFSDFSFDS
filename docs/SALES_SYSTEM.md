@@ -15,8 +15,8 @@ ManyChat DM ──► private playbook link                  ▼
                                           Application (apply.html, 2 minutes)
                                                        │  the bot routes it by budget
                   ┌───────────────┬───────────────┬────┴──────────┬────────────────────┐
-                $5K+            $3–5K           $1–3K          under $1K or new
-             1-on-1 fit       group fit       course fit       next.html:
+                $3K+            $2–3K           $1–2K          under $1K or new
+          1-on-1 $2,997    group $1,997    course $997         next.html:
                   └───────── book a call (Calendly) ──┘        signals $199/mo + free Discord
                               │  reminders by email + text until booked
                               ▼
@@ -29,6 +29,22 @@ ManyChat DM ──► private playbook link                  ▼
 
 On the call the closer goes down the ladder in order: **1-on-1 → group → course → signals**. Every step down happens
 on the call or in the follow-ups, never on the public website.
+
+---
+
+## Price sheet (said on the call only, never in DMs or on the homepage)
+
+| Tier | Price (paid in full) | Who it's for | Budget answer that points here |
+|---|---|---|---|
+| 1-on-1 Mentorship, 90 days | **$2,997** | wants your eyes on their trades, ready now | $3,000+ |
+| Group Mentorship | **$1,997** | wants the system + live group calls | $2,000 – $3,000 |
+| PRNTR Course | **$997** | self-paced, smaller budget | $1,000 – $2,000 |
+| PRNTR Signals | **$199 / month** | not ready for any program | under $1,000, or new to trading |
+
+On the call, start at the tier their answers point to (or one above it), then go down one step at a time only if
+they say no: 1-on-1 → group → course → signals. Payment plans are agreed on the call; a plan is a commitment to the
+full price (terms page). When someone buys, mark them **won** on /pipeline with the tier: the price fills in by itself
+(type the amount if you gave a plan or a discount).
 
 ---
 
@@ -85,7 +101,7 @@ down, a message more than 3 days late is skipped instead of sent.
 | Applications were never saved (`formEndpoint` was empty) | now saved by the bot, shown on /pipeline | done |
 | The playbook was public | private link, `noindex`, public page sends people to Instagram | done |
 | The Calendly link is still the placeholder `[YOUR_CALENDLY]` | put your event link in `prntr_site/config.js` (`calendly`) | **you**: send me the link |
-| No prices for the tiers | decide the 1-on-1, group and course prices (they're only said on the call) | **you** |
+| No prices for the tiers | set: 1-on-1 $2,997, group $1,997, course $997, signals $199/mo (terms page updated) | done |
 | No checkout for the $199/mo signals | make a Whop plan, send me the link → `signalsDownsell` (site) + `SIGNALS_URL` (bot) | **you** |
 | Emails can't send yet | Resend account + verify prntru.com there (3 DNS records at Namecheap) + your postal address | **you**, I'll walk you through it |
 | Texts can't send yet | Twilio account + A2P 10DLC brand + campaign (takes 1–3 weeks to approve) | **you** |
