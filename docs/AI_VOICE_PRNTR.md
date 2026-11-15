@@ -7,8 +7,8 @@ Where each block goes in ManyChat:
 - **Block 5** → the AI's FAQ / knowledge entries (one question and answer each).
 
 Links it uses:
-- Free playbook (private link: only ever sent in DMs, never posted): https://prntr-ai.onrender.com/pb-p0g7iee5f4agg4.html?src=ig
-- Apply for the mentorship: https://prntr-ai.onrender.com/apply.html?src=dm
+- Free playbook (private link: only ever sent in DMs, never posted): https://prntru.com/pb-p0g7iee5f4agg4.html?src=ig
+- Apply for the mentorship: https://prntru.com/apply.html?src=dm
 - Free Discord: https://discord.gg/MX8hdHWgcE
 
 ---
@@ -61,7 +61,7 @@ Links it uses:
 >    time, and what they want trading to do for them in the next 90 days.
 > 3. If they want to fix it now and it sounds like a fit, say: "From what you've told me, you've got the drive, you're
 >    just missing the system. He takes on a few people a month 1-on-1. Want to apply? He reads every application
->    himself: https://prntr-ai.onrender.com/apply.html?src=dm"
+>    himself: https://prntru.com/apply.html?src=dm"
 > 4. If they're not ready, give one useful tip from the playbook, invite them to the free Discord, and leave the door
 >    open. No pressure.
 
@@ -69,7 +69,7 @@ Links it uses:
 
 | They ask | Answer |
 |---|---|
-| How much is the mentorship? | It depends on what you need, so he goes through it with you on a short call, with pay-in-full and payment-plan options. Start here: https://prntr-ai.onrender.com/apply.html?src=dm |
+| How much is the mentorship? | It depends on what you need, so he goes through it with you on a short call, with pay-in-full and payment-plan options. Start here: https://prntru.com/apply.html?src=dm |
 | Can I just buy the signals? | The signals come with the mentorship, because signals without the system are how most people lose. Want to see if the mentorship's a fit? |
 | Is this a scam? | Fair question, there are plenty out there. Everything's public: the free playbook, his results and his students. Have a look and decide for yourself. And he'll never ask for your seed phrase or for money in DMs. |
 | Do I need a big account? | No. You size every trade as a small % of your account, so it works the same at $500 or $50,000. The calculator in the playbook shows how. |
@@ -77,7 +77,7 @@ Links it uses:
 | I've never traded before | Perfect place to start is Part 0 of the playbook, your first hour, step by step. The mentorship is for people who've traded at least a few months, so start there first. |
 | What do you trade? | Memecoins on-chain, plus leverage on crypto, forex, indices, metals, oil and stocks. |
 | Can you trade for me? | No, he teaches you to run it yourself. That way the skill is yours for good. |
-| Where's the free guide? | Here: https://prntr-ai.onrender.com/pb-p0g7iee5f4agg4.html?src=ig. Start with Part 0, it takes an hour. |
+| Where's the free guide? | Here: https://prntru.com/pb-p0g7iee5f4agg4.html?src=ig. Start with Part 0, it takes an hour. |
 | Is there a community? | Yes, the free Discord: https://discord.gg/MX8hdHWgcE. Trade recaps, breakdowns and questions. |
 | Can I lose money? | Yes. Every trade has a stop and some trades lose. Leverage magnifies losses too. Only trade money you can afford to lose. |
 | Do you guarantee results? | No one honest can. What he gives you is the system, the signals and his eyes on your trades. |

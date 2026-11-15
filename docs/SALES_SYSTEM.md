@@ -38,7 +38,7 @@ on the call or in the follow-ups, never on the public website.
 |---|---|---|
 | Private playbook link (only sent in DMs) | `prntr_site/pb-p0g7iee5f4agg4.html` (+ `-read.html`, `.pdf`) | built, `noindex`, not linked anywhere public |
 | Public "get the playbook" page | `prntr_site/guide.html`: "Comment PRINTER / DM me PRINTER" | built (old `playbook.html` and `checklist.html` forward here) |
-| Homepage for the bio | `prntr_site/index.html`: video, results, testimonials, "Start your application" | live, needs the domain |
+| Homepage for the bio | `prntru.com` (`prntr_site/index.html`): video, results, testimonials, "Start your application" | live |
 | Application + routing | `apply.html` → the bot's `POST /api/apply` | built: every application is now saved (before, none were) |
 | Downsell page | `prntr_site/next.html` (signals $199/mo, free Discord, re-apply) | built; the checkout link is a decision below |
 | "Call booked" tracking | `book.html` tells the bot when Calendly confirms | built; needs your Calendly link |
@@ -89,7 +89,7 @@ down, a message more than 3 days late is skipped instead of sent.
 | No checkout for the $199/mo signals | make a Whop plan, send me the link → `signalsDownsell` (site) + `SIGNALS_URL` (bot) | **you** |
 | Emails can't send yet | Resend account + verify prntru.com there (3 DNS records at Namecheap) + your postal address | **you**, I'll walk you through it |
 | Texts can't send yet | Twilio account + A2P 10DLC brand + campaign (takes 1–3 weeks to approve) | **you** |
-| The domain isn't live | Render → prntr-ai → Settings → Custom Domains: add `prntru.com` and `www.prntru.com`, Verify | **you**, then I switch every link |
+| The domain wasn't live | added on Render (blueprints/prntr-ai.render.yaml), every link switched to prntru.com | done |
 | No call-time reminders (24 h / 1 h before) | Calendly sends its own; Standard plan adds text reminders. A Calendly webhook (Standard) would also mark "booked" even when someone books outside the site | optional |
 | No payment-plan / renewal tracking | add "amount" per payment on /pipeline; Whop handles the plans | later |
 | No closer yet | the call is you for now; when you add a closer, give them /pipeline access | later |
@@ -104,7 +104,7 @@ On Render → excellentnqtct (the bot) → Environment, add:
 
 - **Email:** `RESEND_API_KEY`, `NURTURE_FROM` (e.g. `PRNTR <hello@prntru.com>`), `NURTURE_REPLY_TO` (your inbox), `NURTURE_ADDRESS` (a business address or PO box)
 - **Texts:** `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` (your Twilio number)
-- **Links:** `GUIDE_URL` (the private playbook link), `SIGNALS_URL` (the Whop link), later `SITE_URL=https://prntru.com`
+- **Links:** `GUIDE_URL` and `SITE_URL` are already set to prntru.com; add `SIGNALS_URL` (the Whop link)
 - **Discord:** `DISCORD_APPS_WEBHOOK` (#applications), `DISCORD_LEADS_WEBHOOK` (#new-signups)
 - **Go live:** `NURTURE=1`. Until then the bot only logs what it would send.
 

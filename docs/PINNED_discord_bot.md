@@ -7,7 +7,7 @@ hands off" -> "ok put a pin in this convo and remember for later".
 1. New member joins -> welcome DM (free guide + one question: "biggest problem in your trading right now?").
    DMs closed -> a private thread in #welcome instead.
 2. AI conversation (Claude), knows the PRNTR material: answers questions, learns experience + budget, then routes:
-   $2,000+ -> 1-on-1 application (prntr-ai.onrender.com/apply.html); under -> signals (1 day $9.99 / 1 week $35 first);
+   $2,000+ -> 1-on-1 application (prntru.com/apply.html); under -> signals (1 day $9.99 / 1 week $35 first);
    not ready -> free guide + YouTube.
 3. Follow-ups: at most 2 nudges, then stop. "stop" = never message again.
 4. Hot lead (applied / asks for a human / ready to buy) -> summary posted in a private #leads channel, owner pinged.

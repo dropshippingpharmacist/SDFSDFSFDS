@@ -30,7 +30,7 @@ Server setting: **Privacy → turn off "Allow direct messages from server member
 | `#welcome` | One pinned message (below). Who you are, what the server is for, three links: free guide, YouTube, apply. |
 | `#rules` | Short rules + the "I agree" button that gives `@Member`. |
 | `#free-guide` | Pinned: "Want the free PRNTR Playbook? DM me PRINTER on Instagram and it's in your inbox in seconds." (The playbook link itself is private: only sent in DMs, never posted.) |
-| `#apply-for-mentorship` | Pinned: what the mentorship is, who it's for, the application link `prntr-ai.onrender.com/apply.html?src=discord`. Nothing else is ever sold in the server. |
+| `#apply-for-mentorship` | Pinned: what the mentorship is, who it's for, the application link `prntru.com/apply.html?src=discord`. Nothing else is ever sold in the server. |
 
 ### UPDATES (read-only for members, you and the bot post)
 | Channel | What goes in it |
@@ -94,7 +94,7 @@ Server setting: **Privacy → turn off "Allow direct messages from server member
 > 2. Watch the latest breakdowns in #youtube
 > 3. Read the closed trades in #trade-recaps (wins and losses)
 >
-> Want to work with me directly? The mentorship is 90 days on your own trades, with the bot's signals included → prntr-ai.onrender.com/apply.html?src=discord
+> Want to work with me directly? The mentorship is 90 days on your own trades, with the bot's signals included → prntru.com/apply.html?src=discord
 >
 > Questions? Open a ticket in #open-a-ticket. Trading carries risk; this is education, not financial advice.
 
@@ -109,14 +109,14 @@ Server setting: **Privacy → turn off "Allow direct messages from server member
 > 🎥 **New video:** [title]
 > [one line: the problem it solves / the result in it]
 > Watch: [link]
-> If you want me to walk you through this on your own charts → prntr-ai.onrender.com/apply.html?src=discord
+> If you want me to walk you through this on your own charts → prntru.com/apply.html?src=discord
 
 ### `#trade-recaps`: closed trade
 > **[Market] [Long/Short] · [timeframe] · closed [win +X R / loss -1 R]**
 > [chart]
 > Entry [x] · Stop [y] · Target [z]
 > Why it was taken: [one plain line, e.g. "the market confirmed and the math was worth it". Never the rules, timeframes or levels the bot uses]
-> Students got this live. → prntr-ai.onrender.com/apply.html?src=discord
+> Students got this live. → prntru.com/apply.html?src=discord
 
 ### Launch / enrollment push (HanckFX runs 2–3 weeks: Discord announcements + 8–12 Instagram story sequences + emails)
 Week 1: a student result + "doors open on [date]".
