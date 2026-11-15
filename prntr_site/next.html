@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Where to Start · PRNTR.AI</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+  <style>
+    .incl { list-style: none; padding: 0; margin: 0.8rem 0 0; display: grid; gap: 0.5rem; text-align: left; }
+    .incl li::before { content: "✓"; color: var(--cyan); font-weight: 800; margin-right: 0.6rem; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar"><a href="index.html"><img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/banner.jpg?v=1777219122" alt="PRNTR.AI"></a></div>
+
+  <span class="eyebrow">YOUR NEXT STEP</span>
+  <h1 style="font-size:2rem;" id="title">Here's where I'd start</h1>
+  <p class="lead">I read every application. From your answers, the 1-on-1 isn't the right step yet, and I'd rather tell you that than sell you something you don't need. This is what I'd do in your spot.</p>
+
+  <section class="box glow center offer">
+    <h2>PRNTR Signals</h2>
+    <p>Every setup my bot sends, the moment it confirms: market, entry, stop and target, sized so one loss stays small.</p>
+    <div class="price">$199 <small>/ month · cancel any time</small></div>
+    <ul class="incl">
+      <li>Unlimited signals: crypto, forex, indices, metals, oil and stocks</li>
+      <li>The chart for every signal, so you see what it saw</li>
+      <li>The free playbook's risk rules, so you size every one the same way</li>
+    </ul>
+    <div class="row-btns"><a class="btn btn-main" id="sigBtn" href="#" target="_blank" rel="noopener">Start the signals</a></div>
+    <p class="small mute" id="sigNote">Signals are education, not advice. Some lose, and leverage makes losses bigger too.</p>
+  </section>
+
+  <section class="box center">
+    <h2>And for free</h2>
+    <p>The free Discord has the closed-trade recaps (wins and losses) and breakdowns. The playbook is free too: <b>DM me PRINTER</b> on Instagram.</p>
+    <div class="row-btns"><a class="btn" id="discordLink" href="#" target="_blank" rel="noopener">Join the free Discord</a></div>
+  </section>
+
+  <section class="box center">
+    <h3>Ready for 1-on-1 later?</h3>
+    <p>When your trading and your budget are ready, <a href="apply.html?src=next">apply again</a> and I'll take another look.</p>
+  </section>
+
+  <footer>
+    <p>© 2026 PRNTR.AI · Doctor founder, from pharmacy to full-time trading.</p>
+    <p class="small mute">Trading, and especially leverage trading, carries a high risk of loss; you can lose more than you deposit. Past results do not guarantee future results. This is education, not financial advice.</p>
+    <p><a href="terms.html">Terms and refund policy</a></p>
+  </footer>
+</div>
+<script>
+  (function () {
+    var a = {}; try { a = JSON.parse(sessionStorage.getItem('prntr_app') || '{}'); } catch (e) {}
+    if (a.name) document.getElementById('title').textContent = 'Thanks, ' + a.name + ". Here's where I'd start";
+    document.getElementById('discordLink').href = PRNTR.discord;
+    var b = document.getElementById('sigBtn'), u = PRNTR.signalsDownsell || '';
+    if (u) { b.href = u; }
+    else { b.href = 'https://ig.me/m/' + PRNTR.instagram; b.textContent = 'DM me SIGNALS on Instagram'; }
+  })();
+</script>
+</body>
+</html>

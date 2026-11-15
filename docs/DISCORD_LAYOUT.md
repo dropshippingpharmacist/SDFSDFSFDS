@@ -29,7 +29,7 @@ Server setting: **Privacy → turn off "Allow direct messages from server member
 |---|---|
 | `#welcome` | One pinned message (below). Who you are, what the server is for, three links: free guide, YouTube, apply. |
 | `#rules` | Short rules + the "I agree" button that gives `@Member`. |
-| `#free-guide` | Pinned: "The 7-point checklist my bot runs before it risks a dollar" → `prntr-ai.onrender.com/guide.html?src=discord` (the email signup). |
+| `#free-guide` | Pinned: "Want the free PRNTR Playbook? DM me PRINTER on Instagram and it's in your inbox in seconds." (The playbook link itself is private: only sent in DMs, never posted.) |
 | `#apply-for-mentorship` | Pinned: what the mentorship is, who it's for, the application link `prntr-ai.onrender.com/apply.html?src=discord`. Nothing else is ever sold in the server. |
 
 ### UPDATES (read-only for members, you and the bot post)
@@ -90,7 +90,7 @@ Server setting: **Privacy → turn off "Allow direct messages from server member
 > **Welcome to PRNTR.** I'm a doctor who walked away from medicine after one trade turned $7K into over $1M. This server is where I share how I trade and how my bot picks its setups.
 >
 > **Start here**
-> 1. Get the free guide: the 7-point checklist my bot runs before it risks a dollar → prntr-ai.onrender.com/guide.html?src=discord
+> 1. Get the free playbook: DM me PRINTER on Instagram and it lands in your inbox
 > 2. Watch the latest breakdowns in #youtube
 > 3. Read the closed trades in #trade-recaps (wins and losses)
 >

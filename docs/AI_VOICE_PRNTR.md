@@ -7,7 +7,7 @@ Where each block goes in ManyChat:
 - **Block 5** → the AI's FAQ / knowledge entries (one question and answer each).
 
 Links it uses:
-- Free playbook: https://prntr-ai.onrender.com/guide.html?src=ig
+- Free playbook (private link: only ever sent in DMs, never posted): https://prntr-ai.onrender.com/pb-p0g7iee5f4agg4.html?src=ig
 - Apply for the mentorship: https://prntr-ai.onrender.com/apply.html?src=dm
 - Free Discord: https://discord.gg/MX8hdHWgcE
 
@@ -77,7 +77,7 @@ Links it uses:
 | I've never traded before | Perfect place to start is Part 0 of the playbook, your first hour, step by step. The mentorship is for people who've traded at least a few months, so start there first. |
 | What do you trade? | Memecoins on-chain, plus leverage on crypto, forex, indices, metals, oil and stocks. |
 | Can you trade for me? | No, he teaches you to run it yourself. That way the skill is yours for good. |
-| Where's the free guide? | Here: https://prntr-ai.onrender.com/guide.html?src=ig. Start with Part 0, it takes an hour. |
+| Where's the free guide? | Here: https://prntr-ai.onrender.com/pb-p0g7iee5f4agg4.html?src=ig. Start with Part 0, it takes an hour. |
 | Is there a community? | Yes, the free Discord: https://discord.gg/MX8hdHWgcE. Trade recaps, breakdowns and questions. |
 | Can I lose money? | Yes. Every trade has a stop and some trades lose. Leverage magnifies losses too. Only trade money you can afford to lose. |
 | Do you guarantee results? | No one honest can. What he gives you is the system, the signals and his eyes on your trades. |

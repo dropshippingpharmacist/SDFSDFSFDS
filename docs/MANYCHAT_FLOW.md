@@ -4,7 +4,8 @@ The workflow (owner 2026-11-15): a Reel caption says **"Comment PRINTER and I'll
 DMs the playbook to everyone who comments, and the DM becomes the conversation that leads to the 1-on-1 call.
 
 - The studio already ends every Reel caption with that line (Ideas page → Settings → "Reel comment keyword").
-- The playbook: `prntr-ai.onrender.com/guide.html?src=ig` (they enter their email there and get the web page + PDF;
+- The playbook lives on a **private link** that is only sent in the DM (not on the website, not in the bio, not in
+  Discord): `prntr-ai.onrender.com/pb-p0g7iee5f4agg4.html?src=ig` (they enter their email there and get the web page + PDF;
   the email lands in your list at the bot's `/api/leads.csv`).
 - Never promise income in a DM ("you'll make $X"). Instagram and TikTok flag it, and it attracts the wrong people.
 
@@ -27,9 +28,10 @@ DMs the playbook to everyone who comments, and the DM becomes the conversation t
 4. Build the DM flow below in that automation. Publish it, then test: comment PRINTER on one of your Reels from a
    second account.
 5. **TikTok:** ManyChat has a TikTok channel, but availability depends on the account and region. If your account
-   has it, copy the same automation there. If not, TikTok captions say "Link in bio for my free playbook" and your
-   bio link is `prntr-ai.onrender.com/guide.html?src=tiktok`.
-6. **Instagram bio link:** `prntr-ai.onrender.com/guide.html?src=bio`.
+   has it, copy the same automation there. If not, TikTok captions say "DM me PRINTER for my free playbook" and you
+   send the private link by hand. The TikTok bio link is the homepage (prntru.com).
+6. **Instagram bio link:** the homepage, `prntru.com` (results, testimonials and "See if you're a fit"). Until the
+   domain is live: `prntr-ai.onrender.com`. Never the playbook link.
 
 > Instagram's rule: automated messages can only be sent within **24 hours** of the person's last message or
 > comment. Every automated step below happens inside that window. After 24 hours, only you (or a setter) can
@@ -43,7 +45,7 @@ DMs the playbook to everyone who comments, and the DM becomes the conversation t
 > Hey {first_name}! 🙌 Here's the playbook you asked for: how I trade memecoins without getting rugged, use leverage
 > without getting liquidated, and turn the wins into income. Start with Part 0, it takes an hour 👇
 >
-> [Button: **Get the free playbook**] → `https://prntr-ai.onrender.com/guide.html?src=ig`
+> [Button: **Get the free playbook**] → `https://prntr-ai.onrender.com/pb-p0g7iee5f4agg4.html?src=ig`
 
 **Message 2, 3 minutes later:**
 > Quick question so I can point you to the part that'll help you most: how long have you been trading?

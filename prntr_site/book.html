@@ -57,7 +57,11 @@
     var f = document.createElement('iframe'); f.src = url + '&embed_type=Inline&embed_domain=' + location.hostname;
     f.style.cssText = 'width:100%;height:100%;border:0'; f.title = 'Book your call'; cal.appendChild(f);
     window.addEventListener('message', function (e) {
-      if (e.data && e.data.event === 'calendly.event_scheduled') location.href = 'booked.html';
+      if (e.data && e.data.event === 'calendly.event_scheduled') {
+        // tell the bot the call is booked (pipeline.py), so the 'pick your call time' reminders stop
+        try { if (PRNTR.eventEndpoint && a.email) navigator.sendBeacon(PRNTR.eventEndpoint, new Blob([JSON.stringify({ email: a.email, kind: 'booked' })], { type: 'text/plain' })); } catch (x) {}
+        setTimeout(function () { location.href = 'booked.html'; }, 150);
+      }
     });
   })();
 </script>

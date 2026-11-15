@@ -11,12 +11,15 @@ window.PRNTR = {
     lifetime: "https://whop.com/checkout/plan_soJuhgMrHfa3e" // $500 lifetime
   },
   leadEndpoint: "https://excellentnqtct-va.onrender.com/api/lead",      // the free-guide email signups (the bot keeps the list)
-  formEndpoint: "",                                                      // optional: Formspree / Make / Zapier webhook to keep EVERY application
+  applyEndpoint: "https://excellentnqtct-va.onrender.com/api/apply",    // every application is kept by the bot (see /pipeline)
+  eventEndpoint: "https://excellentnqtct-va.onrender.com/api/event",    // "call booked" (stops the book-your-call reminders)
+  formEndpoint: "",                                                      // optional extra copy: Formspree / Make / Zapier webhook
+  signalsDownsell: "",                                                   // the $199/month signals checkout (Whop plan link), shown ONLY on next.html
   instagram: "dropshippingpharmacist",                                  // without the @
   discord: "https://discord.gg/MX8hdHWgcE",
   vslLanding: "https://www.youtube.com/embed/dkllBVYwXZA",              // replace with the 5-8 min "apply" video when recorded
   vslBooked: "",                                                         // the 10-15 min "before our call" video
-  minBudget: 2000,                                                       // the '$1,000–$3,000' answer and up get a call (2-pay starts at $1,700)
+  minBudget: 1000,                                                       // the '$1,000–$3,000' answer and up get a call; under that -> next.html (signals)
   spotsPerMonth: 5,
   showTracker: false                                                     // the public signal track record (index.html#tracker): true shows it again
 };

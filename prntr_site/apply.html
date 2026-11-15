@@ -12,6 +12,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="config.js"></script>
+  <style>
+    .q label.smsok { display: flex; gap: 0.6rem; align-items: flex-start; font-size: 0.8rem; color: var(--mute); margin-top: 0.5rem; cursor: pointer; }
+    .q label.smsok input { width: auto; margin: 0.2rem 0 0; flex: none; }
+  </style>
 </head>
 <body>
 <div id="modal" class="modal" onclick="this.style.display='none'"><img id="modalImg" alt=""></div>
@@ -27,7 +31,8 @@
       <div class="q" data-k="contact"><h3>Where can I reach you?</h3><p class="hint">Your booking confirmation and call link go here.</p>
         <input name="email" type="email" placeholder="Email" autocomplete="email" required>
         <input name="phone" type="tel" placeholder="Phone (for call reminders)" autocomplete="tel" required>
-        <input name="instagram" placeholder="Instagram handle (optional)"></div>
+        <input name="instagram" placeholder="Instagram handle (optional)">
+        <label class="smsok"><input type="checkbox" name="sms_ok" value="1"> Text me call reminders and updates from PRNTR. Up to 6 texts per application. Msg &amp; data rates may apply. Reply STOP to opt out.</label></div>
       <div class="q" data-k="stage"><h3>Which describes you best?</h3>
         <button type="button" class="opt" data-v="New to trading">New to trading</button>
         <button type="button" class="opt" data-v="Trading under a year">Trading under a year</button>
@@ -35,7 +40,7 @@
         <button type="button" class="opt" data-v="Profitable, want to scale">Profitable, want to scale</button></div>
       <div class="q" data-k="struggle"><h3>What's your biggest struggle with trading right now?</h3><p class="hint">Be honest. This is what we'll work on.</p><textarea name="struggle" required></textarea></div>
       <div class="q" data-k="goal"><h3>What's your goal, and why now?</h3><textarea name="goal" required></textarea></div>
-      <div class="q" data-k="invest"><h3>This is 1-on-1 mentorship, not a signals group. What can you invest in getting this right?</h3>
+      <div class="q" data-k="invest"><h3>What can you invest in getting this right?</h3><p class="hint">Mentorship options start around $1,000. Payment plans are available.</p>
         <button type="button" class="opt" data-v="Under $1,000" data-n="500">Under $1,000</button>
         <button type="button" class="opt" data-v="$1,000 – $3,000" data-n="2000">$1,000 – $3,000</button>
         <button type="button" class="opt" data-v="$3,000 – $5,000" data-n="4000">$3,000 – $5,000</button>
@@ -85,7 +90,7 @@
         var v = f.value.trim(); ans[f.name] = v;
         if (!v || (f.type === 'email' && !/^\S+@\S+\.\S+$/.test(v)) || (f.type === 'tel' && v.replace(/\D/g, '').length < 7)) ok = false;
       });
-      q.querySelectorAll('input:not([required])').forEach(function (f) { ans[f.name] = f.value.trim(); });
+      q.querySelectorAll('input:not([required])').forEach(function (f) { ans[f.name] = f.type === 'checkbox' ? (f.checked ? '1' : '') : f.value.trim(); });
       if (!ok) err.textContent = 'Please fill this in to continue.';
       return ok;
     }
@@ -103,13 +108,19 @@
       });
     });
     function finish() {
+      // the bot decides (pipeline.py: 1-on-1 / group / course get a call, under $1K or new -> next.html);
+      // if it can't be reached, the same rule runs here so nobody is ever stuck
       var qualified = (ans.investN || 0) >= PRNTR.minBudget && ans.stage !== 'New to trading';
-      ans.qualified = qualified; ans.submitted = new Date().toISOString(); save();
-      var done = function () { location.href = qualified ? 'book.html' : 'start.html?from=apply'; };
-      if (PRNTR.formEndpoint) {
-        fetch(PRNTR.formEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(ans) })
-          .then(done, done);
-      } else { done(); }
+      ans.source = (new URLSearchParams(location.search).get('src') || 'site').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40);
+      ans.submitted = new Date().toISOString();
+      next.disabled = true; next.textContent = 'Sending…';
+      var go = function (q) { ans.qualified = q; save(); location.href = q ? 'book.html' : 'next.html'; };
+      var extra = PRNTR.formEndpoint ? fetch(PRNTR.formEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(ans) }).catch(function () {}) : Promise.resolve();
+      var main = PRNTR.applyEndpoint ? fetch(PRNTR.applyEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ans) })
+        .then(function (r) { return r.json(); }).then(function (j) { return j && j.next ? j.next === 'call' : qualified; }, function () { return qualified; })
+        : Promise.resolve(qualified);
+      var timer = new Promise(function (res) { setTimeout(function () { res(qualified); }, 6000); });
+      Promise.race([Promise.all([main, extra]).then(function (v) { return v[0]; }), timer]).then(go);
     }
     show(0);
   })();
