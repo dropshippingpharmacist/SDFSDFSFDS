@@ -66,3 +66,19 @@ Owner, in the Whop dashboard: add the **Discord** app to this product too (same 
 - Lessons: "Start here" `lesn_l6ysEzjS25Fay` (text), the book `lesn_eJbcUG5RdfjWy` (PDF `file_PAiHlRky34Kk5`).
 - Source: `business_course/crossover/` (build_cases.py draws the charts, build_deck.js builds the 142-page deck, SOURCES.md has every link).
 - The mentorship product description now lists "PRNTR Crossover".
+
+## New offer suite (2026-11-15, owner prices) — replaces everything above
+Old signal plans (day/week/month/quarter/lifetime) and the $3,000 mentorship plans are **archived** (existing members keep access).
+Every program checkout asks the buyer to type their full legal name to sign the Student Agreement (prntru.com/agreement.html).
+
+| Product (hidden, link-only) | Id | Plans |
+|---|---|---|
+| PRNTR 1-on-1 Mentorship (90 days) | prod_hj7tEFYpRMh59 | $2,997 plan_vjcaQPnt6QhXy · 2×$1,597 plan_mnFXkM79at3WF · 3×$1,097 plan_yboVpKOkPQl5H |
+| PRNTR Group Mentorship (90 days) | prod_TbE9DOrAk1Yni | $1,997 plan_ZiFZ4U6VMKX14 · 2×$1,097 plan_5b8Y55jHB9eHX · 3×$747 plan_Sz8KBk8JbvF5d |
+| PRNTR Course | prod_LMiXeRqOtkHZc | $997 plan_aavYuuldKpAHf · 2×$547 plan_kuML1BzRcltD7 |
+| PRNTR Signals | prod_aYHeN67sVN6Yl | $199/month plan_qZhOsWsXKotvW |
+| PRNTR Free Discord (visible) | prod_2I9paO2B16RsR | free plan_43Uz8O8LAJsKY (the site's Discord link) |
+
+Access: mentorships → Discord member role (exp_Gtxq9YyZkWvQeV) + PRNTR Courses (exp_gmmmKclmHkx1st); course → courses;
+signals → Discord member role; free → Free Discord role (exp_7gLGBMWJk1wBOA). Checkout link = https://whop.com/checkout/<plan>.
+Events go to the bot (POST /api/whop, whop_sync.py). The key lives only on Render (WHOP_API_KEY).
