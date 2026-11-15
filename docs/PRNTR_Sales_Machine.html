@@ -1,0 +1,191 @@
+<title>PRNTR Sales Machine</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: a printer's job ticket. Flywheel up top, the step-by-step line under it, the Venn, then the gap list. */
+:root{
+  --bg:#f3f7fa; --panel:#ffffff; --ink:#0e1a24; --mute:#5b6b78; --line:#d7e1e8;
+  --cyan:#1f8fc4; --cyan-soft:#e3f2fa;
+  --built:#23875a; --built-bg:#e3f4ec; --you:#a8700a; --you-bg:#fbf0d9; --miss:#c23b51; --miss-bg:#fbe6ea;
+  --hanck:#7a5cc4; --hanck-bg:rgba(122,92,196,.13); --prntr:#1f8fc4; --prntr-bg:rgba(31,143,196,.13);
+  --display:"Space Grotesk",system-ui,sans-serif; --body:"Inter",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0b1219; --panel:#121c26; --ink:#e7eef4; --mute:#93a4b2; --line:#24323f; --cyan:#4cb6e8; --cyan-soft:#12293a;
+  --built:#5fcf98; --built-bg:#13301f; --you:#e8b04a; --you-bg:#33270e; --miss:#f07a8c; --miss-bg:#3a1820;
+  --hanck:#a68bf0; --hanck-bg:rgba(166,139,240,.16); --prntr:#4cb6e8; --prntr-bg:rgba(76,182,232,.16); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b1219; --panel:#121c26; --ink:#e7eef4; --mute:#93a4b2; --line:#24323f; --cyan:#4cb6e8; --cyan-soft:#12293a;
+  --built:#5fcf98; --built-bg:#13301f; --you:#e8b04a; --you-bg:#33270e; --miss:#f07a8c; --miss-bg:#3a1820;
+  --hanck:#a68bf0; --hanck-bg:rgba(166,139,240,.16); --prntr:#4cb6e8; --prntr-bg:rgba(76,182,232,.16); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body);margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1180px;margin:0 auto;padding-block:28px 64px;display:grid;gap:36px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,4.4vw,44px);letter-spacing:-.02em;line-height:1.05}
+h2{font-size:22px;letter-spacing:-.01em}
+.kicker{font:500 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--cyan)}
+.lead{color:var(--mute);max-width:68ch;margin:8px 0 0}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.chip{display:inline-flex;align-items:center;gap:6px;font:500 12px var(--mono);padding:3px 9px;border-radius:99px;max-width:100%}
+.chip.built{background:var(--built-bg);color:var(--built)} .chip.you{background:var(--you-bg);color:var(--you)}
+.chip.miss{background:var(--miss-bg);color:var(--miss)} .chip.who{background:var(--cyan-soft);color:var(--cyan)}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+section{display:grid;gap:14px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:28px;align-items:center}
+@media (max-width:860px){.hero{grid-template-columns:1fr}}
+svg text{font-family:var(--body)}
+.wheel{width:100%;max-width:520px;justify-self:center}
+.flow{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;counter-reset:s}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 14px 12px;display:grid;gap:6px;position:relative;
+  border-left:4px solid var(--c,var(--line))}
+.step.built{--c:var(--built)} .step.you{--c:var(--you)} .step.miss{--c:var(--miss)}
+.step .n{font:500 11px var(--mono);color:var(--mute)}
+.step h3{font-size:16px}
+.step p{margin:0;color:var(--mute);font-size:13.5px}
+.step .tags{display:flex;flex-wrap:wrap;gap:6px}
+.phase{font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);grid-column:1/-1;margin-top:6px}
+.venn-wrap{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;overflow-x:auto}
+.venn{width:100%;min-width:760px;display:block}
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:860px){.cols{grid-template-columns:1fr}}
+.col{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:8px;align-content:start}
+.col h3{font-size:16px;display:flex;align-items:center;gap:8px}
+.col ul{margin:0;padding-left:18px;display:grid;gap:5px;font-size:13.5px}
+.col li span{color:var(--mute)}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px;min-width:640px}
+.tbl th{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);text-align:left;padding:8px;border-bottom:1px solid var(--line)}
+.tbl td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl td:first-child{font-weight:600}
+.scroll{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.foot{color:var(--mute);font-size:13px}
+</style>
+
+<main>
+  <header>
+    <div class="kicker">PRNTR University · how the money gets made</div>
+    <h1>The PRNTR sales machine</h1>
+    <p class="lead">HanckFX's system from all 67 of his videos, laid over what PRNTR has running today. Every step shows who runs it and whether it's live, waiting on you, or still missing.</p>
+    <div class="legend">
+      <span class="chip built"><span class="dot"></span>Built and running</span>
+      <span class="chip you"><span class="dot"></span>Built, needs you (a link, a video, a key)</span>
+      <span class="chip miss"><span class="dot"></span>Missing (only you can make it)</span>
+      <span class="chip who">AUTO = the bot / Whop / ManyChat · AI = an AI agent · YOU</span>
+    </div>
+  </header>
+
+  <section class="hero" aria-label="The flywheel">
+    <div>
+      <h2>The flywheel</h2>
+      <p class="lead">His five pillars: <b>attention</b>, <b>warmth</b>, <b>conversion</b>, <b>delivery</b>, and the <b>infrastructure</b> underneath that runs it without you. Results become proof, proof becomes content, and content brings the next student.</p>
+      <p class="lead">You do three things: make content, take the calls, coach. Everything else on this page runs by itself.</p>
+    </div>
+    <svg class="wheel" viewBox="0 0 520 520" role="img" aria-label="Flywheel: content, DM and playbook, nurture, apply, book and show, close, deliver, proof, back to content">
+      <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--cyan)"/></marker></defs>
+      <circle cx="260" cy="260" r="178" fill="none" stroke="var(--line)" stroke-width="22"/>
+      <circle cx="260" cy="260" r="178" fill="none" stroke="var(--cyan)" stroke-width="2.5" stroke-dasharray="6 10" marker-end="url(#ar)"/>
+      <circle cx="260" cy="260" r="92" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="260" y="246" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="20" fill="var(--ink)">INFRASTRUCTURE</text>
+      <text x="260" y="268" text-anchor="middle" font-size="12.5" fill="var(--mute)">bot · Whop · ManyChat</text>
+      <text x="260" y="286" text-anchor="middle" font-size="12.5" fill="var(--mute)">emails · texts · /pipeline</text>
+      <g font-size="13" font-weight="600">
+        <g><circle cx="260" cy="82" r="40" fill="var(--miss-bg)" stroke="var(--miss)" stroke-width="2"/><text x="260" y="78" text-anchor="middle" fill="var(--ink)">Content</text><text x="260" y="95" text-anchor="middle" font-size="11" font-weight="500" fill="var(--miss)">YOU</text></g>
+        <g><circle cx="386" cy="134" r="40" fill="var(--built-bg)" stroke="var(--built)" stroke-width="2"/><text x="386" y="130" text-anchor="middle" fill="var(--ink)">DM +</text><text x="386" y="146" text-anchor="middle" fill="var(--ink)">playbook</text></g>
+        <g><circle cx="438" cy="260" r="40" fill="var(--built-bg)" stroke="var(--built)" stroke-width="2"/><text x="438" y="264" text-anchor="middle" fill="var(--ink)">Nurture</text></g>
+        <g><circle cx="386" cy="386" r="40" fill="var(--built-bg)" stroke="var(--built)" stroke-width="2"/><text x="386" y="390" text-anchor="middle" fill="var(--ink)">Apply</text></g>
+        <g><circle cx="260" cy="438" r="40" fill="var(--you-bg)" stroke="var(--you)" stroke-width="2"/><text x="260" y="434" text-anchor="middle" fill="var(--ink)">Book +</text><text x="260" y="450" text-anchor="middle" fill="var(--ink)">show</text></g>
+        <g><circle cx="134" cy="386" r="40" fill="var(--you-bg)" stroke="var(--you)" stroke-width="2"/><text x="134" y="382" text-anchor="middle" fill="var(--ink)">Close</text><text x="134" y="399" text-anchor="middle" font-size="11" font-weight="500" fill="var(--you)">YOU</text></g>
+        <g><circle cx="82" cy="260" r="40" fill="var(--built-bg)" stroke="var(--built)" stroke-width="2"/><text x="82" y="256" text-anchor="middle" fill="var(--ink)">Deliver</text><text x="82" y="273" text-anchor="middle" font-size="11" font-weight="500" fill="var(--built)">Whop + YOU</text></g>
+        <g><circle cx="134" cy="134" r="40" fill="var(--built-bg)" stroke="var(--built)" stroke-width="2"/><text x="134" y="130" text-anchor="middle" fill="var(--ink)">Proof</text><text x="134" y="147" text-anchor="middle" font-size="11" font-weight="500" fill="var(--built)">stories</text></g>
+      </g>
+    </svg>
+  </section>
+
+  <section aria-label="Step by step">
+    <h2>Step by step, from a Reel to a renewal</h2>
+    <div class="flow">
+      <div class="phase">Attention</div>
+      <div class="step miss"><span class="n">1 · YOU + studio</span><h3>Content engine</h3><p>YouTube 6 videos a month (2 broad, 2 middle, 2 student/case study), a "Road to $1M in payouts" documentary series, 1–3 Reels a day, 3–5 story sequences a week saved to highlights.</p><div class="tags"><span class="chip miss">missing: the cadence + series</span></div></div>
+      <div class="step built"><span class="n">2 · AUTO</span><h3>"Comment PRINTER"</h3><p>Every Reel caption ends with it; ManyChat replies publicly and DMs the private playbook link.</p><div class="tags"><span class="chip built">built</span></div></div>
+      <div class="phase">Warmth</div>
+      <div class="step built"><span class="n">3 · AI</span><h3>AI setter in the DMs</h3><p>ManyChat AI asks where they are, points them to the right playbook part, sends the application to the right people, flags hot leads.</p><div class="tags"><span class="chip built">voice + rules written</span></div></div>
+      <div class="step built"><span class="n">4 · AUTO</span><h3>Private playbook</h3><p>Email captured, 15-part PDF with "see if you qualify" on pages 1, 6, 9, 12 and 15, social icons.</p><div class="tags"><span class="chip built">built</span></div></div>
+      <div class="step you"><span class="n">5 · AUTO</span><h3>8 emails + free Discord</h3><p>21-day nurture back to the application. Free Discord joins through Whop, so every member's email lands on the same list, once.</p><div class="tags"><span class="chip you">needs Resend key</span></div></div>
+      <div class="phase">Conversion</div>
+      <div class="step you"><span class="n">6 · YOU record</span><h3>Homepage + apply video</h3><p>prntru.com in the bio: video, results, testimonials, "Start your application". The video sells the click, not the program.</p><div class="tags"><span class="chip you">needs the VSL</span><span class="chip miss">guarantee: your call</span></div></div>
+      <div class="step built"><span class="n">7 · AUTO</span><h3>Application + filter</h3><p>Budget sorts them: $3K+ → 1-on-1, $2–3K → group, $1–2K → course (all book a call), under $1K or new → $199/mo signals. Stops halfway → "you were almost done" email + text + ping.</p><div class="tags"><span class="chip built">built</span></div></div>
+      <div class="step you"><span class="n">8 · AUTO</span><h3>Book + show-up stack</h3><p>Calendly (max 4 days out) → "before our call" video → reply YES → reminders 2d, 1d, 12h, 4h, 1h, 15 min, with a student story that matches theirs.</p><div class="tags"><span class="chip you">needs Calendly link + token, Twilio</span></div></div>
+      <div class="step you"><span class="n">9 · YOU</span><h3>The call</h3><p>Start at their tier, step down only on a no: 1-on-1 $2,997 → group $1,997 → course $997 → signals $199. Log the stage + main objection on /pipeline.</p><div class="tags"><span class="chip you">you close until ~$25K/mo</span></div></div>
+      <div class="phase">Payment, delivery + proof</div>
+      <div class="step built"><span class="n">10 · AUTO</span><h3>Whop checkout</h3><p>Send the link on the call. They type their legal name to sign the agreement and say which video made them join. Plans cost more than paying in full.</p><div class="tags"><span class="chip built">built</span></div></div>
+      <div class="step built"><span class="n">11 · Whop + YOU</span><h3>Access + coaching</h3><p>Whop switches on the Discord role and course; a failed payment pauses access by itself. Support through tickets, not DMs.</p><div class="tags"><span class="chip miss">course phase unlocks: after upload</span></div></div>
+      <div class="step built"><span class="n">12 · AUTO</span><h3>Story requests</h3><p>Group day 21, 1-on-1 day 30 + 60, course day 14 → a 2-minute form → your Discord → content.</p><div class="tags"><span class="chip built">built</span></div></div>
+      <div class="step built"><span class="n">13 · AUTO</span><h3>Back end</h3><p>Course/signals → apply, group → 1-on-1 at week 5, renewal call at day 75, keep signals for $199/mo, day-85 ping to you.</p><div class="tags"><span class="chip built">built</span></div></div>
+      <div class="phase">Infrastructure</div>
+      <div class="step built"><span class="n">14 · AUTO</span><h3>Recovery</h3><p>Unfinished applications, applied-not-booked, no-shows, no-closes: each has its own emails, texts and a ping. His number: +10–20% revenue.</p><div class="tags"><span class="chip built">built</span></div></div>
+      <div class="step built"><span class="n">15 · AUTO</span><h3>/pipeline numbers</h3><p>Book, show, offer and close rates, paid in full, cash vs contract, cash per call, money by video, objections → what to post, when to raise prices, a revenue calculator.</p><div class="tags"><span class="chip built">built</span></div></div>
+      <div class="step built"><span class="n">16 · AUTO</span><h3>Pings + protection</h3><p>Payments, failed cards, refunds, chargebacks with an evidence checklist, one email per person across site, Discord and Whop.</p><div class="tags"><span class="chip you">needs Discord webhooks</span></div></div>
+    </div>
+  </section>
+
+  <section aria-label="Venn diagram">
+    <h2>HanckFX's system vs PRNTR</h2>
+    <div class="venn-wrap">
+      <svg class="venn" viewBox="0 0 1100 600" role="img" aria-label="Venn diagram: HanckFX only, both, PRNTR only">
+        <circle cx="430" cy="320" r="255" fill="var(--hanck-bg)" stroke="var(--hanck)" stroke-width="2"/>
+        <circle cx="670" cy="320" r="255" fill="var(--prntr-bg)" stroke="var(--prntr)" stroke-width="2"/>
+        <text x="300" y="34" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="19" fill="var(--hanck)">HanckFX only · missing at PRNTR</text>
+        <text x="550" y="58" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="19" fill="var(--ink)">Both · built</text>
+        <text x="800" y="34" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="19" fill="var(--prntr)">PRNTR only · your edge</text>
+        <g font-size="14" fill="var(--ink)" text-anchor="middle"><text x="322" y="222">YouTube 6/mo + series</text><text x="322" y="249">Story sequences, launches</text><text x="322" y="276">Guarantee + risk reversal</text><text x="322" y="303">The two VSLs (recorded)</text><text x="322" y="330">Group 6 months, deposits</text><text x="322" y="357">Call recording + AI review</text><text x="322" y="384">Setter → closer → manager</text><text x="322" y="411">Cross-sells, mastermind</text><text x="322" y="438">Financing, WhatsApp, ads</text><text x="550" y="198">High-ticket 3-tier ladder</text><text x="550" y="222">Plans priced above PIF</text><text x="550" y="246">Agreement at checkout</text><text x="550" y="270">Lead magnet + emails</text><text x="550" y="294">Free Discord as nurture</text><text x="550" y="318">Application + filter</text><text x="550" y="342">Reply YES + reminders</text><text x="550" y="366">Recovery at drop-offs</text><text x="550" y="390">KPIs, cash per call</text><text x="550" y="414">Money by video</text><text x="550" y="438">Objections → content</text><text x="550" y="462">Story asks, renewals</text><text x="778" y="236">AI signal bot</text><text x="778" y="262">Public track record</text><text x="778" y="290">Memecoin + leverage</text><text x="778" y="316">ManyChat AI setter</text><text x="778" y="344">Video studio</text><text x="778" y="370">Private playbook link</text><text x="778" y="398">One email per person</text><text x="778" y="424">Whop ↔ bot, live</text></g>
+      </svg>
+    </div>
+    <div class="cols">
+      <div class="col"><h3><span class="sw" style="background:var(--hanck)"></span>His, missing at PRNTR</h3><ul>
+        <li>YouTube engine <span>· 6 videos/mo, top/middle/bottom</span></li>
+        <li>Documentary series <span>· "Road to $1M in payouts"</span></li>
+        <li>IG story sequences + highlights <span>· 3–5 a week</span></li>
+        <li>Launch every 3–4 months <span>· 10–14 days</span></li>
+        <li>Two VSLs <span>· apply video, before-the-call video</span></li>
+        <li>Guarantee on the landing page <span>· your decision</span></li>
+        <li>Group 6 months, 1-on-1 as price anchor, deposits</li>
+        <li>Phase-gated course unlocks <span>· once lessons are uploaded</span></li>
+        <li>Call recording + AI review <span>· Fathom (free)</span></li>
+        <li>Setter, closer, manager <span>· from ~$25K/mo</span></li>
+        <li>Cross-sells, mastermind, second testimonial channel <span>· later</span></li>
+        <li>Financing, WhatsApp voice notes, paid ads <span>· later</span></li>
+      </ul></div>
+      <div class="col"><h3><span class="sw" style="background:linear-gradient(90deg,var(--hanck),var(--prntr))"></span>Both: built today</h3><ul>
+        <li>1-on-1 / group / course + $199 signals downsell</li><li>Payment plans priced above pay-in-full</li>
+        <li>Agreement signed at Whop checkout</li><li>Playbook lead magnet + 8-email nurture</li>
+        <li>Free Discord through Whop (emails captured)</li><li>Application, budget filter, downsell page</li>
+        <li>Reply YES, reminder ladder, matched proof</li><li>Unfinished / no-show / no-close recovery</li>
+        <li>Speed-to-lead Discord pings</li><li>Book, show, offer, close, PIF, cash-to-revenue</li>
+        <li>Cash per call, money by video, objections → content</li><li>Price-raise rules, revenue calculator</li>
+        <li>Story requests, ascension, renewals</li><li>Tight refunds, chargeback evidence, privacy, terms</li>
+      </ul></div>
+      <div class="col"><h3><span class="sw" style="background:var(--prntr)"></span>Yours that he doesn't have</h3><ul>
+        <li>An AI bot that finds and sends the trades <span>· proof nobody can argue with</span></li>
+        <li>Public track record of every signal</li><li>Two engines: memecoins + leverage</li>
+        <li>ManyChat AI setter instead of hired DM setters</li><li>Studio that edits videos and writes captions</li>
+        <li>Private playbook link only DMs can open</li><li>One list, one email per person, across everything</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section aria-label="Your to-do list">
+    <h2>What's left, in order</h2>
+    <div class="scroll"><table class="tbl">
+      <tr><th>#</th><th>What</th><th>Why (his number)</th><th>Time</th></tr>
+      <tr><td>1</td><td>Calendly link (max 4 days out) + a Calendly token</td><td>Nobody can book until it's in; the token turns on the reminder ladder (show rate 60% → 80–90%)</td><td>15 min</td></tr>
+      <tr><td>2</td><td>Resend (email) + your postal address, Twilio (texts), Discord webhooks</td><td>Turns every email, text and ping on</td><td>30 min + Twilio approval</td></tr>
+      <tr><td>3</td><td>Record the two videos (scripts in docs/HANCKFX_SYSTEM.md)</td><td>VSL page books 40–45% vs ~10% without</td><td>1 afternoon</td></tr>
+      <tr><td>4</td><td>Decide: guarantee, group length, deposits</td><td>Every case study used a conditional guarantee</td><td>a decision</td></tr>
+      <tr><td>5</td><td>Start the YouTube cadence + the documentary series</td><td>80–90% of revenue comes from YouTube; 2,000 views/video ≈ $10K/mo</td><td>ongoing</td></tr>
+      <tr><td>6</td><td>Fathom on your calls; 3–5 student videos for matched proof</td><td>Objections → content; pre-call proof lifts show + close</td><td>20 min</td></tr>
+    </table></div>
+    <p class="foot">His numbers are his own claims, used here as targets, not promises. Details for every video: docs/hanckfx/ in the website repo.</p>
+  </section>
+</main>
