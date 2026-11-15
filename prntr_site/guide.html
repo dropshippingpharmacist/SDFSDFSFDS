@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Free Guide · PRNTR.AI</title>
-  <meta name="description" content="Free: the 7-point checklist my trading bot runs before it risks a dollar.">
-  <meta property="og:title" content="The 7-point checklist my bot runs before it risks a dollar">
-  <meta property="og:description" content="Free guide from PRNTR.AI. Enter your email and get it instantly.">
+  <title>Free Playbook · PRNTR.AI</title>
+  <meta name="description" content="Free: the PRNTR Playbook. Memecoins without getting rugged, leverage without getting liquidated, and turning wins into cash flow.">
+  <meta property="og:title" content="From memecoins to cash flow: the free PRNTR Playbook">
+  <meta property="og:description" content="15 parts, free: wallet security, the rug check, copy trading, leverage math, the 7-point checklist and paying yourself.">
   <meta property="og:image" content="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/banner.jpg?v=1777219122">
   <meta name="twitter:card" content="summary_large_image">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -32,34 +32,35 @@
 <div class="container">
   <div class="topbar"><a href="index.html"><img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/banner.jpg?v=1777219122" alt="PRNTR.AI"></a><a href="apply.html" class="btn btn-main">Apply</a></div>
 
-  <span class="eyebrow">FREE GUIDE</span>
-  <h1 style="font-size:2rem;">The 7-point checklist my bot runs before it risks a dollar</h1>
-  <p class="lead">Most traders lose because they enter on a feeling. My bot can't. Every trade has to pass seven checks first, and if one fails, it waits. Get the full checklist free.</p>
+  <span class="eyebrow">FREE PLAYBOOK</span>
+  <h1 style="font-size:2rem;">From memecoins to cash flow</h1>
+  <p class="lead">The free PRNTR Playbook: how I protect my money, trade memecoins without getting rugged, use leverage without getting liquidated, and turn wins into income I keep. Including the 7-point checklist my bot runs before it risks a dollar.</p>
 
   <section class="box glow" id="form">
-    <h2>Get the checklist</h2>
+    <h2>Get the playbook free</h2>
     <ul class="points">
-      <li><b class="n">1</b><span>What the bot needs to see before it even looks closer</span></li>
-      <li><b class="n">2</b><span>Why most traders are the liquidity, and how to stop being it</span></li>
-      <li><b class="n">3</b><span>How it decides a trade is worth the risk</span></li>
-      <li><b class="n">4</b><span>The trades it always skips, and why that saves you money</span></li>
+      <li><b class="n">1</b><span>Lock down your wallets so a hack or a fake site never takes your money</span></li>
+      <li><b class="n">2</b><span>The 12-point rug check I run before every memecoin buy</span></li>
+      <li><b class="n">3</b><span>How to judge a wallet before you copy it, and a profit ladder so a 10x never turns back into 1x</span></li>
+      <li><b class="n">4</b><span>Leverage without liquidation: the one-line position size formula and the math that lets you lose 6 of 10 and still be up</span></li>
+      <li><b class="n">5</b><span>The 7-point checklist my bot runs, your risk rules, and how to pay yourself every month</span></li>
     </ul>
     <form class="optin" id="optin" novalidate>
       <div><label for="fname">First name</label><input id="fname" name="name" autocomplete="given-name" maxlength="80" placeholder="Your first name"></div>
       <div><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" maxlength="254" placeholder="you@email.com" required></div>
       <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
       <p class="err" id="err" role="alert"></p>
-      <button type="submit" class="btn btn-main" id="send">Send me the checklist</button>
+      <button type="submit" class="btn btn-main" id="send">Send me the playbook</button>
       <p class="small mute center">Free. I'll also email you my best trade breakdowns. Unsubscribe any time.</p>
     </form>
   </section>
 
   <section class="box glow center" id="done">
     <h2 id="doneTitle">It's yours</h2>
-    <p>Here's the checklist. Save it, and run it on the next chart you look at.</p>
+    <p>Here's your playbook. Save the PDF and start with Part 2 today: it takes an hour and protects everything after it.</p>
     <div class="row-btns">
-      <a class="btn btn-main" href="checklist.html">Open the checklist</a>
-      <a class="btn" href="checklist.pdf" download>Download the PDF</a>
+      <a class="btn btn-main" href="playbook.html">Open the playbook</a>
+      <a class="btn" href="playbook.pdf" download>Download the PDF</a>
     </div>
     <p style="margin-top:1.4rem;">Next: join the free Discord for trade recaps and breakdowns.</p>
     <div class="row-btns"><a class="btn" id="discordLink" href="#" target="_blank" rel="noopener">Join the free Discord</a></div>
@@ -103,7 +104,7 @@
         .then(function (res) {
           if (res.ok || res.st === 404 || res.st >= 500) { done(name); return; }   // our server's problem: never block the guide
           err.textContent = (res.j && res.j.why) || 'That did not go through. Please try again.';
-          btn.disabled = false; btn.textContent = 'Send me the checklist';
+          btn.disabled = false; btn.textContent = 'Send me the playbook';
         })
         .catch(function () { done(name); });
     });
