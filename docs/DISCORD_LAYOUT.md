@@ -44,7 +44,7 @@ Server setting: **Privacy → turn off "Allow direct messages from server member
 | Channel | What goes in it |
 |---|---|
 | `#general` | Chat. Slow mode 30 s. |
-| `#chart-questions` | Members post a chart and a question. You or a student answer a few a week: it shows how you think. |
+| `#chart-questions` | Members post a chart and a question. You or a student answer a few a week in plain terms (what you'd watch for, not the rules): it shows how you think without giving the method away. |
 | `#introduce-yourself` | Where they're at, what they trade, their goal. Your setters read this (it qualifies people for free). |
 
 ### SUPPORT
@@ -115,7 +115,7 @@ Server setting: **Privacy → turn off "Allow direct messages from server member
 > **[Market] [Long/Short] · [timeframe] · closed [win +X R / loss -1 R]**
 > [chart]
 > Entry [x] · Stop [y] · Target [z]
-> What the bot saw: [one line, e.g. three taps in a 4H hidden block, break of structure on the close]
+> Why it was taken: [one plain line, e.g. "the market confirmed and the math was worth it". Never the rules, timeframes or levels the bot uses]
 > Students got this live. → prntr-ai.onrender.com/apply.html?src=discord
 
 ### Launch / enrollment push (HanckFX runs 2–3 weeks: Discord announcements + 8–12 Instagram story sequences + emails)
@@ -125,7 +125,9 @@ Week 3: "applications close [date]", the application link in every post.
 
 ---
 
-## 5. What not to do (from the transcript)
+## 5. What not to do (from the transcript, and keeping the method private)
+
+- **Never post the method in the free server** (owner 2026-11-15: "I don't want you giving out too much sauce"). No rule lists, timeframes, tap counts, fib levels, block definitions or how the bot confirms an entry, in posts, recaps, answers or the free guide. Talk about results, principles and mindset; the exact rules are taught 1-on-1.
 
 - No paid Discord tiers ($49–200/month): "just delete it".
 - Don't sell inside the server. The only offer is the application, sold on a call.
