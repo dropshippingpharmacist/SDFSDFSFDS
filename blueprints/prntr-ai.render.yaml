@@ -13,3 +13,7 @@ services:
     domains:
       - prntru.com
       - www.prntru.com
+    headers:
+      - path: /*.m4a
+        name: Content-Type
+        value: audio/mp4
