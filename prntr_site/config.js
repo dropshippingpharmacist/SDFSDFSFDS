@@ -14,5 +14,6 @@ window.PRNTR = {
   vslLanding: "https://www.youtube.com/embed/dkllBVYwXZA",              // replace with the 5-8 min "apply" video when recorded
   vslBooked: "",                                                         // the 10-15 min "before our call" video
   minBudget: 2000,                                                       // the '$1,000–$3,000' answer and up get a call (2-pay starts at $1,700)
-  spotsPerMonth: 5
+  spotsPerMonth: 5,
+  showTracker: false                                                     // the public signal track record (index.html#tracker): true shows it again
 };
