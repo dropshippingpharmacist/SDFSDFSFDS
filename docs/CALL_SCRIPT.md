@@ -180,6 +180,10 @@ On **/pipeline**, on their row:
 - **Objection:** the main one (price, think about it, partner, trust, timing, fear, wants to do it alone).
 - **Note:** anything you'll want next time.
 
+**The AI review does most of this for you:** when Fathom finishes the recording, the bot grades the call against this
+script (each section 1–5 stars), fills in the objection, moves the row to showed / pitched, and pings Discord with
+the score and the one thing to fix. Read it on **/pipeline → Call reviews**; you still set **won / lost** yourself.
+
 That's what drives the follow-ups (lost → the signals offer next day, no-show → VN5 and re-book) and what tells you
 which videos to make next.
 
