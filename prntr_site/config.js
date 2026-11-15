@@ -1,6 +1,8 @@
 /* PRNTR.AI — the only file to edit when a link changes. */
 window.PRNTR = {
   calendly: "https://calendly.com/[YOUR_CALENDLY]/mentorship-call",     // the 45-min call event (see the blueprint for its settings)
+  // owner 2026-11-15 (HanckFX: "low ticket is not a business"): the signal plans are NOT sold on the site any more;
+  // the signals come with the mentorship. These links stay only for members who already bought one.
   signals: {                                                             // Whop checkout links for PRNTR Signals (one per plan)
     day: "https://whop.com/checkout/plan_M1i7PpdNlNRhe",          // $9.99 / 1 day
     week: "https://whop.com/checkout/plan_LLii730Boa2we",        // $35 / week
