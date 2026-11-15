@@ -1,3 +1,5 @@
+> **Replaced (2026-11-15):** prices, tiers and the signed-at-checkout agreement changed. Use `docs/CALL_SCRIPT.md`.
+
 # The close: what to say and do in the last 10 minutes of the call
 
 Use after discovery and the pitch (blueprint section 6). The point is a clean, recorded, signed sale: the buyer knows
