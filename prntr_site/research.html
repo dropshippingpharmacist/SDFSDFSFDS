@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Welcome Questions · PRNTR.AI</title>
+  <meta name="description" content="Welcome questions for new PRNTR students.">
+  <meta name="robots" content="noindex">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+  <style>.row-btns { display: flex; gap: 0.7rem; flex-wrap: wrap; justify-content: center; margin-top: 1rem; }  .sf { display: grid; gap: 0.8rem; margin-top: 1rem; }
+    .sf label { display: grid; gap: 0.3rem; font-size: 0.88rem; color: var(--mute); }
+    .sf input, .sf textarea, .sf select { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid var(--line); border-radius: 14px; color: #fff; font: inherit; padding: 0.8rem 1rem; }
+    .sf textarea { min-height: 90px; }
+    .sf input:focus, .sf textarea:focus, .sf select:focus { outline: 2px solid var(--cyan); outline-offset: 2px; }
+    .sf .hp { position: absolute; left: -9999px; }
+    .sf .err { color: #ff8a8a; min-height: 1.2em; margin: 0; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar"><a href="index.html"><img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/banner.jpg?v=1777219122" alt="PRNTR.AI"></a></div>
+  <span class="eyebrow">WELCOME</span>
+  <h1 style="font-size:2rem;">Four quick questions</h1>
+  <p class="lead">So I can make more of what helped you decide, and fix what almost stopped you. 60 seconds.</p>
+  <section class="box glow" id="formBox">
+    <form class="sf" id="sf" novalidate>
+      <label>The email you paid with<input name="email" type="email" maxlength="254" autocomplete="email" required></label>
+      <label>Where did you first find me?
+        <select name="where"><option>YouTube</option><option>Instagram</option><option>TikTok</option><option>The free Discord</option><option>A friend or student</option><option>Somewhere else</option></select></label>
+      <label>Which video or post made you decide? (title or what it was about)<input name="video" maxlength="300"></label>
+      <label>How long did you follow me before joining?
+        <select name="how_long"><option>Under a week</option><option>1–4 weeks</option><option>1–3 months</option><option>3+ months</option></select></label>
+      <label>What was the tipping point?<textarea name="tipping" maxlength="1000"></textarea></label>
+      <label>What almost stopped you?<textarea name="almost" maxlength="1000"></textarea></label>
+      <label>What do you want most from the next 90 days?<textarea name="want" maxlength="1000"></textarea></label>
+      <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <p class="err" id="err" role="alert"></p>
+      <button type="submit" class="btn btn-main" id="send">Send</button>
+    </form>
+  </section>
+  <section class="box glow center" id="thanks" style="display:none"><h2>Thank you</h2><p>That helps a lot. See you inside.</p></section>
+  <footer><p>© 2026 PRNTR.AI · <a href="terms.html">Terms</a> · <a href="privacy.html">Privacy</a></p></footer>
+</div>
+<script>
+  (function () {
+    var f = document.getElementById('sf'), err = document.getElementById('err'), btn = document.getElementById('send');
+    var q = new URLSearchParams(location.search); if (q.get('e')) f.email.value = q.get('e');
+    var url = (PRNTR.applyEndpoint || '').replace('/api/apply', '/api/research');
+    f.addEventListener('submit', function (ev) {
+      ev.preventDefault(); err.textContent = '';
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(f.email.value.trim())) { err.textContent = 'Please enter the email you paid with.'; return; }
+      
+      btn.disabled = true; btn.textContent = 'Sending…';
+      var body = {}; new FormData(f).forEach(function (v, k) { body[k] = v; });
+      fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (r) { if (r.ok) { document.getElementById('formBox').style.display = 'none'; document.getElementById('thanks').style.display = 'block'; }
+                             else { err.textContent = (r.j && r.j.why) || 'That did not go through. Please try again.'; btn.disabled = false; btn.textContent = 'Send'; } })
+        .catch(function () { err.textContent = 'That did not go through. Please try again.'; btn.disabled = false; btn.textContent = 'Send'; });
+    });
+  })();
+</script>
+</body>
+</html>
