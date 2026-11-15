@@ -99,16 +99,13 @@
       btn.disabled = true; btn.textContent = 'Sending…';
       var body = new URLSearchParams({ name: name, email: email, source: src, website: f.website.value });
       fetch(url, { method: 'POST', body: body })
-        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, st: r.status, j: j }; }); })
         .then(function (res) {
-          if (res.ok) { done(name); return; }
+          if (res.ok || res.st === 404 || res.st >= 500) { done(name); return; }   // our server's problem: never block the guide
           err.textContent = (res.j && res.j.why) || 'That did not go through. Please try again.';
           btn.disabled = false; btn.textContent = 'Send me the checklist';
         })
-        .catch(function () {
-          err.textContent = 'That did not go through. Check your connection and try again.';
-          btn.disabled = false; btn.textContent = 'Send me the checklist';
-        });
+        .catch(function () { done(name); });
     });
   })();
 </script>
