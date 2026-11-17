@@ -1,7 +1,7 @@
 /* PRNTR.AI — the only file to edit when a link changes. */
 window.PRNTR = {
   calendly: "https://calendly.com/[YOUR_CALENDLY]/mentorship-call",     // the 45-min call event (see the blueprint for its settings)
-  // Whop checkout (owner 2026-11-15). Sold on the call only, never linked on the public pages:
+  // Whop checkout (owner 2026-11-15; owner 2026-11-17: every tier is listed with its checkout link on index.html#pricing):
   //   1-on-1 $2,997 plan_vjcaQPnt6QhXy (2x$1,597 plan_mnFXkM79at3WF, 3x$1,097 plan_yboVpKOkPQl5H)
   //   group  $1,997 plan_ZiFZ4U6VMKX14 (2x$1,097 plan_5b8Y55jHB9eHX, 3x$747 plan_Sz8KBk8JbvF5d)
   //   course   $997 plan_aavYuuldKpAHf (2x$547 plan_kuML1BzRcltD7)

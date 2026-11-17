@@ -172,3 +172,12 @@
     .legal h2:first-child { margin-top: 0; }
     .legal p, .legal li { max-width: 68ch; }
     .legal ul { padding-left: 1.2rem; display: grid; gap: 0.45rem; }
+
+    .price-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+    @media (min-width: 640px) { .price-grid { grid-template-columns: 1fr 1fr; } }
+    .price { display: flex; flex-direction: column; gap: 0.5rem; }
+    .price .amt { font-size: 2rem; line-height: 1.1; }
+    .price .amt span { font-size: 0.9rem; font-weight: 600; color: var(--mute); }
+    .price p { flex: 1; margin: 0; font-weight: 400; font-size: 0.95rem; line-height: 1.45; color: var(--mute); }
+    .price .btn { text-align: center; margin-top: 0.4rem; }
+    .price .plan-alt { text-align: center; font-size: 0.9rem; color: var(--cyan); }
