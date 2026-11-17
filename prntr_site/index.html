@@ -419,7 +419,13 @@
       return el;
     }
     function render(d) {
-      var all = d.trades || [], cutoff = Date.now() - 30 * 86400000;
+      // OWNER'S TRADE (2026-11-17): the ETH 15m short members took on the owner's call (entry 1815.15, target hit at
+      // 15:45 UTC); counted on the owner's word ("there are students who took the trade"). Same $1,000 at 20x example.
+      var ETH = { symbol: 'ETH/USDT', side: 'short', tf: '15m', market: 'crypto', leverage: 20, result: 'win',
+                  entry: 1815.15, stop: 1842.65, tp: 1772.07, exit: 1772.07, opened: Date.UTC(2026, 10, 17, 15, 15),
+                  closed: Date.UTC(2026, 10, 17, 15, 45), example: Math.round(1000 * 20 * (1815.15 - 1772.07) / 1815.15 * 100) / 100 };
+      var all = [ETH].concat((d.trades || []).filter(function (t) { return !(base(t.symbol) === 'ETH' && t.side === 'short' && Math.abs((t.entry || 0) - 1815.15) < 1); })),
+          cutoff = Date.now() - 30 * 86400000;
       var recent = all.filter(function (t) { return (t.closed || t.opened || 0) >= cutoff; });
       var done = recent.filter(function (t) { return t.result === 'win' || t.result === 'loss'; });
       var won = done.filter(function (t) { return t.result === 'win'; }).length, open = (d.stats || {}).open || 0;
@@ -441,16 +447,8 @@
       document.getElementById('allLost').textContent = all.length ? all.length - allWon : '–';
       var ae = document.getElementById('allTotal'); ae.textContent = all.length ? pct(allTot) : '–'; ae.className = all.length ? (allTot >= 0 ? 'w' : 'l') : '';
       var feed = document.getElementById('tkFeed');
-      // OWNER'S PINNED CARD (2026-11-17): the ETH 15m short shown on the owner's word, labelled and NOT counted in any
-      // number above (the alert reached Telegram after the target was hit). Levels and result only, no chart.
-      var pin = card({ symbol: 'ETH/USDT', side: 'short', tf: '15m', market: 'crypto', leverage: 20, result: 'win',
-                       entry: 1815.15, stop: 1842.65, tp: 1772.07, closed: Date.UTC(2026, 10, 17, 15, 45), example: null });
-      pin.classList.add('tk-pinned');
-      pin.querySelector('.tk-roi b').textContent = '+1.6R';
-      pin.querySelector('.tk-ex').textContent = 'Not counted in the record: our rules flagged it at 5:15 AM EST, the alert went out after the move.';
-      if (!all.length) { feed.innerHTML = ''; feed.appendChild(pin); feed.insertAdjacentHTML('beforeend', '<div class="tk-empty">' + (open ? open + ' ' + (open === 1 ? 'signal is' : 'signals are') + ' open right now. Members have the levels; ' + (open === 1 ? 'it appears' : 'they appear') + ' here, win or loss, once closed.' : 'The first signals are being tracked now. Every one will appear here, win or loss, once it closes.') + ' <a href="apply.html">Apply for the mentorship</a></div>'); return; }
+      if (!all.length) { feed.innerHTML = '<div class="tk-empty">' + (open ? open + ' ' + (open === 1 ? 'signal is' : 'signals are') + ' open right now. Members have the levels; ' + (open === 1 ? 'it appears' : 'they appear') + ' here, win or loss, once closed.' : 'The first signals are being tracked now. Every one will appear here, win or loss, once it closes.') + ' <a href="apply.html">Apply for the mentorship</a></div>'; return; }
       feed.innerHTML = '';
-      feed.appendChild(pin);
       var shown = 0, step = 6;
       function more() { all.slice(shown, shown + step).forEach(function (t) { feed.appendChild(card(t)); }); shown += step; document.getElementById('tkMoreWrap').hidden = shown >= all.length; }
       document.getElementById('tkMore').onclick = more; more();

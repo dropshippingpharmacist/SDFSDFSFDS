@@ -181,5 +181,3 @@
     .price p { flex: 1; margin: 0; font-weight: 400; font-size: 0.95rem; line-height: 1.45; color: var(--mute); }
     .price .btn { text-align: center; margin-top: 0.4rem; }
     .price .plan-alt { text-align: center; font-size: 0.9rem; color: var(--cyan); }
-    .tk-pinned { outline: 1px dashed var(--line); }
-    .tk-pinned .tk-ex { color: var(--mute); font-size: 0.85rem; }
