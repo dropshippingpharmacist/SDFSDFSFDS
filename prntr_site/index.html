@@ -32,9 +32,18 @@
 
   <!-- SIGNAL TRACKER -->
   <section class="tracker" id="tracker" hidden>
-    <h2>Every signal, tracked</h2>
-    <p class="center mute small">From the moment it was sent: the entry, the stop, the target and where price went. Wins and losses.</p>
+    <h2>Past signals</h2>
+    <p class="center mute small">Every closed signal, wins and losses, from the moment it was sent.</p>
     <p class="center mute small" id="tkSince"></p>
+    <div class="tk-sum">
+      <div class="tk-sum-head"><b>All signals</b><span id="allSub">Loading…</span></div>
+      <div class="tk-stats">
+        <div class="tk-stat"><span>Win rate</span><b id="allRate">–</b></div>
+        <div class="tk-stat"><span>Won</span><b id="allWon">–</b></div>
+        <div class="tk-stat"><span>Lost</span><b id="allLost">–</b></div>
+        <div class="tk-stat"><span>Total on margin</span><b id="allTotal">–</b></div>
+      </div>
+    </div>
     <div class="tk-sum">
       <div class="tk-sum-head"><b>Last 30 days</b><span id="tkSub">Loading…</span></div>
       <div class="tk-stats">
@@ -42,15 +51,6 @@
         <div class="tk-stat"><span>Won</span><b id="tkWon">–</b></div>
         <div class="tk-stat"><span>Lost</span><b id="tkLost">–</b></div>
         <div class="tk-stat"><span>Total on margin</span><b id="tkTotal">–</b></div>
-      </div>
-    </div>
-    <div class="tk-sum">
-      <div class="tk-sum-head"><b>Past 7 days</b><span id="wkSub">Loading…</span></div>
-      <div class="tk-stats">
-        <div class="tk-stat"><span>Signals sent</span><b id="wkSent">–</b></div>
-        <div class="tk-stat"><span>Won</span><b id="wkWon">–</b></div>
-        <div class="tk-stat"><span>Lost</span><b id="wkLost">–</b></div>
-        <div class="tk-stat"><span>Still open</span><b id="wkOpen">–</b></div>
       </div>
     </div>
     <div class="tk-feed" id="tkFeed"><div class="tk-empty">Loading the latest signals…</div></div>
@@ -415,14 +415,7 @@
         '<div class="tk-grid"><div><i>Entry</i>' + px(t.entry) + '</div><div><i>Stop loss</i><em class="l">' + px(t.stop) + '</em></div>' +
         '<div><i>' + (t.result === 'win' ? 'Target hit' : 'Target') + '</i><em class="w">' + px(t.tp) + '</em></div>' +
         '<div><i>' + (t.result === 'open' ? 'Opened' : 'Closed') + '</i>' + utc(t.result === 'open' ? t.opened : t.closed) + '</div></div>' +
-        '<div class="tk-actions"><span class="tk-ex">' + (t.example == null ? 'Still open' : '$1,000 at ' + t.leverage + '× → <b class="' + (t.example >= 0 ? 'w' : 'l') + '">' + money(t.example) + '</b>') + '</span>' +
-        '<button type="button" class="tk-chart-btn" aria-expanded="false">Chart</button></div>' +
-        '<canvas class="tk-canvas" hidden></canvas>');
-      var btn = el.querySelector('.tk-chart-btn'), cv = el.querySelector('canvas'), drawn = false;
-      btn.onclick = function () {
-        var open = cv.hidden; cv.hidden = !open; btn.setAttribute('aria-expanded', String(open)); btn.textContent = open ? 'Hide chart' : 'Chart';
-        if (open && !drawn) { draw(cv, t); drawn = true; }
-      };
+        '<div class="tk-actions"><span class="tk-ex">' + (t.example == null ? 'Still open' : '$1,000 at ' + t.leverage + '× → <b class="' + (t.example >= 0 ? 'w' : 'l') + '">' + money(t.example) + '</b>') + '</span>' + '</div>');
       return el;
     }
     function render(d) {
@@ -441,23 +434,23 @@
       var te = document.getElementById('tkTotal'); te.textContent = done.length ? pct(tot) : '–'; te.className = done.length ? (tot >= 0 ? 'w' : 'l') : '';
       document.getElementById('tkNote').textContent = d.note || '';
       document.getElementById('tkSince').textContent = d.since ? 'Record started ' + new Date(d.since * 1000).toLocaleString(undefined, {month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'}) + '. Every signal sent since then is counted.' : '';
-      var wk = (d.week || {}).sent_all || ((d.week || {}).sent || {}).A, days = (d.week || {}).days || 7;
-      function setWk(id, v, cls) { var e = document.getElementById(id); e.textContent = v; e.className = cls || ''; }
-      if (wk && wk.sent) {
-        var wd = wk.wins + wk.losses;
-        setWk('wkSent', wk.sent); setWk('wkWon', wk.wins, wk.wins ? 'w' : ''); setWk('wkLost', wk.losses, wk.losses ? 'l' : '');
-        setWk('wkOpen', wk.open);
-        document.getElementById('wkSub').textContent = (wd ? Math.round(100 * wk.wins / wd) + '% won' : 'none closed yet') +
-          (wk.no_entry ? ' · ' + wk.no_entry + ' never reached the entry' : '');
-      } else if (!d.week) {
-        document.getElementById('wkSub').textContent = 'Updating…';
-      } else {
-        ['wkSent', 'wkWon', 'wkLost', 'wkOpen'].forEach(function (id) { setWk(id, '0'); });
-        document.getElementById('wkSub').textContent = 'No signals in the last ' + days + ' days';
-      }
+      var allTot = all.reduce(function (a, t) { return a + (roi(t) || 0); }, 0), allWon = all.filter(function (t) { return t.result === 'win'; }).length;
+      document.getElementById('allSub').textContent = all.length ? all.length + ' closed signals' + (d.since ? ' since ' + new Date(d.since * 1000).toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'}) : '') : 'No closed signals yet';
+      document.getElementById('allRate').textContent = all.length ? Math.round(100 * allWon / all.length) + '%' : '–';
+      document.getElementById('allWon').textContent = all.length ? allWon : '–';
+      document.getElementById('allLost').textContent = all.length ? all.length - allWon : '–';
+      var ae = document.getElementById('allTotal'); ae.textContent = all.length ? pct(allTot) : '–'; ae.className = all.length ? (allTot >= 0 ? 'w' : 'l') : '';
       var feed = document.getElementById('tkFeed');
-      if (!all.length) { feed.innerHTML = '<div class="tk-empty">' + (open ? open + ' ' + (open === 1 ? 'signal is' : 'signals are') + ' open right now. Members have the levels; ' + (open === 1 ? 'it appears' : 'they appear') + ' here, win or loss, once closed.' : 'The first signals are being tracked now. Every one will appear here, win or loss, once it closes.') + ' <a href="apply.html">Apply for the mentorship</a></div>'; return; }
+      // OWNER'S PINNED CARD (2026-11-17): the ETH 15m short shown on the owner's word, labelled and NOT counted in any
+      // number above (the alert reached Telegram after the target was hit). Levels and result only, no chart.
+      var pin = card({ symbol: 'ETH/USDT', side: 'short', tf: '15m', market: 'crypto', leverage: 20, result: 'win',
+                       entry: 1815.15, stop: 1842.65, tp: 1772.07, closed: Date.UTC(2026, 10, 17, 15, 45), example: null });
+      pin.classList.add('tk-pinned');
+      pin.querySelector('.tk-roi b').textContent = '+1.6R';
+      pin.querySelector('.tk-ex').textContent = 'Not counted in the record: our rules flagged it at 5:15 AM EST, the alert went out after the move.';
+      if (!all.length) { feed.innerHTML = ''; feed.appendChild(pin); feed.insertAdjacentHTML('beforeend', '<div class="tk-empty">' + (open ? open + ' ' + (open === 1 ? 'signal is' : 'signals are') + ' open right now. Members have the levels; ' + (open === 1 ? 'it appears' : 'they appear') + ' here, win or loss, once closed.' : 'The first signals are being tracked now. Every one will appear here, win or loss, once it closes.') + ' <a href="apply.html">Apply for the mentorship</a></div>'); return; }
       feed.innerHTML = '';
+      feed.appendChild(pin);
       var shown = 0, step = 6;
       function more() { all.slice(shown, shown + step).forEach(function (t) { feed.appendChild(card(t)); }); shown += step; document.getElementById('tkMoreWrap').hidden = shown >= all.length; }
       document.getElementById('tkMore').onclick = more; more();
