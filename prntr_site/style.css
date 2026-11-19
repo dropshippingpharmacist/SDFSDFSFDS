@@ -181,3 +181,8 @@
     .price p { flex: 1; margin: 0; font-weight: 400; font-size: 0.95rem; line-height: 1.45; color: var(--mute); }
     .price .btn { text-align: center; margin-top: 0.4rem; }
     .price .plan-alt { text-align: center; font-size: 0.9rem; color: var(--cyan); }
+
+    /* WHY TRADING comparison: the trading column first and lit, the table scrolls sideways on a phone */
+    .compare.why { min-width: 560px; }
+    .compare.why .us { background: rgba(42,171,227,0.12); border-color: var(--cyan); }
+    .compare.why th.us { background: var(--cyan); color: var(--ink); }
