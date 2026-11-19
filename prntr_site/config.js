@@ -17,5 +17,5 @@ window.PRNTR = {
   vslBooked: "",                                                         // the 10-15 min "before our call" video
   minBudget: 1000,                                                       // '$1,000–$2,000' and up get a call (course $997 · group $1,997 · 1-on-1 $2,997); under -> next.html
   spotsPerMonth: 5,
-  showTracker: true                                                     // the public signal track record (index.html#tracker): true shows it again
+  showTracker: false                                                    // the public signal track record (index.html#tracker): off (owner 2026-11-19); true shows it again
 };
