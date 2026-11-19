@@ -30,7 +30,9 @@ window.PRNTR = {
     if (!h || h === location.hostname.replace(/^www\./, "")) return "";
     var map = [["youtube", /youtube\.com|youtu\.be/], ["instagram", /instagram\.com|ig\.me/], ["tiktok", /tiktok\.com/],
                ["x", /(^|\.)x\.com|t\.co|twitter\.com/], ["facebook", /facebook\.com|fb\.com|m\.me/], ["google", /google\./],
-               ["discord", /discord/], ["whop", /whop\.com/], ["linktree", /linktr\.ee/]];
+               ["discord", /discord/], ["whop", /whop\.com/], ["linktree", /linktr\.ee/], ["pinterest", /pinterest\.|pin\.it/],
+               ["threads", /threads\.(net|com)/], ["linkedin", /linkedin\.com|lnkd\.in/], ["snapchat", /snapchat\.com/],
+               ["reddit", /reddit\.com/], ["telegram", /t\.me|telegram/], ["bing", /bing\.com/]];
     for (var i = 0; i < map.length; i++) if (map[i][1].test(h)) return map[i][0];
     return clean("ref-" + h.split(".").slice(-2, -1)[0]);
   }

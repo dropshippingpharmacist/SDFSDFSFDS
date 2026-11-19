@@ -25,19 +25,17 @@
   .t.money b { color:var(--grn); }
   .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:.8rem; color:var(--mute); margin:6px 0 12px; }
   .legend i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
-  .scroll { overflow-x:auto; padding:8px 0 16px; background:var(--panel2); border:1px solid var(--line); border-radius:16px; }
-  /* the flow: boxes, lines, branches (left to right) */
-  .tree { padding:8px 18px; min-width:max-content; }
-  .tree ul { list-style:none; margin:0; padding:0 0 0 30px; position:relative; display:flex; flex-direction:column; }
+  .scroll { padding:4px 0 12px; background:var(--panel2); border:1px solid var(--line); border-radius:16px; }
+  /* the flow: boxes, lines, branches (top to bottom; each branch indents under its parent, so it scrolls down) */
+  .tree { padding:10px 14px 14px; }
+  .tree ul { list-style:none; margin:0; padding:0 0 0 20px; }
   .tree > ul { padding-left:0; }
-  .tree li { position:relative; display:flex; align-items:center; padding:5px 0 5px 16px; }
+  .tree li { position:relative; padding:8px 0 0 22px; }
   .tree > ul > li { padding-left:0; }
-  .tree ul ul::before { content:""; position:absolute; left:0; top:50%; width:30px; border-top:2px solid var(--wire); }
-  .tree ul ul > li::before { content:""; position:absolute; left:0; top:50%; width:16px; border-top:2px solid var(--wire); }
-  .tree ul ul > li::after { content:""; position:absolute; left:0; top:0; bottom:0; border-left:2px solid var(--wire); }
-  .tree ul ul > li:first-child::after { top:50%; } .tree ul ul > li:last-child::after { bottom:50%; }
-  .tree ul ul > li:only-child::after { display:none; }
-  .box { flex:0 0 auto; min-width:190px; max-width:270px; background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--cyan);
+  .tree ul ul > li::before { content:""; position:absolute; left:0; top:0; bottom:0; border-left:2px solid var(--wire); }
+  .tree ul ul > li:last-child::before { bottom:auto; height:34px; }
+  .tree ul ul > li::after { content:""; position:absolute; left:0; top:34px; width:20px; border-top:2px solid var(--wire); }
+  .box { display:block; width:100%; max-width:440px; background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--cyan);
          border-radius:12px; padding:8px 12px; cursor:default; position:relative; }
   .box.has { cursor:pointer; } .box.has:hover { border-color:var(--cyan); }
   .box .lbl { font-weight:650; font-size:.88rem; } .box .num { font-size:1.15rem; font-weight:800; font-variant-numeric:tabular-nums; }
@@ -49,6 +47,14 @@
   .k-step { border-left-color:#7a8bb8; } .k-win { border-left-color:var(--grn); } .k-drop { border-left-color:var(--red); }
   .k-wait { border-left-color:var(--amb); } .k-lead { border-left-color:#c792ea; }
   .closed > ul { display:none; }
+  @media (max-width:700px) {
+    .tree { padding:8px 8px 12px; }
+    .tree ul { padding-left:4px; } .tree li { padding-left:14px; }
+    .tree ul ul > li::after { width:12px; }
+    .tree ul ul ul ul ul ul { padding-left:0; } .tree ul ul ul ul ul ul > li { padding-left:9px; }
+    .tree ul ul ul ul ul ul > li::after { width:7px; }
+    .box { padding:7px 10px; } .box .lbl { font-size:.82rem; } .box .num { font-size:1.05rem; }
+  }
   .cols { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
   .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px 14px; }
   .card li { margin:3px 0; }
@@ -84,7 +90,7 @@
       <span><i style="background:#c792ea"></i>signed up</span><span><i style="background:#7a8bb8"></i>step</span>
       <span><i style="background:var(--grn)"></i>money in</span><span><i style="background:var(--amb)"></i>waiting</span>
       <span><i style="background:var(--red)"></i>dropped off</span>
-      <span>Click a box to open or close its branch. % = share of the box before it.</span>
+      <span>Tap a box to open or close its branch. % = share of the box above it. Scroll down for the rest.</span>
     </div>
     <div class="chips" style="margin-bottom:10px"><button id="openall" type="button">Open everything</button><button id="closeall" type="button">Sources only</button></div>
     <div class="scroll"><div class="tree" id="tree"></div></div>
