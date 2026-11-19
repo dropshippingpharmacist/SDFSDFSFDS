@@ -2,8 +2,9 @@
 window.PRNTR = {
   calendly: "https://calendly.com/milesjpetersen/mentorship-call",     // the closer's 45-min call event (Miles, owner 2026-11-19)
   // Whop checkout (owner 2026-11-15; owner 2026-11-17: every tier is listed with its checkout link on index.html#pricing):
-  //   1-on-1 $2,997 plan_vjcaQPnt6QhXy (2x$1,597 plan_mnFXkM79at3WF, 3x$1,097 plan_yboVpKOkPQl5H)
-  //   group  $1,997 plan_ZiFZ4U6VMKX14 (2x$1,097 plan_5b8Y55jHB9eHX, 3x$747 plan_Sz8KBk8JbvF5d)
+  //   NEW PRICES (owner 2026-11-19; the bot made these plans in Whop, see /api/public/plans):
+  //   1-on-1 $4,997 plan_wwwM0nv4YmXiP (2x$2,647 plan_05qKhVMoSEXPL, 3x$1,797 plan_ZD7oCYBJBkeEg)
+  //   group  $2,997 plan_yjBlcz4KPr25y (2x$1,597 plan_QUJqlZl29maWL, 3x$1,097 plan_1Q9vTukg8I9Oj)
   //   course   $997 plan_aavYuuldKpAHf (2x$547 plan_kuML1BzRcltD7)
   // The old signal plans ($9.99 / $35 / $125 / $300 / $500) are archived in Whop.
   leadEndpoint: "https://excellentnqtct-va.onrender.com/api/lead",      // the free-guide email signups (the bot keeps the list)
@@ -15,7 +16,7 @@ window.PRNTR = {
   discord: "https://whop.com/checkout/plan_43Uz8O8LAJsKY",                // the free Discord, joined through Whop (we get the email)
   vslLanding: "https://www.youtube.com/embed/dkllBVYwXZA",              // replace with the 5-8 min "apply" video when recorded
   vslBooked: "",                                                         // the 10-15 min "before our call" video
-  minBudget: 1000,                                                       // '$1,000–$2,000' and up get a call (course $997 · group $1,997 · 1-on-1 $2,997); under -> next.html
+  minBudget: 1000,                                                       // '$1,000–$3,000' and up get a call (course $997 · group $2,997 · 1-on-1 $4,997); under -> next.html
   spotsPerMonth: 5,
   showTracker: false                                                    // the public signal track record (index.html#tracker): off (owner 2026-11-19); true shows it again
 };
