@@ -19,3 +19,31 @@ window.PRNTR = {
   spotsPerMonth: 5,
   showTracker: false                                                    // the public signal track record (index.html#tracker): off (owner 2026-11-19); true shows it again
 };
+
+/* WHERE THEY CAME FROM (owner 2026-11-19): the first link that brought someone here is remembered for 60 days, on any
+   page, and sent with their application. Tag links with ?src=  (yt-02-ethfi, ig-bio, ig-dm, tt, x ...). With no tag,
+   the site the click came from is used (youtube, instagram, tiktok, x, google ...). */
+(function () {
+  function clean(v) { return String(v || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40); }
+  function guess(ref) {
+    var h = ""; try { h = new URL(ref).hostname.replace(/^www\./, ""); } catch (e) { return ""; }
+    if (!h || h === location.hostname.replace(/^www\./, "")) return "";
+    var map = [["youtube", /youtube\.com|youtu\.be/], ["instagram", /instagram\.com|ig\.me/], ["tiktok", /tiktok\.com/],
+               ["x", /(^|\.)x\.com|t\.co|twitter\.com/], ["facebook", /facebook\.com|fb\.com|m\.me/], ["google", /google\./],
+               ["discord", /discord/], ["whop", /whop\.com/], ["linktree", /linktr\.ee/]];
+    for (var i = 0; i < map.length; i++) if (map[i][1].test(h)) return map[i][0];
+    return clean("ref-" + h.split(".").slice(-2, -1)[0]);
+  }
+  try {
+    var q = new URLSearchParams(location.search), now = Date.now(), K = "prntr_src";
+    var tag = clean(q.get("src") || q.get("utm_source") || "");
+    var mc = (q.get("mc") || "").replace(/\D/g, "").slice(0, 25);
+    var old = null; try { old = JSON.parse(localStorage.getItem(K) || "null"); } catch (e) {}
+    if (old && now - old.t > 60 * 864e5) old = null;
+    var src = tag || (old && old.src) || guess(document.referrer);
+    if (src || mc) localStorage.setItem(K, JSON.stringify({ src: src || (old && old.src) || "", mc: mc || (old && old.mc) || "",
+                                                          t: old && !tag ? old.t : now }));
+    var got = JSON.parse(localStorage.getItem(K) || "null") || {};
+    window.PRNTR_SOURCE = got.src || ""; window.PRNTR_MC = got.mc || "";
+  } catch (e) { window.PRNTR_SOURCE = window.PRNTR_SOURCE || ""; window.PRNTR_MC = window.PRNTR_MC || ""; }
+})();

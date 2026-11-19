@@ -97,11 +97,12 @@
       return ok;
     }
     // their ManyChat contact id, when they came from a DM link (&mc=...): lets the bot send the right voice note later
-    var mcId = (new URLSearchParams(location.search).get('mc') || '').replace(/\D/g, '').slice(0, 25);
+    var mcId = ((new URLSearchParams(location.search).get('mc') || '') || window.PRNTR_MC || '').replace(/\D/g, '').slice(0, 25);
+    function srcTag() { return ((new URLSearchParams(location.search).get('src') || '') || window.PRNTR_SOURCE || 'site').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40); }
     var sentPartial = false;
     function partial() {                       // they gave contact details: if they stop here, follow up (lead recovery)
       if (sentPartial || !PRNTR.applyEndpoint || !ans.email) return; sentPartial = true;
-      var src = (new URLSearchParams(location.search).get('src') || 'site').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40);
+      var src = srcTag();
       try { fetch(PRNTR.applyEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
         body: JSON.stringify({ partial: '1', name: ans.name, email: ans.email, phone: ans.phone, instagram: ans.instagram, heard: ans.heard, sms_ok: ans.sms_ok, source: src, mc: mcId }) }).catch(function () {}); } catch (e) {}
     }
@@ -122,7 +123,7 @@
       // the bot decides (pipeline.py: 1-on-1 / group / course get a call, under $1K or new -> next.html);
       // if it can't be reached, the same rule runs here so nobody is ever stuck
       var qualified = (ans.investN || 0) >= PRNTR.minBudget && ans.stage !== 'New to trading';
-      ans.source = (new URLSearchParams(location.search).get('src') || 'site').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40);
+      ans.source = srcTag();
       ans.submitted = new Date().toISOString(); if (mcId) ans.mc = mcId;
       next.disabled = true; next.textContent = 'Sending…';
       var go = function (q) { ans.qualified = q; save(); location.href = q ? 'book.html' : 'next.html'; };
