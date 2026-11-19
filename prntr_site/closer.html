@@ -92,7 +92,7 @@
     $("#calls").innerHTML = d.calls.length ? d.calls.map(function (x) {
       var a = x.app, h = held[x.email];
       var tag = h ? '<span class="tag amb">report saved, sending…</span>' : x.reported ? '<span class="tag grn">reported: ' + esc(x.reported) + "</span>"
-              : x.overdue ? '<span class="tag red">REPORT OVERDUE</span>' : '<span class="tag gry">upcoming / to report</span>';
+              : x.overdue ? '<span class="tag red">REPORT OVERDUE</span>' : x.confirmed ? '<span class="tag grn">confirmed by text</span>' : '<span class="tag gry">upcoming · not confirmed yet</span>';
       var form = (x.reported || h) ? "" :
         '<form data-email="' + esc(x.email) + '">' +
         '<label>Outcome</label><select name="outcome" required><option value="">Pick one</option>' + opts(o.outcomes) + "</select>" +
