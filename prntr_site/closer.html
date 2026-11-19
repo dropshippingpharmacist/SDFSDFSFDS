@@ -82,7 +82,7 @@
     var s = d.score, c = d.commission;
     var tiles = [["Calls booked", s.booked], ["Reported", s.reported], ["Overdue reports", s.overdue], ["Show rate", pc(s.show_rate)],
                  ["Close rate", pc(s.close_rate)], ["Recorded calls", pc(s.recorded_rate)],
-                 ["Commission payable", money(c.payable), c.pct + "% of cleared cash"], ["Commission pending", money(c.pending), "inside the refund window"]];
+                 ["Commission", c.pct + "%", "paid by Whop automatically, as your affiliate"]];
     $("#tiles").innerHTML = tiles.map(function (t) { return '<div class="t"><span>' + esc(t[0]) + "</span><b>" + esc(t[1]) + "</b>" + (t[2] ? "<small>" + esc(t[2]) + "</small>" : "") + "</div>"; }).join("");
     var q = get(K.queue, []), held = {};
     q.forEach(function (r) { held[r.email] = r; });
