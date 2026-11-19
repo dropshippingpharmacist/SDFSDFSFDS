@@ -1,6 +1,6 @@
 /* PRNTR.AI — the only file to edit when a link changes. */
 window.PRNTR = {
-  calendly: "https://calendly.com/[YOUR_CALENDLY]/mentorship-call",     // the 45-min call event (see the blueprint for its settings)
+  calendly: "https://calendly.com/milesjpetersen/mentorship-call",     // the closer's 45-min call event (Miles, owner 2026-11-19)
   // Whop checkout (owner 2026-11-15; owner 2026-11-17: every tier is listed with its checkout link on index.html#pricing):
   //   1-on-1 $2,997 plan_vjcaQPnt6QhXy (2x$1,597 plan_mnFXkM79at3WF, 3x$1,097 plan_yboVpKOkPQl5H)
   //   group  $1,997 plan_ZiFZ4U6VMKX14 (2x$1,097 plan_5b8Y55jHB9eHX, 3x$747 plan_Sz8KBk8JbvF5d)
