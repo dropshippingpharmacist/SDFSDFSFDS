@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>PRNTR Command Map</title>
+<script src="config.js"></script>
+<style>
+  :root { --ink:#05060d; --panel:#0d1020; --panel2:#121731; --line:#26305a; --wire:#3a4a86; --text:#eef1fb; --mute:#97a3c4;
+          --cyan:#2AABE3; --grn:#3ddc97; --red:#ff6b6b; --amb:#ffb648; --vio:#8b7cff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--ink); color:var(--text); font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; line-height:1.45; }
+  main { padding:24px 16px 60px; max-width:1600px; margin:0 auto; }
+  h1 { font-size:1.5rem; margin:0; letter-spacing:-.01em; } h2 { font-size:.8rem; text-transform:uppercase; letter-spacing:.08em; color:var(--mute); margin:28px 0 10px; }
+  small, .m { color:var(--mute); font-size:.82rem; }
+  .bar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; }
+  button { font:inherit; cursor:pointer; border-radius:20px; border:1px solid var(--line); background:var(--panel); color:var(--text); padding:6px 14px; font-size:.85rem; }
+  button.on { background:var(--cyan); color:#02121c; border-color:var(--cyan); font-weight:700; }
+  button:focus-visible, input:focus-visible { outline:2px solid var(--cyan); outline-offset:2px; }
+  .tiles { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+  .t { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:10px 12px; }
+  .t span { display:block; color:var(--mute); font-size:.75rem; } .t b { font-size:1.35rem; font-variant-numeric:tabular-nums; }
+  .t.money b { color:var(--grn); }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:.8rem; color:var(--mute); margin:6px 0 12px; }
+  .legend i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
+  .scroll { overflow-x:auto; padding:8px 0 16px; background:var(--panel2); border:1px solid var(--line); border-radius:16px; }
+  /* the flow: boxes, lines, branches (left to right) */
+  .tree { padding:8px 18px; min-width:max-content; }
+  .tree ul { list-style:none; margin:0; padding:0 0 0 30px; position:relative; display:flex; flex-direction:column; }
+  .tree > ul { padding-left:0; }
+  .tree li { position:relative; display:flex; align-items:center; padding:5px 0 5px 16px; }
+  .tree > ul > li { padding-left:0; }
+  .tree ul ul::before { content:""; position:absolute; left:0; top:50%; width:30px; border-top:2px solid var(--wire); }
+  .tree ul ul > li::before { content:""; position:absolute; left:0; top:50%; width:16px; border-top:2px solid var(--wire); }
+  .tree ul ul > li::after { content:""; position:absolute; left:0; top:0; bottom:0; border-left:2px solid var(--wire); }
+  .tree ul ul > li:first-child::after { top:50%; } .tree ul ul > li:last-child::after { bottom:50%; }
+  .tree ul ul > li:only-child::after { display:none; }
+  .box { flex:0 0 auto; min-width:190px; max-width:270px; background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--cyan);
+         border-radius:12px; padding:8px 12px; cursor:default; position:relative; }
+  .box.has { cursor:pointer; } .box.has:hover { border-color:var(--cyan); }
+  .box .lbl { font-weight:650; font-size:.88rem; } .box .num { font-size:1.15rem; font-weight:800; font-variant-numeric:tabular-nums; }
+  .box .pct { color:var(--mute); font-size:.78rem; margin-left:6px; } .box .cash { color:var(--grn); font-weight:700; font-size:.85rem; }
+  .box .note { color:var(--mute); font-size:.72rem; }
+  .box .lbl { padding-right:26px; }
+  .box .tog { position:absolute; right:8px; top:6px; color:var(--mute); font-size:.75rem; }
+  .k-root { border-left-color:var(--vio); } .k-source { border-left-color:var(--cyan); } .k-tag { border-left-color:#5b8dd6; }
+  .k-step { border-left-color:#7a8bb8; } .k-win { border-left-color:var(--grn); } .k-drop { border-left-color:var(--red); }
+  .k-wait { border-left-color:var(--amb); } .k-lead { border-left-color:#c792ea; }
+  .closed > ul { display:none; }
+  .cols { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px 14px; }
+  .card li { margin:3px 0; }
+  #login { max-width:380px; margin:60px auto; } #login input { width:100%; padding:10px; border-radius:10px; border:1px solid var(--line); background:var(--ink); color:var(--text); font:inherit; margin:8px 0; }
+  #login button { width:100%; background:var(--cyan); color:#02121c; font-weight:800; border:0; padding:10px; }
+  #err { color:var(--red); }
+</style>
+</head>
+<body>
+<main>
+  <section id="login" class="card" hidden>
+    <h1>Command Map</h1>
+    <p class="m">Owner only. Use your dashboard password.</p>
+    <form id="lf"><input id="pw" type="password" autocomplete="current-password" required aria-label="Password"><button>Open</button></form>
+    <p id="err" class="m"></p>
+  </section>
+
+  <section id="app" hidden>
+    <div class="bar">
+      <div><h1>PRNTR Command Map</h1><small id="asof"></small></div>
+      <div class="chips" id="period">
+        <button data-d="7">7 days</button><button data-d="30" class="on">30 days</button><button data-d="90">90 days</button><button data-d="0">All time</button>
+        <button id="refresh" type="button">Refresh</button><button id="out" type="button">Log out</button>
+      </div>
+    </div>
+
+    <h2>The numbers</h2>
+    <div class="tiles" id="tiles"></div>
+
+    <h2>Where everyone comes from, and what happens next</h2>
+    <div class="legend">
+      <span><i style="background:var(--cyan)"></i>source</span><span><i style="background:#5b8dd6"></i>exact link</span>
+      <span><i style="background:#c792ea"></i>signed up</span><span><i style="background:#7a8bb8"></i>step</span>
+      <span><i style="background:var(--grn)"></i>money in</span><span><i style="background:var(--amb)"></i>waiting</span>
+      <span><i style="background:var(--red)"></i>dropped off</span>
+      <span>Click a box to open or close its branch. % = share of the box before it.</span>
+    </div>
+    <div class="chips" style="margin-bottom:10px"><button id="openall" type="button">Open everything</button><button id="closeall" type="button">Sources only</button></div>
+    <div class="scroll"><div class="tree" id="tree"></div></div>
+
+    <div class="cols" style="margin-top:16px">
+      <div class="card"><h2 style="margin-top:0">Why people didn't buy</h2><ul id="obj"></ul></div>
+      <div class="card"><h2 style="margin-top:0">Closer</h2><div id="closer"></div></div>
+      <div class="card"><h2 style="margin-top:0">What the numbers say</h2><ul id="adv"></ul></div>
+    </div>
+  </section>
+</main>
+<script>
+(function () {
+  var API = ((window.PRNTR && PRNTR.applyEndpoint) || "https://excellentnqtct-va.onrender.com/api/apply").replace(/\/api\/apply$/, "");
+  var KP = "prntr_ceo_pw", KC = "prntr_ceo_cache", days = 30;
+  function get(k, d) { try { var v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } }
+  function put(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+  function $(s) { return document.querySelector(s); }
+  function esc(v) { return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function money(v) { return "$" + Math.round(Number(v || 0)).toLocaleString(); }
+  function pc(v) { return v == null ? "-" : Math.round(v) + "%"; }
+
+  function box(n, parent, depth) {
+    var has = n.children && n.children.length;
+    var share = parent && parent.count ? Math.round(100 * n.count / parent.count) + "%" : "";
+    var li = document.createElement("li");
+    if (has && depth >= 2) li.className = "closed";
+    li.innerHTML = '<div class="box k-' + esc(n.kind) + (has ? " has" : "") + '"' + (has ? ' tabindex="0" role="button" aria-expanded="' + (depth < 2) + '"' : "") + ">" +
+      (has ? '<span class="tog">' + (depth >= 2 ? "▸ " + n.children.length : "▾") + "</span>" : "") +
+      '<div class="lbl">' + esc(n.label) + "</div>" +
+      '<div><span class="num">' + n.count + "</span>" + (share && parent.kind !== "root" ? '<span class="pct">' + share + "</span>" : "") +
+      (n.cash ? ' <span class="cash">' + money(n.cash) + "</span>" : "") + "</div>" +
+      (n.note ? '<div class="note">' + esc(n.note) + "</div>" : "") + "</div>";
+    if (has) {
+      var ul = document.createElement("ul");
+      n.children.forEach(function (c) { ul.appendChild(box(c, n, depth + 1)); });
+      li.appendChild(ul);
+      var b = li.firstChild;
+      function flip() { li.classList.toggle("closed"); var c = li.classList.contains("closed"); b.setAttribute("aria-expanded", !c); b.querySelector(".tog").textContent = c ? "▸ " + n.children.length : "▾"; }
+      b.onclick = flip; b.onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flip(); } };
+    }
+    return li;
+  }
+
+  function render(d) {
+    $("#login").hidden = true; $("#app").hidden = false;
+    $("#asof").textContent = (d.days ? "Last " + d.days + " days" : "All time") + " · updated " + new Date(d.now * 1000).toLocaleString();
+    var t = d.totals;
+    var tiles = [["People in the map", t.people], ["Free signups", t.signups], ["Started applying", t.started], ["Applied", t.applications],
+      ["Qualified for a call", t.qualified], ["Booked", t.booked], ["Book rate", pc(t.book_rate)], ["Showed", t.showed], ["Show rate", pc(t.show_rate)],
+      ["Closed", t.won], ["Close rate", pc(t.close_rate)], ["Cash collected", money(t.cash), 1], ["Average sale", t.aov ? money(t.aov) : "-", 1]];
+    $("#tiles").innerHTML = tiles.map(function (x) { return '<div class="t' + (x[2] ? " money" : "") + '"><span>' + esc(x[0]) + "</span><b>" + esc(x[1] == null ? "-" : x[1]) + "</b></div>"; }).join("");
+    var tree = $("#tree"); tree.innerHTML = ""; var ul = document.createElement("ul"); ul.appendChild(box(d.tree, null, 0)); tree.appendChild(ul);
+    var ob = t.objections || {}, ks = Object.keys(ob);
+    $("#obj").innerHTML = ks.length ? ks.map(function (k) { return "<li>" + esc(k) + ": <b>" + ob[k] + "</b></li>"; }).join("") : '<li class="m">None reported yet.</li>';
+    var c = t.closer;
+    $("#closer").innerHTML = c ? "<b>" + esc(c.name) + "</b><br>Calls booked " + c.booked + " · reported " + c.reported + " · <span style='color:" + (c.overdue ? "var(--red)" : "inherit") + "'>overdue " + c.overdue + "</span><br>Close rate " + pc(c.close_rate) : '<span class="m">No closer data.</span>';
+    $("#adv").innerHTML = (t.advice || []).length ? t.advice.map(function (a) { return "<li>" + esc(a) + "</li>"; }).join("") : '<li class="m">Not enough calls yet for advice (it starts at 10).</li>';
+  }
+
+  function load() {
+    return fetch(API + "/api/ceo/map" + (days ? "?days=" + days : ""), { headers: { Authorization: "Basic " + btoa("owner:" + get(KP, "")) }, cache: "no-store" })
+      .then(function (r) { if (r.status === 401) { del(KP); show("Wrong password."); return null; } if (!r.ok) throw 0; return r.json(); })
+      .then(function (d) { if (d) { put(KC + days, d); render(d); } })
+      .catch(function () { var c = get(KC + days, null); if (c) { render(c); $("#asof").textContent += " · the server is restarting, showing the last saved map"; } else show("The server is restarting. Try again in a minute."); });
+  }
+  function show(m) { $("#app").hidden = true; $("#login").hidden = false; $("#err").textContent = m || ""; }
+  $("#lf").onsubmit = function (e) { e.preventDefault(); put(KP, $("#pw").value); $("#pw").value = ""; load(); };
+  $("#out").onclick = function () { Object.keys(localStorage).forEach(function (k) { if (k.indexOf("prntr_ceo") === 0) del(k); }); show(""); };
+  $("#refresh").onclick = load;
+  document.querySelectorAll("#period button[data-d]").forEach(function (b) {
+    b.onclick = function () { document.querySelectorAll("#period button[data-d]").forEach(function (x) { x.classList.remove("on"); }); b.classList.add("on"); days = +b.dataset.d; load(); };
+  });
+  function setAll(open) { document.querySelectorAll("#tree li").forEach(function (li, i) { if (!li.querySelector("ul")) return; if (open) li.classList.remove("closed"); else if (li.parentNode.parentNode.id !== "tree" && li.parentNode.parentNode.parentNode.parentNode.id !== "tree") li.classList.add("closed"); else li.classList.remove("closed");
+    var b = li.firstChild, t = b.querySelector(".tog"), n = li.querySelector("ul").children.length, c = li.classList.contains("closed"); b.setAttribute("aria-expanded", !c); if (t) t.textContent = c ? "▸ " + n : "▾"; }); }
+  $("#openall").onclick = function () { setAll(true); }; $("#closeall").onclick = function () { setAll(false); };
+  if (get(KP, "")) load(); else show("");
+})();
+</script>
+</body>
+</html>
