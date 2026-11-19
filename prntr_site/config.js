@@ -6,7 +6,8 @@ window.PRNTR = {
   //   1-on-1 $4,997 plan_wwwM0nv4YmXiP (2x$2,647 plan_05qKhVMoSEXPL, 3x$1,797 plan_ZD7oCYBJBkeEg)
   //   group  $2,997 plan_yjBlcz4KPr25y (2x$1,597 plan_QUJqlZl29maWL, 3x$1,097 plan_1Q9vTukg8I9Oj)
   //   course   $997 plan_aavYuuldKpAHf (2x$547 plan_kuML1BzRcltD7)
-  // The old signal plans ($9.99 / $35 / $125 / $300 / $500) are archived in Whop.
+  // Signals (owner 2026-11-19, back on the site): $199/month plan_qZhOsWsXKotvW · $35/week plan_37VVXYkQwQwfz · $9.99 1-day pass plan_OPmpTjZTw9J6o.
+  // The older signal plans ($125 / $300 / $500 and the first $9.99 / $35 ones) stay archived in Whop.
   leadEndpoint: "https://excellentnqtct-va.onrender.com/api/lead",      // the free-guide email signups (the bot keeps the list)
   applyEndpoint: "https://excellentnqtct-va.onrender.com/api/apply",    // every application is kept by the bot (see /pipeline)
   eventEndpoint: "https://excellentnqtct-va.onrender.com/api/event",    // "call booked" (stops the book-your-call reminders)
