@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>PRNTR Calls</title>
+<script src="config.js"></script>
+<style>
+  :root { --cyan:#2AABE3; --teal:#219288; --ink:#020107; --card:rgba(15,15,31,.92); --line:rgba(42,171,227,.25);
+          --mute:#B9C3D6; --red:#ff6b6b; --grn:#3ddc97; --amb:#ffb648; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--ink); color:#fff; font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; line-height:1.5; }
+  main { max-width:860px; margin:0 auto; padding:24px 16px 60px; }
+  h1 { font-size:1.6rem; margin:0 0 4px; } h2 { font-size:1.05rem; margin:28px 0 10px; color:var(--mute); text-transform:uppercase; letter-spacing:.06em; }
+  small, .m { color:var(--mute); font-size:.85rem; }
+  .box { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:12px; }
+  .box.late { border-color:var(--red); } .box.done { opacity:.75; }
+  .tiles { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+  .t { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:10px 12px; }
+  .t span { display:block; color:var(--mute); font-size:.78rem; } .t b { font-size:1.3rem; font-variant-numeric:tabular-nums; }
+  .tag { display:inline-block; font-size:.72rem; font-weight:700; padding:2px 9px; border-radius:20px; margin-left:6px; vertical-align:middle; }
+  .red { background:rgba(255,107,107,.18); color:var(--red); } .grn { background:rgba(61,220,151,.15); color:var(--grn); }
+  .gry { background:rgba(185,195,214,.12); color:var(--mute); } .amb { background:rgba(255,182,72,.15); color:var(--amb); }
+  label { display:block; font-size:.8rem; color:var(--mute); margin:10px 0 3px; }
+  input, select, textarea { width:100%; background:#0b0b18; color:#fff; border:1px solid var(--line); border-radius:10px; padding:9px 10px; font:inherit; }
+  button { margin-top:12px; background:linear-gradient(135deg,#2AABE3,#219288); color:var(--ink); border:0; border-radius:30px; padding:10px 20px; font-weight:800; font:inherit; font-weight:800; cursor:pointer; }
+  button.ghost { background:transparent; color:var(--mute); border:1px solid var(--line); }
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline:2px solid var(--cyan); outline-offset:2px; }
+  #banner { display:none; border-radius:12px; padding:10px 14px; margin:14px 0; font-size:.9rem; }
+  #banner.warn { display:block; background:rgba(255,182,72,.12); border:1px solid var(--amb); color:var(--amb); }
+  #banner.ok { display:block; background:rgba(61,220,151,.1); border:1px solid var(--grn); color:var(--grn); }
+  .t small { display:block; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+  .q { white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<main>
+  <section id="login" class="box" hidden>
+    <h1>PRNTR calls</h1>
+    <p class="m">The closer's page. Enter your password.</p>
+    <form id="lf">
+      <label for="pw">Password</label>
+      <input id="pw" type="password" autocomplete="current-password" required>
+      <button>Open my calls</button>
+      <p id="lerr" class="m" style="color:var(--red)"></p>
+    </form>
+  </section>
+
+  <section id="app" hidden>
+    <div class="row">
+      <div><h1 id="who">Calls</h1><small id="rules"></small></div>
+      <button class="ghost" id="out" type="button">Log out</button>
+    </div>
+    <div id="banner"></div>
+    <h2>Last 30 days</h2>
+    <div class="tiles" id="tiles"></div>
+    <h2>Your calls</h2>
+    <div id="calls"></div>
+  </section>
+</main>
+<script>
+(function () {
+  var API = ((window.PRNTR && PRNTR.applyEndpoint) || "https://excellentnqtct-va.onrender.com/api/apply").replace(/\/api\/apply$/, "");
+  var K = { pw: "prntr_closer_pw", cache: "prntr_closer_cache", queue: "prntr_closer_queue" };
+  function get(k, d) { try { var v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } }
+  function put(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+  function $(s) { return document.querySelector(s); }
+  function esc(v) { return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function auth() { return "Basic " + btoa("closer:" + get(K.pw, "")); }
+  function when(ts) { return ts ? new Date(ts * 1000).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "time not known yet"; }
+  function pc(v) { return v == null ? "-" : Math.round(v) + "%"; }
+  function money(v) { return "$" + Number(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function banner(cls, txt) { var b = $("#banner"); b.className = cls; b.textContent = txt; if (!cls) b.style.display = "none"; else b.style.display = ""; }
+
+  function render(d, live) {
+    $("#login").hidden = true; $("#app").hidden = false;
+    $("#who").textContent = "Calls · " + d.name;
+    $("#rules").textContent = "Report every call within " + d.due_hours + " hours. Payments only through the Whop checkout links. Never promise income or results.";
+    var s = d.score, c = d.commission;
+    var tiles = [["Calls booked", s.booked], ["Reported", s.reported], ["Overdue reports", s.overdue], ["Show rate", pc(s.show_rate)],
+                 ["Close rate", pc(s.close_rate)], ["Recorded calls", pc(s.recorded_rate)],
+                 ["Commission payable", money(c.payable), c.pct + "% of cleared cash"], ["Commission pending", money(c.pending), "inside the refund window"]];
+    $("#tiles").innerHTML = tiles.map(function (t) { return '<div class="t"><span>' + esc(t[0]) + "</span><b>" + esc(t[1]) + "</b>" + (t[2] ? "<small>" + esc(t[2]) + "</small>" : "") + "</div>"; }).join("");
+    var q = get(K.queue, []), held = {};
+    q.forEach(function (r) { held[r.email] = r; });
+    var o = d.options;
+    function opts(m) { return Object.keys(m).map(function (k) { return '<option value="' + esc(k) + '">' + esc(m[k]) + "</option>"; }).join(""); }
+    var tiers = o.tiers.map(function (t) { return '<option value="' + esc(t) + '">' + esc(t) + "</option>"; }).join("");
+    $("#calls").innerHTML = d.calls.length ? d.calls.map(function (x) {
+      var a = x.app, h = held[x.email];
+      var tag = h ? '<span class="tag amb">report saved, sending…</span>' : x.reported ? '<span class="tag grn">reported: ' + esc(x.reported) + "</span>"
+              : x.overdue ? '<span class="tag red">REPORT OVERDUE</span>' : '<span class="tag gry">upcoming / to report</span>';
+      var form = (x.reported || h) ? "" :
+        '<form data-email="' + esc(x.email) + '">' +
+        '<label>Outcome</label><select name="outcome" required><option value="">Pick one</option>' + opts(o.outcomes) + "</select>" +
+        '<label>What they bought (if closed)</label><select name="sold"><option value="">-</option>' + tiers + "</select>" +
+        '<label>Objection (if they didn\'t buy)</label><select name="objection"><option value="">-</option>' + opts(o.objections) + "</select>" +
+        '<label>Recording link</label><input name="recording" placeholder="https://...">' +
+        '<label>Note</label><textarea name="note" rows="2"></textarea><button>Send report</button></form>';
+      return '<div class="box' + (x.overdue && !h ? " late" : (x.reported || h) ? " done" : "") + '"><b>' + esc(x.name || x.email) + "</b> · " + esc(when(x.call_ts)) + tag +
+        '<div class="m">' + esc(x.email) + (a.phone ? " · " + esc(a.phone) : "") + (a.instagram ? " · IG @" + esc(a.instagram) : "") +
+        " · budget " + esc(a.invest || "?") + " · fit " + esc(a.fit || "?") + " · trading: " + esc(a.stage_answer || "?") + "</div>" +
+        '<div class="q"><small>Struggle:</small> ' + esc(a.struggle || "-") + '</div><div class="q"><small>Goal:</small> ' + esc(a.goal || "-") + "</div>" + form + "</div>";
+    }).join("") : '<p class="m">No booked calls yet.</p>';
+    document.querySelectorAll("#calls form").forEach(function (f) { f.onsubmit = function (e) { e.preventDefault(); report(f); }; });
+    if (!live) banner("warn", "The server is restarting (about a minute). This is your last saved list" + (d.saved ? " from " + when(d.saved) : "") + ". Reports you send are kept and go through by themselves.");
+    else if (q.length) banner("warn", q.length + " report" + (q.length > 1 ? "s" : "") + " saved on this device, sending…");
+    else banner("", "");
+  }
+
+  function load() {
+    return fetch(API + "/api/closer/data", { headers: { Authorization: auth() }, cache: "no-store" }).then(function (r) {
+      if (r.status === 401) { del(K.pw); showLogin("Wrong password."); return null; }
+      if (!r.ok) throw new Error("down");
+      return r.json();
+    }).then(function (d) {
+      if (!d) return;
+      d.saved = Math.floor(Date.now() / 1000); put(K.cache, d); render(d, true);
+    }).catch(function () {
+      var c = get(K.cache, null);
+      if (c) render(c, false); else { $("#login").hidden = true; $("#app").hidden = false; banner("warn", "The server is restarting (about a minute). This page will load your calls by itself."); }
+    });
+  }
+
+  function report(f) {
+    var r = { email: f.getAttribute("data-email"), rid: Date.now().toString(36) + Math.random().toString(36).slice(2, 8) };
+    new FormData(f).forEach(function (v, k) { r[k] = v; });
+    if (!r.outcome) return;
+    var q = get(K.queue, []); q = q.filter(function (x) { return x.email !== r.email; }); q.push(r); put(K.queue, q);
+    flush(true);
+  }
+
+  var busy = false;
+  function flush(showNow) {
+    var q = get(K.queue, []);
+    if (busy || !q.length) { if (showNow) load(); return; }
+    busy = true;
+    var r = q[0];
+    fetch(API + "/api/closer/report", { method: "POST", headers: { "Content-Type": "application/json", Authorization: auth() }, body: JSON.stringify(r) })
+      .then(function (res) {
+        if (res.status >= 500 || res.status === 0) throw new Error("down");
+        return res.json().then(function (j) { return { code: res.status, j: j }; });
+      }).then(function (x) {
+        busy = false;
+        put(K.queue, get(K.queue, []).filter(function (y) { return y.rid !== r.rid; }));
+        if (x.code === 401) { del(K.pw); showLogin("Log in again to send your saved report."); return; }
+        if (!x.j.ok) alert("Report for " + r.email + " not saved: " + (x.j.why || "error") + ". Please send it again.");
+        if (get(K.queue, []).length) flush(true); else load();
+      }).catch(function () {
+        busy = false; var c = get(K.cache, null); if (c) render(c, false);
+      });
+  }
+
+  function showLogin(msg) { $("#app").hidden = true; $("#login").hidden = false; $("#lerr").textContent = msg || ""; $("#pw").focus(); }
+  $("#lf").onsubmit = function (e) { e.preventDefault(); put(K.pw, $("#pw").value); $("#pw").value = ""; load().then(function () { flush(false); }); };
+  $("#out").onclick = function () { del(K.pw); del(K.cache); showLogin(""); };
+
+  if (get(K.pw, "")) { load().then(function () { flush(false); }); } else showLogin("");
+  setInterval(function () { if (get(K.pw, "")) { if (get(K.queue, []).length) flush(false); else load(); } }, 30000);
+})();
+</script>
+</body>
+</html>
