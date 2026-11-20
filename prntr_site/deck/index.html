@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>PRNTR Mentorship Overview</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#04050c; --panel:#0e1226; --line:#263162; --text:#f2f4fc; --mute:#9aa6c8; --cyan:#2AABE3; --grn:#3ddc97; --red:#ff6b6b; --gold:#ffcc55; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; background:var(--ink); color:var(--text); font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif; }
+  .deck { height:100%; display:flex; align-items:center; justify-content:center; }
+  .slide { display:none; width:min(100vw, 177.78vh); height:min(56.25vw, 100vh); padding:4.2% 5.5% 5.2%; position:relative; flex-direction:column;
+           background:radial-gradient(120% 90% at 85% 0%, #131a3d 0%, var(--ink) 60%); font-size:min(1.55vw, 2.75vh); overflow:hidden; }
+  .slide.on { display:flex; }
+  .slide > :first-child { margin-top:auto; } .slide > :nth-last-child(2) { margin-bottom:auto; }
+  .eyebrow { color:var(--gold); font-weight:800; letter-spacing:.14em; font-size:.72em; text-transform:uppercase; }
+  h1 { font-size:3.3em; line-height:1.04; margin:.25em 0 .2em; font-weight:900; letter-spacing:-.02em; text-wrap:balance; }
+  h2 { font-size:2.15em; line-height:1.1; margin:.2em 0 .5em; font-weight:800; letter-spacing:-.01em; text-wrap:balance; }
+  p { margin:.3em 0; line-height:1.45; } .lead { font-size:1.3em; color:#d5dbf1; max-width:34em; }
+  .mute { color:var(--mute); } .cy { color:var(--cyan); } .gr { color:var(--grn); } .rd { color:var(--red); }
+  .grow { flex:1; min-height:0; display:flex; gap:3%; align-items:stretch; }
+  .col { flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center; gap:.7em; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:.9em; padding:.9em 1.1em; }
+  .card b.big { display:block; font-size:2.1em; font-weight:900; font-variant-numeric:tabular-nums; line-height:1.1; }
+  .cards3 { display:grid; grid-template-columns:repeat(3,1fr); gap:2.2%; }
+  .proof { display:grid; grid-template-columns:1.25fr 1fr 1fr; grid-template-rows:1fr 1fr; gap:2%; flex:1; min-height:0; }
+  .shot { background:#0a0d1c; border:1px solid var(--line); border-radius:.7em; overflow:hidden; display:flex; flex-direction:column; min-height:0; }
+  .shot img { flex:1; min-height:0; width:100%; object-fit:contain; background:#0a0d1c; }
+  .shot span { font-size:.72em; color:var(--mute); padding:.45em .7em; border-top:1px solid var(--line); }
+  .shot.tall { grid-row:1 / span 2; }
+  ol.steps { margin:0; padding:0; list-style:none; display:grid; gap:.5em; counter-reset:s; }
+  ol.steps li { counter-increment:s; display:flex; gap:.7em; align-items:baseline; font-size:1.02em; }
+  ol.steps li::before { content:counter(s); flex:0 0 1.7em; height:1.7em; border-radius:50%; background:var(--cyan); color:#02121c; font-weight:900;
+                        display:grid; place-items:center; font-size:.85em; transform:translateY(.2em); }
+  ul.ticks { margin:0; padding:0; list-style:none; display:grid; gap:.48em; font-size:1.08em; }
+  ul.ticks li { padding-left:1.5em; position:relative; } ul.ticks li::before { content:"✓"; position:absolute; left:0; color:var(--grn); font-weight:900; }
+  ul.ticks.no li::before { content:"✕"; color:var(--red); }
+  .chart { flex:1.25; min-width:0; display:flex; flex-direction:column; justify-content:center; }
+  .chart img { width:100%; border-radius:.7em; border:1px solid var(--line); }
+  .foot { position:absolute; left:5.5%; right:5.5%; bottom:2.2%; display:flex; justify-content:space-between; font-size:.6em; color:#6f7ba0; }
+  .price { font-size:4.2em; font-weight:900; letter-spacing:-.02em; line-height:1; }
+  .nav { position:fixed; right:14px; bottom:12px; display:flex; gap:6px; opacity:.5; }
+  .nav button { font:inherit; background:#141a36; color:var(--text); border:1px solid var(--line); border-radius:8px; padding:6px 12px; cursor:pointer; }
+  .nav button:focus-visible { outline:2px solid var(--cyan); }
+  @media print { .nav { display:none; } html, body { height:auto; } .deck { display:block; height:auto; }
+    .slide { display:flex !important; width:100vw; height:56.25vw; page-break-after:always; font-size:1.55vw; } @page { size:13.333in 7.5in; margin:0; } }
+</style>
+</head>
+<body>
+<div class="deck">
+
+<section class="slide on">
+  <div class="col" style="justify-content:center;flex:1">
+    <span class="eyebrow">PRNTR · 1-on-1 Leverage Trading Mentorship</span>
+    <h1>Trade leverage like a business, not a casino.</h1>
+    <p class="lead">90 days working 1-on-1 with the founder. You learn the exact setup he trades, and you leave with a written plan for your own account.</p>
+  </div>
+  <div class="foot"><span>PRNTR.AI</span><span>Education only, not financial advice.</span></div>
+</section>
+
+<section class="slide">
+  <span class="eyebrow">Who you'd be working with</span>
+  <h2>A former doctor who left pharmacy to trade full time.</h2>
+  <div class="cards3" style="margin-top:.6em">
+    <div class="card"><span class="mute">Started with</span><b class="big">$7,000</b><p class="mute">His last savings. Not a trade he'd tell anyone to copy.</p></div>
+    <div class="card"><span class="mute">That trade became</span><b class="big gr">over $1M</b><p class="mute">He walked away from medicine and never went back.</p></div>
+    <div class="card"><span class="mute">Since then</span><b class="big">7 figures</b><p class="mute">Trading crypto with leverage, memecoins and stocks.</p></div>
+  </div>
+  <p class="lead" style="margin-top:1.1em">What he did next is the part that matters: he turned how he trades into rules, and the rules into a bot that only fires when every rule passes.</p>
+  <div class="foot"><span>His results are his own and are not typical. Past results don't guarantee future results.</span><span>2</span></div>
+</section>
+
+<section class="slide">
+  <span class="eyebrow">His own trades · real accounts · dated</span>
+  <h2 style="margin-bottom:.35em">The proof is his own leverage trading.</h2>
+  <div class="proof">
+    <div class="shot tall"><img src="sol.png" alt="SOL long at 50x on Bitunix, plus 102.39 percent, with the PRNTR bot signal on the chart"><span>Apr 9, 2026 · SOL long, 50x · +102.39% · the bot's signal is on the chart</span></div>
+    <div class="shot"><img src="wbtc_long.png" alt="WBTC long at 10x, plus 86,372 dollars"><span>May 19, 2025 · WBTC long, 10x · +$86,372</span></div>
+    <div class="shot"><img src="wbtc_short.png" alt="WBTC short at 4.61x, plus 69,371 dollars"><span>May 16, 2025 · WBTC short, 4.61x · +$69,371</span></div>
+    <div class="shot"><img src="dusk.png" alt="DUSK short at 20x on BloFin, plus 81.16 percent"><span>Jul 8, 2025 · DUSK short, 20x · +81.16%</span></div>
+    <div class="shot"><img src="zen.png" alt="ZEN short at 35x on Bitunix, plus 43.52 percent"><span>Apr 17, 2026 · ZEN short, 35x · +43.52%</span></div>
+  </div>
+  <div class="foot"><span>His results are his own and are not typical. These are winning trades; he loses trades too. Leverage magnifies losses as well as gains.</span><span>3</span></div>
+</section>
+
+<section class="slide">
+  <span class="eyebrow">The real problem</span>
+  <h2>Most leveraged traders don't lose because they can't read a chart.</h2>
+  <div class="cards3" style="margin-top:.8em">
+    <div class="card"><b class="big rd">1</b><p style="font-size:1.25em;font-weight:700">They chase the entry.</p><p class="mute">Buying the candle that already moved, so the stop is too far and the reward is too small.</p></div>
+    <div class="card"><b class="big rd">2</b><p style="font-size:1.25em;font-weight:700">They move the stop.</p><p class="mute">To breakeven too early, or further away when it hurts.</p></div>
+    <div class="card"><b class="big rd">3</b><p style="font-size:1.25em;font-weight:700">They trade too big.</p><p class="mute">One loss wipes out a week of wins, or the account.</p></div>
+  </div>
+  <p class="lead" style="margin-top:1.1em">The mentorship fixes those 3 things, with rules you can check on every trade.</p>
+  <div class="foot"><span>PRNTR.AI</span><span>4</span></div>
+</section>
+
+<section class="slide">
+  <span class="eyebrow">The method · the PRNTR Press</span>
+  <div class="grow">
+    <div class="col">
+      <h2 style="margin:0 0 .4em">6 steps. Every one is a rule.</h2>
+      <ol class="steps">
+        <li><span><b>The Box.</b> Price goes sideways for at least a day.</span></li>
+        <li><span><b>The Final Fake-Out.</b> It breaks out, takes the stops, and closes back inside.</span></li>
+        <li><span><b>The Launch Pad.</b> The next push holds short of the fake-out.</span></li>
+        <li><span><b>The Trigger Line.</b> Price has to close past it twice.</span></li>
+        <li><span><b>The order.</b> A limit on the retest. Stop where the idea is wrong. Target several times the risk.</span></li>
+        <li><span><b>Leave it alone.</b> The loss is decided before the trade is on.</span></li>
+      </ol>
+    </div>
+    <div class="chart"><img src="chart.png" alt="A real BNB 30-minute chart with the Box, the Final Fake-Out, the Launch Pad, the Trigger Line and the trade marked">
+      <p class="mute" style="font-size:.7em;margin-top:.5em">BNB, 30-minute, July 12 2026. A real chart studied afterwards to show the steps, not a trade he took.</p></div>
+  </div>
+  <div class="foot"><span>PRNTR.AI</span><span>5</span></div>
+</section>
+
+<section class="slide">
+  <span class="eyebrow">Tested on 3 years of market data · after fees</span>
+  <h2>Each rule earns its place.</h2>
+  <div class="cards3" style="margin-top:.5em">
+    <div class="card"><span class="mute">Top-grade 30-minute setups</span><b class="big gr">+63.6R</b><p>55 trades · 44% won · about +1.16R a trade</p></div>
+    <div class="card"><span class="mute">Limit on the retest vs chasing</span><b class="big"><span class="gr">+79R</span> <span class="mute" style="font-size:.55em">vs +25R</span></b><p>Waiting for price to come back beat buying the breakout.</p></div>
+    <div class="card"><span class="mute">Hold to target vs breakeven stop</span><b class="big"><span class="gr">+80R</span> <span class="mute" style="font-size:.55em">vs +61R</span></b><p>Leaving the trade alone beat moving the stop.</p></div>
+  </div>
+  <p class="lead" style="margin-top:1em">More than half of the trades lost. It came out ahead because every loss is 1R, fixed in advance, and the winners are several times bigger.</p>
+  <div class="foot"><span>R = the amount risked on one trade. These are results from testing the rules on historical data, not live trading results, and they don't guarantee future results.</span><span>6</span></div>
+</section>
+
+<section class="slide">
+  <span class="eyebrow">What you get · 90 days</span>
+  <div class="grow">
+    <div class="col">
+      <h2 style="margin:0 0 .4em">His time, on your trades.</h2>
+      <ul class="ticks">
+        <li>A private 1-on-1 call every 2 weeks: 7 calls</li>
+        <li>Direct chat with him between calls</li>
+        <li>Your own trades reviewed, wins and losses</li>
+        <li>The full PRNTR Method course: lessons, workbook, slides</li>
+        <li>Every signal the bot sends, for the full 90 days</li>
+        <li>A written plan for your account by day 90</li>
+        <li>14 days to decide: a full refund if it isn't what was described</li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="card"><b style="font-size:1.1em">Weeks 1–4 · Foundations</b><p class="mute">Risk per trade, position size, the journal. The Box and the Final Fake-Out on real charts.</p></div>
+      <div class="card"><b style="font-size:1.1em">Weeks 5–8 · The Press, live</b><p class="mute">Grading setups, placing the order, managing trades. Every trade reviewed on the calls.</p></div>
+      <div class="card"><b style="font-size:1.1em">Weeks 9–12 · Your system</b><p class="mute">Your own written rules. You finish able to run it without him.</p></div>
+    </div>
+  </div>
+  <div class="foot"><span>PRNTR.AI</span><span>7</span></div>
+</section>
+
+<section class="slide">
+  <span class="eyebrow">Is it a fit?</span>
+  <div class="grow" style="margin-top:.6em">
+    <div class="col card" style="justify-content:flex-start">
+      <h2 style="font-size:1.6em;margin:.1em 0 .5em">It's for you if</h2>
+      <ul class="ticks">
+        <li>You've traded for 6 months or more</li>
+        <li>You've lost money on leverage, or made gains and given them back</li>
+        <li>You'll follow rules, even when it's boring</li>
+        <li>You can afford it without borrowing</li>
+      </ul>
+    </div>
+    <div class="col card" style="justify-content:flex-start">
+      <h2 style="font-size:1.6em;margin:.1em 0 .5em">It's not for you if</h2>
+      <ul class="ticks no">
+        <li>You want guaranteed returns</li>
+        <li>You'd be trading money you can't afford to lose</li>
+        <li>You only want signals to copy</li>
+        <li>You've never placed a trade (start with the course)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot"><span>PRNTR.AI</span><span>8</span></div>
+</section>
+
+<section class="slide">
+  <span class="eyebrow">The investment</span>
+  <div class="grow">
+    <div class="col">
+      <div class="price">$4,997</div>
+      <p class="lead">90 days, 1-on-1. Paid in full.</p>
+      <p style="font-size:1.25em">or <b>2 payments of $2,647</b><br>or <b>3 payments of $1,797</b></p>
+    </div>
+    <div class="col">
+      <div class="card"><b style="font-size:1.15em" class="gr">14 days to decide</b><p class="mute">If it isn't what was described, a full refund within 14 days and before your second call.</p></div>
+      <div class="card"><b style="font-size:1.15em">What's guaranteed is the work</b><p class="mute">7 calls, your trades reviewed, the full method. Not a result: nobody honest can promise that.</p></div>
+    </div>
+  </div>
+  <div class="foot"><span>Trading with leverage carries a high risk of loss. Most traders lose money. Education only, not financial advice.</span><span>9</span></div>
+</section>
+
+</div>
+<div class="nav"><button id="prev" aria-label="Previous slide">◀</button><button id="next" aria-label="Next slide">▶</button><button id="fs" aria-label="Full screen">⛶</button></div>
+<script>
+(function () {
+  var s = [].slice.call(document.querySelectorAll('.slide')), i = Math.max(0, Math.min(s.length - 1, (parseInt(location.hash.slice(1), 10) || 1) - 1));
+  function show(n) { i = Math.max(0, Math.min(s.length - 1, n)); s.forEach(function (x, k) { x.classList.toggle('on', k === i); }); history.replaceState(null, '', '#' + (i + 1)); }
+  document.getElementById('prev').onclick = function () { show(i - 1); };
+  document.getElementById('next').onclick = function () { show(i + 1); };
+  document.getElementById('fs').onclick = function () { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); };
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { show(i + 1); e.preventDefault(); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { show(i - 1); e.preventDefault(); }
+  });
+  document.querySelector('.deck').addEventListener('click', function (e) { if (e.target.closest('.nav')) return; show(i + (e.clientX < innerWidth * 0.3 ? -1 : 1)); });
+  show(i);
+})();
+</script>
+</body>
+</html>
