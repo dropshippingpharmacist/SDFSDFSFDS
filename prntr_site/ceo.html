@@ -140,9 +140,14 @@
     $("#login").hidden = true; $("#app").hidden = false;
     $("#asof").textContent = (d.days ? "Last " + d.days + " days" : "All time") + " · updated " + new Date(d.now * 1000).toLocaleString();
     var t = d.totals;
-    var tiles = [["People in the map", t.people], ["Free signups", t.signups], ["Started applying", t.started], ["Applied", t.applications],
+    var M = function (v) { return v == null ? "-" : money(v); };
+    var tiles = [["People in the map", t.people], ["New free signups", t.signups], ["Existing Whop members (imported, not new)", t.imported],
+      ["Signup → applied", pc(t.apply_rate)], ["Started applying", t.started], ["Applied", t.applications], ["Finished the application", pc(t.finish_rate)],
       ["Qualified for a call", t.qualified], ["Booked", t.booked], ["Book rate", pc(t.book_rate)], ["Showed", t.showed], ["Show rate", pc(t.show_rate)],
-      ["Closed", t.won], ["Close rate", pc(t.close_rate)], ["Cash collected", money(t.cash), 1], ["Average sale", t.aov ? money(t.aov) : "-", 1]];
+      ["No-shows", t.no_shows], ["No-show rate", pc(t.no_show_rate)], ["Got the offer", t.pitched], ["Offer rate (of calls)", pc(t.offer_rate)],
+      ["Closed", t.won], ["Close rate (of calls)", pc(t.close_rate)], ["Close rate (of offers)", pc(t.pitch_close_rate)], ["Paying customers", t.customers],
+      ["Cash collected", M(t.cash), 1], ["Contracted revenue", M(t.contract), 1], ["Cash collected vs contracted", pc(t.cash_to_rev)],
+      ["Paid in full", pc(t.pif_rate)], ["Cash per call taken", M(t.cash_per_call), 1], ["Average sale", t.aov ? money(t.aov) : "-", 1]];
     $("#tiles").innerHTML = tiles.map(function (x) { return '<div class="t' + (x[2] ? " money" : "") + '"><span>' + esc(x[0]) + "</span><b>" + esc(x[1] == null ? "-" : x[1]) + "</b></div>"; }).join("");
     var tree = $("#tree"); tree.innerHTML = ""; var ul = document.createElement("ul"); ul.appendChild(box(d.tree, null, 0)); tree.appendChild(ul);
     var ob = t.objections || {}, ks = Object.keys(ob);
