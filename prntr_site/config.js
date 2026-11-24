@@ -12,7 +12,7 @@ window.PRNTR = {
   applyEndpoint: "https://excellentnqtct-va.onrender.com/api/apply",    // every application is kept by the bot (see /pipeline)
   eventEndpoint: "https://excellentnqtct-va.onrender.com/api/event",    // "call booked" (stops the book-your-call reminders)
   formEndpoint: "",                                                      // optional extra copy: Formspree / Make / Zapier webhook
-  signalsDownsell: "https://whop.com/checkout/plan_qZhOsWsXKotvW",      // $199/month signals (Whop): NOT on the site, only offered on the call as a downsell
+  signalsDownsell: "https://whop.com/checkout/plan_qZhOsWsXKotvW",      // $199/month signals (Whop): on index.html#pricing with the course and the mentorship (owner 2026-11-24)
   instagram: "dropshippingpharmacist",                                  // without the @
   discord: "https://whop.com/checkout/plan_43Uz8O8LAJsKY",                // the free Discord, joined through Whop (we get the email)
   vslLanding: "https://www.youtube.com/embed/dkllBVYwXZA",              // replace with the 5-8 min "apply" video when recorded

@@ -175,6 +175,7 @@
 
     .price-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
     @media (min-width: 640px) { .price-grid { grid-template-columns: 1fr 1fr; } }
+    @media (min-width: 900px) { .price-grid.three { grid-template-columns: 1fr 1fr 1fr; } }
     .price { display: flex; flex-direction: column; gap: 0.5rem; }
     .price .amt { font-size: 2rem; line-height: 1.1; }
     .price .amt span { font-size: 0.9rem; font-weight: 600; color: var(--mute); }
