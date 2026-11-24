@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#05060d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PRNTR CEO">
+<title>PRNTR CEO</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<script src="/config.js"></script>
+<style>
+  :root { --ink:#05060d; --panel:#0d1020; --panel2:#121731; --line:#26305a; --text:#eef1fb; --mute:#97a3c4;
+          --cyan:#2AABE3; --grn:#3ddc97; --red:#ff6b6b; --amb:#ffb648; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { margin:0; background:var(--ink); color:var(--text); font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; line-height:1.4; }
+  header { position:sticky; top:0; z-index:5; background:rgba(5,6,13,.94); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+           padding:calc(env(safe-area-inset-top) + 10px) 16px 10px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  header h1 { font-size:1.05rem; margin:0; } header small { color:var(--mute); font-size:.72rem; display:block; }
+  main { padding:14px 16px calc(env(safe-area-inset-bottom) + 90px); max-width:720px; margin:0 auto; }
+  h2 { font-size:.72rem; text-transform:uppercase; letter-spacing:.09em; color:var(--mute); margin:22px 0 8px; }
+  .m { color:var(--mute); font-size:.82rem; }
+  button { font:inherit; cursor:pointer; border-radius:20px; border:1px solid var(--line); background:var(--panel); color:var(--text); padding:7px 14px; font-size:.85rem; }
+  button.on { background:var(--cyan); color:#02121c; border-color:var(--cyan); font-weight:700; }
+  button:focus-visible, input:focus-visible, a:focus-visible { outline:2px solid var(--cyan); outline-offset:2px; }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; }
+  .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  .t { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:11px 12px; min-width:0; }
+  .t span { display:block; color:var(--mute); font-size:.74rem; } .t b { font-size:1.35rem; font-variant-numeric:tabular-nums; }
+  .t.big { grid-column:1 / -1; } .t.big b { font-size:2rem; }
+  .g { color:var(--grn); } .r { color:var(--red); } .a { color:var(--amb); }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px; margin-bottom:10px; }
+  .row { display:flex; justify-content:space-between; gap:10px; align-items:baseline; }
+  .row + .row { margin-top:4px; }
+  .pill { display:inline-block; font-size:.7rem; font-weight:700; border-radius:10px; padding:2px 8px; background:var(--panel2); color:var(--mute); }
+  .pill.ok { background:rgba(61,220,151,.15); color:var(--grn); } .pill.bad { background:rgba(255,107,107,.15); color:var(--red); }
+  .pill.warn { background:rgba(255,182,72,.15); color:var(--amb); }
+  ul.list { list-style:none; margin:0; padding:0; }
+  ul.list li { padding:9px 0; border-bottom:1px solid var(--line); font-size:.9rem; }
+  ul.list li:last-child { border-bottom:0; }
+  details summary { cursor:pointer; list-style:none; } details summary::-webkit-details-marker { display:none; }
+  details .ans { margin-top:8px; font-size:.82rem; color:var(--mute); }
+  details .ans b { color:var(--text); font-weight:600; }
+  a { color:var(--cyan); }
+  .links { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  .links a { display:block; text-decoration:none; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px 12px; font-weight:600; }
+  .links a small { display:block; color:var(--mute); font-weight:400; font-size:.74rem; margin-top:2px; }
+  nav { position:fixed; left:0; right:0; bottom:0; z-index:6; background:rgba(13,16,32,.97); border-top:1px solid var(--line);
+        display:grid; grid-template-columns:repeat(5,1fr); padding:6px 4px calc(env(safe-area-inset-bottom) + 6px); }
+  nav button { border:0; background:none; border-radius:10px; padding:6px 2px; color:var(--mute); font-size:.7rem; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  nav button svg { width:22px; height:22px; }
+  nav button.on { color:var(--cyan); background:none; }
+  .login { max-width:360px; margin:12vh auto 0; text-align:center; }
+  .login img { width:72px; height:72px; border-radius:18px; }
+  .login input { width:100%; font:inherit; padding:12px 14px; border-radius:12px; border:1px solid var(--line); background:var(--panel); color:var(--text); margin:14px 0 10px; }
+  .login button { width:100%; padding:12px; background:var(--cyan); color:#02121c; border:0; font-weight:700; }
+  .err { color:var(--red); font-size:.85rem; min-height:1.2em; }
+  .tip { font-size:.8rem; color:var(--mute); margin-top:22px; text-align:left; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
+  [hidden] { display:none !important; }
+  @media (prefers-reduced-motion: no-preference) { .tab { animation:fade .18s ease-out; } @keyframes fade { from { opacity:0; transform:translateY(4px); } } }
+</style>
+</head>
+<body>
+
+<div class="login" id="login" hidden>
+  <img src="icon-192.png" alt="">
+  <h1 style="margin:14px 0 4px">PRNTR CEO</h1>
+  <p class="m">The same password as your CEO map.</p>
+  <form id="lf"><input id="pw" type="password" autocomplete="current-password" placeholder="Owner password" aria-label="Owner password"><button type="submit">Open</button></form>
+  <p class="err" id="err" role="alert"></p>
+  <div class="tip"><b>Put it on your home screen:</b> iPhone: Safari → Share → Add to Home Screen. Android: Chrome → ⋮ → Install app.</div>
+</div>
+
+<div id="app" hidden>
+  <header>
+    <div><h1 id="title">Today</h1><small id="asof">Loading…</small></div>
+    <button id="refresh" aria-label="Refresh">↻</button>
+  </header>
+  <main>
+    <!-- HOME -->
+    <section class="tab" id="t-home">
+      <div class="chips" id="period" role="group" aria-label="Period">
+        <button data-d="7">7 days</button><button data-d="30" class="on">30 days</button><button data-d="90">90 days</button><button data-d="0">All time</button>
+      </div>
+      <h2>Money</h2>
+      <div class="grid" id="money"></div>
+      <h2>Next call</h2>
+      <div class="card" id="nextcall"><span class="m">Loading…</span></div>
+      <h2>Bots</h2>
+      <div class="grid" id="botsum"></div>
+      <h2>What the numbers say</h2>
+      <div class="card"><ul class="list" id="advice"></ul></div>
+    </section>
+
+    <!-- FUNNEL -->
+    <section class="tab" id="t-funnel" hidden>
+      <h2>From signup to paid</h2>
+      <div class="grid" id="funnel"></div>
+      <h2>Why people didn't buy</h2>
+      <div class="card"><ul class="list" id="obj"></ul></div>
+      <h2>Closer</h2>
+      <div class="card" id="closer"></div>
+      <p><a href="/ceo.html">Open the full command map (every source and link) →</a></p>
+    </section>
+
+    <!-- CALLS -->
+    <section class="tab" id="t-calls" hidden>
+      <h2>Upcoming</h2>
+      <div id="upcoming"></div>
+      <h2>Past 30 days</h2>
+      <div id="past"></div>
+    </section>
+
+    <!-- BOTS -->
+    <section class="tab" id="t-bots" hidden>
+      <h2>NQ bot (paper)</h2>
+      <div class="card" id="nq"></div>
+      <h2>NQ daily range</h2>
+      <div class="card"><ul class="list" id="dr"></ul></div>
+      <h2>NQ engine trades (2R)</h2>
+      <div class="card"><ul class="list" id="nqrecent"></ul></div>
+      <h2>Crypto signals (public record)</h2>
+      <div class="card" id="crypto"></div>
+    </section>
+
+    <!-- LINKS -->
+    <section class="tab" id="t-links" hidden>
+      <h2>Run the business</h2>
+      <div class="links" id="links"></div>
+      <h2>Account</h2>
+      <button id="out">Log out on this phone</button>
+    </section>
+  </main>
+
+  <nav aria-label="Sections">
+    <button data-t="home" class="on" aria-label="Today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Today</button>
+    <button data-t="funnel" aria-label="Funnel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h18l-7 8v6l-4 2v-8z"/></svg>Funnel</button>
+    <button data-t="calls" aria-label="Calls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Calls</button>
+    <button data-t="bots" aria-label="Bots"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19l5-6 4 3 7-9"/><path d="M4 4v15h16"/></svg>Bots</button>
+    <button data-t="links" aria-label="Links"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>Links</button>
+  </nav>
+</div>
+
+<script>
+(function () {
+  var P = window.PRNTR || {};
+  var API = (P.applyEndpoint || "https://excellentnqtct-va.onrender.com/api/apply").replace(/\/api\/apply$/, "");
+  var NQ = "https://tct-nq-bot.onrender.com/health";
+  var TRACK = API + "/api/public/track";
+  var KP = "prntr_ceo_pw", KC = "prntr_app_cache_", days = 30, state = {};
+  var TITLES = { home: "Today", funnel: "Funnel", calls: "Calls", bots: "Bots", links: "Links" };
+
+  function get(k, d) { try { var v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } }
+  function put(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+  function $(s) { return document.querySelector(s); }
+  function esc(v) { return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function money(v) { return v == null ? "-" : "$" + Math.round(Number(v || 0)).toLocaleString(); }
+  function pc(v) { return v == null ? "-" : Math.round(v) + "%"; }
+  function R(v) { return v == null ? "-" : (v > 0 ? "+" : "") + Number(v).toFixed(2) + "R"; }
+  function cls(v) { return v > 0 ? "g" : v < 0 ? "r" : ""; }
+  function when(ts) { if (!ts) return "-"; var d = new Date(ts * 1000); return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) + " · " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }); }
+  function tile(label, val, extra, vc) { return '<div class="t' + (extra || "") + '"><span>' + esc(label) + '</span><b class="' + (vc || "") + '">' + val + "</b></div>"; }
+  function auth() { return { Authorization: "Basic " + btoa("owner:" + get(KP, "")) }; }
+
+  // ---------- data
+  function j(url, opts) {
+    return fetch(url, Object.assign({ cache: "no-store" }, opts || {})).then(function (r) {
+      if (r.status === 401) { var e = new Error("auth"); e.auth = true; throw e; }
+      if (!r.ok) throw new Error(r.status);
+      return r.json();
+    });
+  }
+  function pull(key, url, opts) {                   // network first, the last good copy when the server is restarting
+    return j(url, opts).then(function (d) { put(KC + key, d); state[key] = d; return d; })
+      .catch(function (e) { if (e.auth) throw e; var c = get(KC + key, null); state[key] = c; if (c) c._stale = true; return c; });
+  }
+  function load() {
+    $("#asof").textContent = "Updating…";
+    return Promise.all([
+      pull("map" + days, API + "/api/ceo/map" + (days ? "?days=" + days : ""), { headers: auth() }),
+      pull("calls", API + "/api/closer/data", { headers: auth() }),
+      pull("nq", NQ),
+      pull("track", TRACK)
+    ]).then(function () { show(); render(); })
+      .catch(function (e) { if (e.auth) { del(KP); login("Wrong password."); } else { show(); render(); } });
+  }
+
+  // ---------- views
+  function render() {
+    var m = state["map" + days], t = (m && m.totals) || {};
+    var stale = ["map" + days, "calls", "nq"].some(function (k) { return state[k] && state[k]._stale; });
+    $("#asof").textContent = (m ? "Updated " + new Date(m.now * 1000).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : "No data yet") + (stale ? " · server restarting, last saved" : "");
+
+    // home: money
+    $("#money").innerHTML = m ? [
+      tile("Cash collected", money(t.cash), " big", "g"),
+      tile("Contracted", money(t.contract)), tile("Average sale", t.aov ? money(t.aov) : "-"),
+      tile("Applications", t.applications == null ? "-" : t.applications), tile("Calls booked", t.booked == null ? "-" : t.booked),
+      tile("Closed", t.won == null ? "-" : t.won), tile("Close rate", pc(t.close_rate))
+    ].join("") : '<p class="m">Couldn\'t load the numbers.</p>';
+
+    // home: next call
+    var calls = ((state.calls || {}).calls || []).slice(), now = Date.now() / 1000;
+    var up = calls.filter(function (c) { return c.call_ts && c.call_ts >= now - 3600; }).sort(function (a, b) { return a.call_ts - b.call_ts; });
+    var past = calls.filter(function (c) { return !c.call_ts || c.call_ts < now - 3600; }).sort(function (a, b) { return (b.call_ts || 0) - (a.call_ts || 0); });
+    $("#nextcall").innerHTML = up.length ? '<div class="row"><b>' + esc(up[0].name || up[0].email) + '</b><span class="pill ' + (up[0].confirmed ? "ok" : "warn") + '">' + (up[0].confirmed ? "confirmed" : "not confirmed") + '</span></div><div class="m">' + when(up[0].call_ts) + (up.length > 1 ? " · " + (up.length - 1) + " more booked" : "") + "</div>" : '<span class="m">No calls booked.</span>';
+
+    // home: bots summary
+    var nq = state.nq || {}, tr = state.track || {}, closed = (tr.trades || []).filter(function (x) { return x.result === "win" || x.result === "loss"; });
+    var won = closed.filter(function (x) { return x.result === "win"; }).length;
+    var live = nq.last_candle && Object.keys(nq.last_candle).length && !nq.delayed;
+    var nt = nq.today_trades || 0;
+    $("#botsum").innerHTML = tile("NQ bot", state.nq ? (live ? "Live" : nq.delayed ? "Data delayed" : "Waiting") : "Offline", "", live ? "g" : "r") +
+      tile("NQ today · " + nt + (nt === 1 ? " trade" : " trades"), R(nq.today_R), "", cls(nq.today_R)) +
+      tile("Crypto record", closed.length ? won + "/" + closed.length + " won" : (tr.warming ? "Loading" : "-")) +
+      tile("Crypto win rate", closed.length ? pc(100 * won / closed.length) : "-");
+
+    $("#advice").innerHTML = (t.advice || []).length ? t.advice.map(function (a) { return "<li>" + esc(a) + "</li>"; }).join("") : '<li class="m">Advice starts once there are 10 calls.</li>';
+
+    // funnel
+    $("#funnel").innerHTML = m ? [["New free signups", t.signups], ["Applied", t.applications], ["Finished application", pc(t.finish_rate)],
+      ["Qualified for a call", t.qualified], ["Booked", t.booked], ["Book rate", pc(t.book_rate)], ["Showed", t.showed], ["Show rate", pc(t.show_rate)],
+      ["No-shows", t.no_shows], ["Got the offer", t.pitched], ["Closed", t.won], ["Close rate (calls)", pc(t.close_rate)],
+      ["Paid in full", pc(t.pif_rate)], ["Cash per call", money(t.cash_per_call)]]
+      .map(function (x) { return tile(x[0], esc(x[1] == null ? "-" : x[1])); }).join("") : "";
+    var ob = t.objections || {}, ks = Object.keys(ob);
+    $("#obj").innerHTML = ks.length ? ks.map(function (k) { return '<li class="row"><span>' + esc(k) + "</span><b>" + ob[k] + "</b></li>"; }).join("") : '<li class="m">None reported yet.</li>';
+    var c = t.closer;
+    $("#closer").innerHTML = c ? '<div class="row"><b>' + esc(c.name) + '</b><span class="pill ' + (c.overdue ? "bad" : "ok") + '">' + (c.overdue ? c.overdue + " reports overdue" : "reports up to date") + '</span></div><div class="m">Booked ' + c.booked + " · reported " + c.reported + " · close rate " + pc(c.close_rate) + "</div>" : '<span class="m">No closer data.</span>';
+
+    // calls
+    function callCard(x) {
+      var a = x.app || {}, tag = x.reported ? '<span class="pill">' + esc(x.reported) + "</span>" : x.overdue ? '<span class="pill bad">report overdue</span>' : x.confirmed ? '<span class="pill ok">confirmed</span>' : '<span class="pill warn">not confirmed</span>';
+      var ans = [["Budget", a.invest], ["Fit", a.fit], ["Stage", a.stage_answer], ["Struggle", a.struggle], ["Goal", a.goal]].filter(function (q) { return q[1]; })
+        .map(function (q) { return "<div><b>" + q[0] + ":</b> " + esc(q[1]) + "</div>"; }).join("");
+      var reach = (a.phone ? '<a href="tel:' + esc(a.phone) + '">Call</a> · <a href="sms:' + esc(a.phone) + '">Text</a>' : "") +
+        (a.instagram ? (a.phone ? " · " : "") + '<a href="https://instagram.com/' + esc(String(a.instagram).replace(/^@/, "")) + '" target="_blank" rel="noopener">Instagram</a>' : "");
+      return '<details class="card"><summary><div class="row"><b>' + esc(x.name || x.email) + "</b>" + tag + '</div><div class="m">' + when(x.call_ts) + "</div></summary>" +
+        '<div class="ans">' + (ans || "No application answers.") + (reach ? '<div style="margin-top:6px">' + reach + "</div>" : "") + '<div class="m" style="margin-top:6px">' + esc(x.email) + "</div></div></details>";
+    }
+    $("#upcoming").innerHTML = up.length ? up.map(callCard).join("") : '<p class="m">No calls booked.</p>';
+    $("#past").innerHTML = past.length ? past.slice(0, 30).map(callCard).join("") : '<p class="m">No past calls.</p>';
+
+    // bots: NQ
+    var lc = nq.last_candle || {}, lastNq = lc["NQ1!"];
+    $("#nq").innerHTML = state.nq ? '<div class="row"><b>Status</b><span class="pill ' + (live ? "ok" : "bad") + '">' + (live ? "live" : nq.delayed ? "data delayed" : "no candles yet") + "</span></div>" +
+      '<div class="row"><span class="m">Last candle</span><span>' + esc(lastNq ? new Date(lastNq.replace(" ", "T")).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : "-") + "</span></div>" +
+      '<div class="row"><span class="m">Open trade / resting limit</span><span>' + (nq.open ? "open" : "none") + " / " + (nq.pending ? "yes" : "no") + "</span></div>" +
+      '<div class="row"><span class="m">Today</span><b class="' + cls(nq.today_R) + '">' + R(nq.today_R) + " · " + (nq.today_trades || 0) + ((nq.today_trades || 0) === 1 ? " trade" : " trades") + "</b></div>" +
+      '<div class="row"><span class="m">Telegram alerts</span><span>' + (nq.telegram ? "on" : "off") + "</span></div>" : '<span class="m">The NQ bot isn\'t answering. It may be restarting.</span>';
+    var dr = nq.daily_range || [];
+    $("#dr").innerHTML = dr.length ? dr.map(function (x) { return '<li class="row"><span>' + esc(x.d) + " · " + (x.side === "S" ? "short" : "long") + '</span><b class="' + cls(x.r) + '">' + esc(x.result) + " " + R(x.r) + "</b></li>"; }).join("") : '<li class="m">No daily-range trades closed yet.</li>';
+    var rc = nq.recent || [];
+    $("#nqrecent").innerHTML = rc.length ? rc.map(function (x) { return '<li class="row"><span>' + esc(x.model) + " " + (x.side === "S" ? "short" : "long") + " · " + esc(String(x.closed || "").slice(5, 16)) + '</span><b class="' + cls(x.r) + '">' + esc(x.result) + " " + R(x.r) + "</b></li>"; }).join("") : '<li class="m">No engine trades closed since the last restart.</li>';
+
+    // bots: crypto
+    $("#crypto").innerHTML = closed.length ? '<div class="row"><b>' + won + " won · " + (closed.length - won) + ' lost</b><span class="pill ok">' + pc(100 * won / closed.length) + '</span></div><ul class="list" style="margin-top:6px">' +
+      closed.slice(0, 12).map(function (x) { return '<li class="row"><span>' + esc(x.symbol) + " " + esc(x.side) + '</span><b class="' + (x.result === "win" ? "g" : "r") + '">' + esc(x.result) + "</b></li>"; }).join("") + "</ul>"
+      : '<span class="m">' + (tr.warming ? "The record is loading on the server. Refresh in a minute." : "No closed crypto signals yet.") + "</span>";
+
+    // links
+    var L = [["prntru.com", "The website", "https://prntru.com"], ["Command map", "Every source → paid", "/ceo.html"],
+      ["Closer page", "Calls and reports", "/closer.html"], ["Calendly", "The call calendar", "https://calendly.com/app/scheduled_events/user/me"],
+      ["Whop", "Payments and members", "https://whop.com/dashboard"], ["Render", "The bots' servers", "https://dashboard.render.com"],
+      ["Telegram", "Bot alerts", "https://t.me"], ["TradingView", "Charts", "https://www.tradingview.com/chart/"],
+      ["YouTube Studio", "Videos", "https://studio.youtube.com"], ["Instagram", "@" + (P.instagram || ""), "https://instagram.com/" + (P.instagram || "")]];
+    $("#links").innerHTML = L.map(function (l) { return '<a href="' + esc(l[2]) + '"' + (/^https?:/.test(l[2]) ? ' target="_blank" rel="noopener"' : "") + ">" + esc(l[0]) + "<small>" + esc(l[1]) + "</small></a>"; }).join("");
+  }
+
+  // ---------- shell
+  function show() { $("#login").hidden = true; $("#app").hidden = false; }
+  function login(msg) { $("#app").hidden = true; $("#login").hidden = false; $("#err").textContent = msg || ""; }
+  function tab(name) {
+    document.querySelectorAll("nav button").forEach(function (b) { var on = b.dataset.t === name; b.classList.toggle("on", on); b.setAttribute("aria-current", on ? "page" : "false"); });
+    document.querySelectorAll(".tab").forEach(function (s) { s.hidden = s.id !== "t-" + name; });
+    $("#title").textContent = TITLES[name]; put("prntr_app_tab", name); window.scrollTo(0, 0);
+  }
+  document.querySelectorAll("nav button").forEach(function (b) { b.onclick = function () { tab(b.dataset.t); }; });
+  document.querySelectorAll("#period button").forEach(function (b) {
+    b.onclick = function () { document.querySelectorAll("#period button").forEach(function (x) { x.classList.toggle("on", x === b); }); days = +b.dataset.d; load(); };
+  });
+  $("#lf").onsubmit = function (e) { e.preventDefault(); put(KP, $("#pw").value); $("#pw").value = ""; load(); };
+  $("#refresh").onclick = load;
+  $("#out").onclick = function () { Object.keys(localStorage).forEach(function (k) { if (k.indexOf("prntr_app") === 0 || k === KP) del(k); }); login(""); };
+  document.addEventListener("visibilitychange", function () { if (!document.hidden && get(KP, "")) load(); });   // fresh numbers on every open
+  setInterval(function () { if (!document.hidden && get(KP, "")) load(); }, 60000);
+  tab(get("prntr_app_tab", "home"));
+  if (get(KP, "")) load(); else login("");
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
+})();
+</script>
+</body>
+</html>
