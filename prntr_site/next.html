@@ -33,20 +33,6 @@
     <div class="row-btns"><a class="btn btn-main" href="course.html?src=next">See the course</a></div>
   </section>
 
-  <section class="box center offer">
-    <h2>PRNTR Signals</h2>
-    <p>Every setup my bot sends, the moment it confirms: market, entry, stop and target, sized so one loss stays small.</p>
-    <div class="price">$199 <small>/ month · cancel any time</small></div>
-    <ul class="incl">
-      <li>Unlimited signals: crypto, forex, indices, metals, oil and stocks</li>
-      <li>The chart for every signal, so you see what it saw</li>
-      <li>The free playbook's risk rules, so you size every one the same way</li>
-    </ul>
-    <div class="row-btns"><a class="btn btn-main" id="sigBtn" href="#" target="_blank" rel="noopener">Start the signals</a></div>
-    <p><a class="plan-alt" href="https://whop.com/checkout/plan_37VVXYkQwQwfz" target="_blank" rel="noopener">or weekly · $35</a> · <a class="plan-alt" href="https://whop.com/checkout/plan_OPmpTjZTw9J6o" target="_blank" rel="noopener">a 1-day pass · $9.99</a></p>
-    <p class="small mute" id="sigNote">Signals are education, not advice. Some lose, and leverage makes losses bigger too.</p>
-  </section>
-
   <section class="box center">
     <h2>And for free</h2>
     <p>The free Discord has the closed-trade recaps (wins and losses) and breakdowns. The playbook is free too: <b>DM me PRINTER</b> on Instagram.</p>
@@ -69,9 +55,6 @@
     var a = {}; try { a = JSON.parse(sessionStorage.getItem('prntr_app') || '{}'); } catch (e) {}
     if (a.name) document.getElementById('title').textContent = 'Thanks, ' + a.name + ". Here's where I'd start";
     document.getElementById('discordLink').href = PRNTR.discord;
-    var b = document.getElementById('sigBtn'), u = PRNTR.signalsDownsell || '';
-    if (u) { b.href = u; }
-    else { b.href = 'https://ig.me/m/' + PRNTR.instagram; b.textContent = 'DM me SIGNALS on Instagram'; }
   })();
 </script>
 </body>
