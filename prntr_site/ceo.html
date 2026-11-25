@@ -6,6 +6,8 @@
 <meta name="robots" content="noindex,nofollow">
 <title>PRNTR Command Map</title>
 <script src="config.js"></script>
+<link rel="stylesheet" href="hub.css">
+<script src="hub.js"></script>
 <style>
   :root { --ink:#05060d; --panel:#0d1020; --panel2:#121731; --line:#26305a; --wire:#3a4a86; --text:#eef1fb; --mute:#97a3c4;
           --cyan:#2AABE3; --grn:#3ddc97; --red:#ff6b6b; --amb:#ffb648; --vio:#8b7cff; }
@@ -61,6 +63,20 @@
   #login { max-width:380px; margin:60px auto; } #login input { width:100%; padding:10px; border-radius:10px; border:1px solid var(--line); background:var(--ink); color:var(--text); font:inherit; margin:8px 0; }
   #login button { width:100%; background:var(--cyan); color:#02121c; font-weight:800; border:0; padding:10px; }
   #err { color:var(--red); }
+  .jump { position:sticky; top:0; z-index:4; background:rgba(5,6,13,.95); backdrop-filter:blur(6px); padding:8px 0; margin:10px 0 0; border-bottom:1px solid var(--line);
+          display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; }
+  .jump::-webkit-scrollbar { display:none; }
+  .jump a { flex:none; color:var(--mute); text-decoration:none; font-size:.8rem; border:1px solid var(--line); border-radius:16px; padding:5px 11px; background:var(--panel); }
+  .jump a:hover { color:var(--text); border-color:var(--cyan); }
+  .jump a.hot { color:var(--red); border-color:rgba(255,107,107,.6); }
+  section.s { scroll-margin-top:56px; }
+  .two { display:grid; grid-template-columns:1fr; gap:0 18px; }
+  @media (min-width:1000px) { .two { grid-template-columns:1fr 1fr; } #h-people .hb-plist { display:grid; grid-template-columns:1fr 1fr; gap:0 10px; align-items:start; } #h-people .hb-plist > .hb-sub, #h-people .hb-plist > .hb-more, #h-people .hb-plist > .hb-empty { grid-column:1 / -1; } }
+  #hubwarn { color:var(--amb); }
+  .lnk { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:10px; }
+  .lnk a { display:block; text-decoration:none; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px; font-weight:600; }
+  .lnk a small { display:block; color:var(--mute); font-weight:400; }
+  @media (max-width:700px) { .bar { align-items:flex-start; } #period { width:100%; } }
 </style>
 </head>
 <body>
@@ -81,8 +97,34 @@
       </div>
     </div>
 
+    <nav class="jump" aria-label="Jump to">
+      <a href="#s-tgt">Targets</a><a href="#s-att" id="j-att">Needs attention</a><a href="#s-num">Numbers</a><a href="#s-fu">Follow-ups</a>
+      <a href="#s-people">People</a><a href="#s-calls">Calls</a><a href="#s-money">Money</a><a href="#s-kpi">Every number</a><a href="#s-map">Map</a>
+      <a href="#s-closer">Closer</a><a href="#s-rev">Call reviews</a><a href="#s-stories">Stories</a><a href="#s-setup">Setup</a>
+    </nav>
+    <p id="hubwarn" class="m" hidden></p>
+
+    <section class="s" id="s-tgt"><h2>Targets</h2><div id="h-tgt"></div></section>
+    <section class="s" id="s-att"><h2>Needs attention</h2><div id="h-att"><p class="m">Loading…</p></div></section>
+
+    <section class="s" id="s-num">
     <h2>The numbers</h2>
     <div class="tiles" id="tiles"></div>
+    </section>
+
+    <div class="two">
+      <section class="s" id="s-fu"><h2>Follow-ups</h2><div id="h-fu"></div></section>
+      <section class="s" id="s-calls"><h2>Calls coming up</h2><div id="h-up"></div><h2>Past calls (report the outcome)</h2><div id="h-past"></div></section>
+    </div>
+
+    <section class="s" id="s-people"><h2>People (every application)</h2><div id="h-people"></div></section>
+
+    <div class="two">
+      <section class="s" id="s-money"><h2>Money and payments</h2><div id="h-money"></div></section>
+      <section class="s" id="s-kpi"><h2>Every number</h2><div id="h-num"></div></section>
+    </div>
+
+    <section class="s" id="s-map">
 
     <h2>Where everyone comes from, and what happens next</h2>
     <div class="legend">
@@ -94,11 +136,32 @@
     </div>
     <div class="chips" style="margin-bottom:10px"><button id="openall" type="button">Open everything</button><button id="closeall" type="button">Sources only</button></div>
     <div class="scroll"><div class="tree" id="tree"></div></div>
+    </section>
 
     <div class="cols" style="margin-top:16px">
       <div class="card"><h2 style="margin-top:0">Why people didn't buy</h2><ul id="obj"></ul></div>
       <div class="card"><h2 style="margin-top:0">Closer</h2><div id="closer"></div></div>
       <div class="card"><h2 style="margin-top:0">What the numbers say</h2><ul id="adv"></ul></div>
+    </div>
+
+    <div class="two">
+      <section class="s" id="s-closer"><h2>Closer (owner's view)</h2><div id="h-closer"></div></section>
+      <section class="s" id="s-rev"><h2>Call reviews (AI, against the call script)</h2><div id="h-rev"></div></section>
+    </div>
+    <div class="two">
+      <section class="s" id="s-stories"><h2>Student stories</h2><div id="h-stories"></div></section>
+      <section class="s" id="s-research"><h2>Why they bought (post-purchase form)</h2><div id="h-research"></div></section>
+    </div>
+    <div class="two">
+      <section class="s" id="s-setup"><h2>Setup (on Render)</h2><div id="h-setup"></div></section>
+      <section class="s"><h2>Downloads</h2><div id="h-dl"></div>
+        <h2>Links</h2><div class="lnk">
+          <a href="/app/">Phone app<small>the same hub, made for your phone</small></a>
+          <a href="/closer.html">Closer page<small>what the closer sees</small></a>
+          <a href="https://whop.com/dashboard" target="_blank" rel="noopener">Whop<small>payments and members</small></a>
+          <a href="https://calendly.com/app/scheduled_events/user/me" target="_blank" rel="noopener">Calendly<small>the call calendar</small></a>
+          <a id="pipelink" href="#" target="_blank" rel="noopener">/pipeline (fallback)<small>the old page, still works</small></a>
+        </div></section>
     </div>
   </section>
 </main>
@@ -157,7 +220,28 @@
     $("#adv").innerHTML = (t.advice || []).length ? t.advice.map(function (a) { return "<li>" + esc(a) + "</li>"; }).join("") : '<li class="m">Not enough calls yet for advice (it starts at 10).</li>';
   }
 
+  var HUB = window.PRNTRHub, authH = function () { return { Authorization: "Basic " + btoa("owner:" + get(KP, "")) }; };
+  HUB.init({ api: API, auth: authH, reload: function () { loadHub(); }, showPeople: function () {} });
+  $("#pipelink").href = API + "/pipeline";
+  function renderHub(h, stale) {
+    HUB.set(h);
+    HUB.attention("h-att"); HUB.targets("h-tgt"); HUB.followups("h-fu"); HUB.people("h-people"); HUB.money("h-money");
+    HUB.numbers("h-num"); HUB.closer("h-closer"); HUB.reviews("h-rev"); HUB.stories("h-stories"); HUB.research("h-research");
+    HUB.setup("h-setup"); HUB.downloads("h-dl");
+    var n = (h.attention || []).length, j = $("#j-att"); j.textContent = "Needs attention" + (n ? " (" + n + ")" : ""); j.classList.toggle("hot", !!n);
+    var w = $("#hubwarn"); w.hidden = !stale; w.textContent = stale ? "The server is restarting: the lists below are the last saved copy. Changes can't be saved until it's back." : "";
+  }
+  function loadHub() {
+    var H = authH();
+    fetch(API + "/api/closer/data", { headers: H, cache: "no-store" }).then(function (r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function (c) { put(KC + "calls", c); HUB.calls("h-up", "h-past", c); })
+      .catch(function () { var c = get(KC + "calls", null); if (c) HUB.calls("h-up", "h-past", c); });
+    return fetch(HUB.url(days), { headers: H, cache: "no-store" }).then(function (r) { if (r.status === 401) return null; if (!r.ok) throw 0; return r.json(); })
+      .then(function (h) { if (h) { put(KC + "hub" + days, h); renderHub(h, false); } })
+      .catch(function () { var c = get(KC + "hub" + days, null); if (c) renderHub(c, true); else { $("#h-att").innerHTML = '<p class="m">The server is restarting. The lists load by themselves in a minute.</p>'; } });
+  }
   function load() {
+    loadHub();
     return fetch(API + "/api/ceo/map" + (days ? "?days=" + days : ""), { headers: { Authorization: "Basic " + btoa("owner:" + get(KP, "")) }, cache: "no-store" })
       .then(function (r) { if (r.status === 401) { del(KP); show("Wrong password."); return null; } if (!r.ok) throw 0; return r.json(); })
       .then(function (d) { if (d) { put(KC + days, d); render(d); } })
