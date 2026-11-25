@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Where to Start · PRNTR.AI</title>
+  <title>Your Private Invite · PRNTR.AI</title>
   <meta name="robots" content="noindex, nofollow">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
@@ -17,11 +17,18 @@
 <div class="container">
   <div class="topbar"><a href="index.html"><img src="https://cdn.shopify.com/s/files/1/0666/2252/1419/files/banner.jpg?v=1777219122" alt="PRNTR.AI"></a></div>
 
-  <span class="eyebrow">YOUR NEXT STEP</span>
-  <h1 style="font-size:2rem;" id="title">Here's where I'd start</h1>
-  <p class="lead">I read every application. From your answers, the 1-on-1 isn't the right step yet, and I'd rather tell you that than sell you something you don't need. This is what I'd do in your spot.</p>
+  <span class="eyebrow">PRIVATE INVITE</span>
+  <h1 style="font-size:2rem;" id="title">You're invited</h1>
+  <p class="lead">I read every application myself. For where you are right now, a call isn't the step I'd start with. That's about timing, not about you. So instead of a calendar, I made you this page: what I'd do in your spot, and a direct line to me.</p>
 
-  <section class="box glow center offer">
+  <section class="box glow center">
+    <h2>Want to talk first?</h2>
+    <p>DM me <b>Interested</b> on Instagram and I'll answer it myself. Or reply <b>Interested</b> to the email I just sent you.</p>
+    <div class="row-btns"><a class="btn btn-main" id="dmLink" href="#" target="_blank" rel="noopener">DM me "Interested"</a></div>
+    <p class="small mute">On Instagram: <a class="ig-link ig-handle" href="#" target="_blank" rel="noopener">@instagram</a></p>
+  </section>
+
+  <section class="box center offer">
     <h2>The PRNTR Press Course</h2>
     <p>The exact setup my bot trades, step by step at your own pace: entry, stop, size, and when to leave a trade alone. The same method as the 1-on-1, without the calls.</p>
     <div class="price">Lifetime access <small>· pay in full or in 2 payments at checkout</small></div>
@@ -40,21 +47,25 @@
   </section>
 
   <section class="box center">
-    <h3>Ready for 1-on-1 later?</h3>
-    <p>When your trading and your budget are ready, <a href="apply.html?src=next">apply again</a> and I'll take another look.</p>
+    <h3>Over the next few months</h3>
+    <p>I'll send you a couple of short emails a month: how I size a trade, protect an account and grow a small one. No pitch in them. When your situation changes, <a href="apply.html?src=next">apply again</a> and I'll read it myself.</p>
   </section>
 
   <footer>
     <p>© 2026 PRNTR.AI · Doctor founder, from pharmacy to full-time trading.</p>
-    <p class="small mute">Trading, and especially leverage trading, carries a high risk of loss; you can lose more than you deposit. Past results do not guarantee future results. This is education, not financial advice.</p>
+    <p class="small mute">Trading, and especially leverage trading, carries a high risk of loss; you can lose more than you deposit. Past results don't predict future results, and any student results shown are not typical. This is education, not financial advice.</p>
     <p><a href="terms.html">Terms and refunds</a> · <a href="privacy.html">Privacy</a></p>
   </footer>
 </div>
 <script>
   (function () {
     var a = {}; try { a = JSON.parse(sessionStorage.getItem('prntr_app') || '{}'); } catch (e) {}
-    if (a.name) document.getElementById('title').textContent = 'Thanks, ' + a.name + ". Here's where I'd start";
+    if (a.name) document.getElementById('title').textContent = a.name.split(' ')[0] + ", you're invited";
     document.getElementById('discordLink').href = PRNTR.discord;
+    // a direct Instagram DM (ig.me opens the chat with the account); the handle comes from config.js
+    document.getElementById('dmLink').href = 'https://ig.me/m/' + PRNTR.instagram;
+    document.querySelectorAll('.ig-link').forEach(function (x) { x.href = 'https://instagram.com/' + PRNTR.instagram; });
+    document.querySelectorAll('.ig-handle').forEach(function (x) { x.textContent = '@' + PRNTR.instagram; });
   })();
 </script>
 </body>
