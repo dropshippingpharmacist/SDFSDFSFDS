@@ -44,26 +44,34 @@ def _sfx_files():
 
 # ---------------- step 1: cut and join ----------------
 def cut(plan, work, W, H, fps, preset):
+    """Cut each kept range on its own, then join them. One filter graph with every trim of the same input made ffmpeg
+    buffer the whole video in memory (13 GB on a 7-minute 1080p recording, killed for lack of memory)."""
     src = plan["source"]
     info = probe(src)
-    lines = []
     keep = plan["keep"]
+    segdir = os.path.join(work, "cut_parts"); os.makedirs(segdir, exist_ok=True)
+    parts = []
     for i, (s, e) in enumerate(keep):
-        lines.append(f"[0:v]trim=start={s}:end={e},setpts=PTS-STARTPTS,fps={fps},scale={W}:{H}:force_original_aspect_ratio=decrease,"
-                     f"pad={W}:{H}:(ow-iw)/2:(oh-ih)/2:color=black,setsar=1[v{i}];")
+        d = e - s
+        vf = (f"fps={fps},scale={W}:{H}:force_original_aspect_ratio=decrease,pad={W}:{H}:(ow-iw)/2:(oh-ih)/2:color=black,"
+              f"setsar=1")
+        part = os.path.join(segdir, f"p{i:03d}.mov")
+        cmd = ["ffmpeg", "-v", "error", "-y", "-ss", f"{s:.3f}", "-i", src, "-t", f"{d:.3f}"]
         if info["has_audio"]:
-            d = e - s
-            lines.append(f"[0:a]atrim=start={s}:end={e},asetpts=PTS-STARTPTS,aresample=48000,afade=t=in:d=0.012,"
-                         f"afade=t=out:st={max(0, d - 0.012):.3f}:d=0.012[a{i}];")
+            cmd += ["-vf", vf, "-af", f"aresample=48000,afade=t=in:d=0.012,afade=t=out:st={max(0, d - 0.012):.3f}:d=0.012",
+                    "-map", "0:v:0", "-map", "0:a:0"]
         else:
-            lines.append(f"anullsrc=r=48000:cl=stereo,atrim=0:{e - s}[a{i}];")
-    lines.append("".join(f"[v{i}][a{i}]" for i in range(len(keep))) + f"concat=n={len(keep)}:v=1:a=1[v][a]")
-    script = os.path.join(work, "cut_filter.txt")
-    with open(script, "w") as f:
-        f.write("\n".join(lines))
+            cmd += ["-f", "lavfi", "-t", f"{d:.3f}", "-i", "anullsrc=r=48000:cl=stereo", "-vf", vf, "-map", "0:v:0", "-map", "1:a:0"]
+        run(cmd + ["-c:v", "libx264", "-preset", preset, "-crf", "17", "-c:a", "pcm_s16le", "-ar", "48000", "-ac", "2",
+                   "-f", "mov", part])
+        parts.append(part)
+    lst = os.path.join(segdir, "list.txt")
+    with open(lst, "w") as f:
+        f.write("".join(f"file '{p}'\n" for p in parts))
     out = os.path.join(work, "cut.mov")
-    run(["ffmpeg", "-v", "error", "-y", "-i", src, "-filter_complex_script", script, "-map", "[v]", "-map", "[a]",
-         "-c:v", "libx264", "-preset", preset, "-crf", "17", "-c:a", "pcm_s16le", "-f", "mov", out])
+    run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", "-f", "mov", out])
+    for p in parts:
+        os.remove(p)
     return out
 
 
