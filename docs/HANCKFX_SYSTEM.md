@@ -90,3 +90,71 @@ close → 24 × $3k × 1.5 lifetime = $108k. At PRNTR prices (~$2.4k upfront) th
 2. What we'll do on the call (your trades, your goal, what's stopping you) — no deliverables, no price.
 3. One student who was exactly where they are.
 4. "Bring your last 5 trades. Reply YES to the email/text so I know you're coming."
+
+## 8. The "$1,700,000 Month" playbook (Create & Collect case study, read 2026-11-25)
+
+His agency's write-up of one client (JJ Simon, NQ futures educator): $8k/mo to a $1.7M month. 60 days: 1,010 calls
+booked, 88% show, 58% close on shows, $1.82M cash, about $3,495 cash per close, ~20 reps. Their numbers, not typical,
+used as targets only. Below: only what is NEW against sections 1-7, and where it lands in PRNTR.
+
+### 8.1 Rules that change what we have
+
+| Playbook rule | PRNTR today | Change |
+|---|---|---|
+| **No "guarantee" anywhere** (banned on organic, paid, pages, calls), plus no money tied to a timeframe, no outcome promises, no fake scarcity / spot counts | Section 6.1 suggests a conditional guarantee; launch table says "X spots left" | Drop the guarantee idea and any spot count unless real; keep a written refund policy stated in full; "results not typical" on every testimonial, page, video |
+| **Calendar on the page, never a link out** (each extra page load loses 15-25% of people about to book) | Calendly link after the application | Embed the Calendly widget inline on the apply / book page and on the downsell page |
+| **Private invite page for low capital**: no VSL, no calendar, "DM Interested", never says "disqualified", then a 6-month capital nurture | Budget filter sends <$1k to a downsell page | Keep the downsell, add the 6-month capital track (2 value emails a month + "if your situation changed") |
+| **Pitch one tier, alone**: the main offer on every call; downsell only on a capital "no"; upsell only after the main offer is bought ("one more thing, only for people who just did what you did") | Course / Group / 1-on-1 all on the site | On calls: Group only. Course = capital-no downsell. 1-on-1 = post-purchase upsell (they see ~1 in 10 take it) |
+| **Segmented recovery, one trigger one tag one sequence**; a booking removes the contact from every other sequence; the end-of-call outcome is the tag | One 8-email sequence + reminders | Add the tracks in 8.2; the end-of-call form on /pipeline sets the tag |
+| **Paid ads last**: only after show >= 80% and close >= 50% | No ads | Stays off until /pipeline shows both |
+
+### 8.2 Sequences to add (email; SMS/WhatsApp mirror for the reminders)
+
+| Track | Trigger | Content |
+|---|---|---|
+| Opt-in nurture | playbook / Discord opt-in | 14 emails over 21 days: case study, YouTube redirect, CTA every 3rd |
+| Applied, never booked | application, no booking | 13 emails over 3 months + a Discord ping so you call fast |
+| Reminders | booked | confirm, 24h, 1h, 10 min; a student case study link in each |
+| No-show | slot passed, no show | 5 emails, the first 15 min after the slot ("zero risk to show up, only upside") |
+| Cancelled by prospect | cancel | 24 over 6 months, weekly, "nothing to lose rebook" |
+| Cancelled by you (usually capital) | your cancel | 12 over 6 months, 2 value emails a month |
+| Showed, no close: capital | end-of-call form | 3 emails, then the capital track |
+| Showed, no close: objection | end-of-call form | 4 over 14 days, one objection per email |
+| Went south / not a fit | end-of-call form | 2 emails (reset) / 1 email (close the loop) |
+
+House style: text only, one link, no images or buttons, sent 11 AM ET, short sentences, no P.S., sell the next step not
+the program, never a checkout link, evergreen (no dates).
+
+### 8.3 Positioning and content
+
+- **Sell to people 25-40 with a job and capital**, not to your own age group. Pitch the math and the receipts, not
+  inspiration. One mechanism sentence ("built over years, learned in an hour").
+- **Posting split 50 / 35 / 15** (reach / belief / proof). Most creators post 90% reach or 90% proof; the middle
+  (method on a real chart, EV, sizing, student interviews) is where people convert.
+- **Pain-point grid**: rows = pains (no consistency, rugged / liquidated, strategy hopping, tried a guru course, no
+  time), columns = top / middle / bottom. Film the empty cell next.
+- **DM rule**: someone who has never watched a video gets the one video that fits his question, not a booking link.
+- **One exit** for every post and video: the book-a-call page.
+- Cadence: 1-2 long-form a week, 7-21 reels cut from them, daily stories, a student interview every 2-4 weeks.
+
+### 8.4 Before the call (seven assets) and on the call
+
+- Post-booking page: "one of the few who made it here", what the call is (a diagnosis, 30 min), "come with your
+  numbers", homework (accept the invite, be at a laptop, bring your last trades), then the proof wall.
+- Also: a results page (screenshots, platforms named), case studies page, an "about" page for people who google you,
+  a WhatsApp/Telegram channel with a daily win, the intake answers in front of you when the call starts.
+- Call, 30-45 min: frame 2 · diagnose 12 · gap 5 · prescribe 7 · offer 3 · objections 8 · close 3 · end-of-call form 2.
+  Never price before the diagnosis, never three tiers at once.
+- First 48 hours after a sale: welcome + Discord post at once, onboarding form at 10 min, private coach channel inside
+  the hour, week 1 the program; renewal offer in month 5.
+
+### 8.5 Targets (add to /pipeline)
+
+Show >= 85% (below 80% = a post-booking problem) · close on shows >= 55% (below 45% = a qualifying problem) · cash per
+show >= $1,800 (below = offer presentation) · track by source and by angle.
+
+### 8.6 Variants feeding the same calendar (later, in this order)
+
+Free playbook with the calendar unlocked at 50% of the VSL watched (cold traffic only) · quiz -> email -> result ->
+application · weekly live session (Thursday 7 PM ET) once ads run · low-ticket community as a qualification layer
+(members buy the main offer 3-5x more often than free leads).
