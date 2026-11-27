@@ -114,7 +114,7 @@ def make(photo, proof, hook, line, cta="DM me “PRINTER” for the free playboo
     return base.convert("RGB")
 
 
-HOOKS = ["10 minutes in. Done for the day.", "Same setup. Again.", "Risked 1. Made 6.7.",
+HOOKS = ["10 minutes in. Done for the day.", "Same setup. Again.", "Risked 1. Made {r}.",
          "Didn't even watch it play out.", "Tuesday.", "Bot took it. I just checked my phone."]
 
 
@@ -126,7 +126,9 @@ def caption(sym, side, r=None, usd=None, lesson=None, seed=None):
         "Wait for the range, let them run the stops, enter on the reclaim. Same playbook every time.",
         "No guessing, no screen-staring: the setup, the stop and the target are decided before I'm in.",
         "Small risk, defined stop, big target. One trade like this pays for a week of small losses."])
-    return (f"{rnd.choice(HOOKS)}\n\n{sym} {side.lower()} · {res}\n\n{lesson}\n\n"
+    hooks = [h for h in HOOKS if "{r}" not in h or r is not None]
+    hook = rnd.choice(hooks).replace("{r}", f"{r:g}" if r is not None else "")
+    return (f"{hook}\n\n{sym} {side.lower()} · {res}\n\n{lesson}\n\n"
             f"Want the exact setup? DM me \"PRINTER\" and I'll send you the free playbook.")
 
 
@@ -134,14 +136,14 @@ if __name__ == "__main__":
     a = argparse.ArgumentParser()
     a.add_argument("--photo", required=True)
     a.add_argument("--proof", required=True)
-    a.add_argument("--hook", default="10 minutes in. Done for the day.")
+    a.add_argument("--hook", default="10 minutes in. Done for the day.", help='use {r} for the trade R, e.g. "Risked 1. Made {r}."')
     a.add_argument("--line", default="")
     a.add_argument("--cta", default="DM me “PRINTER” for the free playbook")
     a.add_argument("--tilt", type=float, default=-3.0)
     a.add_argument("--out", default="story.png")
     a.add_argument("--caption", nargs="*", help="SYM SIDE R USD")
     o = a.parse_args()
-    make(o.photo, o.proof, o.hook, o.line, o.cta, tilt=o.tilt).save(o.out, quality=95)
+    make(o.photo, o.proof, o.hook.replace("{r}", f"{float(o.caption[2]):g}" if o.caption and len(o.caption) > 2 else "{r}"), o.line, o.cta, tilt=o.tilt).save(o.out, quality=95)
     print(o.out)
     if o.caption:
         s, sd, r, u = (o.caption + [None] * 4)[:4]
