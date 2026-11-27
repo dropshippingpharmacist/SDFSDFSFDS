@@ -114,8 +114,8 @@ def make(photo, proof, hook, line, cta="DM me “PRINTER” for the free playboo
     return base.convert("RGB")
 
 
-HOOKS = ["Took this one from the driver's seat", "Trading doesn't need a desk anymore",
-         "This is what my bot paid me today", "Same rules every day. This is the result"]
+HOOKS = ["10 minutes in. Done for the day.", "Same setup. Again.", "Risked 1. Made 6.7.",
+         "Didn't even watch it play out.", "Tuesday.", "Bot took it. I just checked my phone."]
 
 
 def caption(sym, side, r=None, usd=None, lesson=None, seed=None):
@@ -126,7 +126,7 @@ def caption(sym, side, r=None, usd=None, lesson=None, seed=None):
         "Wait for the range, let them run the stops, enter on the reclaim. Same playbook every time.",
         "No guessing, no screen-staring: the setup, the stop and the target are decided before I'm in.",
         "Small risk, defined stop, big target. One trade like this pays for a week of small losses."])
-    return (f"{rnd.choice(HOOKS)}.\n\n{sym} {side.lower()} · {res}\n\n{lesson}\n\n"
+    return (f"{rnd.choice(HOOKS)}\n\n{sym} {side.lower()} · {res}\n\n{lesson}\n\n"
             f"Want the exact setup? DM me \"PRINTER\" and I'll send you the free playbook.")
 
 
@@ -134,7 +134,7 @@ if __name__ == "__main__":
     a = argparse.ArgumentParser()
     a.add_argument("--photo", required=True)
     a.add_argument("--proof", required=True)
-    a.add_argument("--hook", default=HOOKS[0])
+    a.add_argument("--hook", default="10 minutes in. Done for the day.")
     a.add_argument("--line", default="")
     a.add_argument("--cta", default="DM me “PRINTER” for the free playbook")
     a.add_argument("--tilt", type=float, default=-3.0)
