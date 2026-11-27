@@ -11,7 +11,7 @@
    "kind": "big_number",
    "title": "Our system, tested trade by trade",
    "number": "300",
-   "caption": "trades in 19 months of real Nasdaq data \u00b7 only 1 in 5 won \u00b7 still up +30.7R",
+   "caption": "trades in 19 months of real Nasdaq data · only 1 in 5 won · still up +30.7R",
    "say": "We ran our system through nineteen months of real Nasdaq data, trade by trade. About three hundred trades. Only one in five of them won. And it still finished up more than thirty R. Let me show you how that's possible."
   },
   {
@@ -19,7 +19,7 @@
    "title": "Why 1 win in 5 is enough",
    "points": [
     "164 losses | 64 wins",
-    "Average loss: \u22121R | Average win: +3.2R",
+    "Average loss: −1R | Average win: +3.2R",
     "Losses are capped at the stop | Winners run to the target"
    ],
    "say": "Here's the math. The losses were capped at one R, every single time. The winners averaged more than three R. So one good trade pays for three losers. You don't need to be right often. You need your winners to be bigger than your losers."
@@ -43,19 +43,19 @@
   },
   {
    "kind": "image",
-   "title": "Opening Sweep \u00b7 short \u00b7 +6.7R",
+   "title": "Opening Sweep · short · +6.7R",
    "image": "s1_a.png",
    "say": "July twenty seventh. Price pushed up into the open, took the stops above, and failed. Our system shorted with an eighteen point stop. Ten minutes later it hit the target. Plus six point seven R."
   },
   {
    "kind": "image",
-   "title": "Opening Sweep \u00b7 long \u00b7 +12.5R",
+   "title": "Opening Sweep · long · +12.5R",
    "image": "s1_b.png",
    "say": "June first. Same idea, the other direction. The sell-off at the open ran the stops below, then reversed. A twelve point stop, held all day to the target. Plus twelve point five R."
   },
   {
    "kind": "image",
-   "title": "Opening Sweep \u00b7 short \u00b7 +11.5R",
+   "title": "Opening Sweep · short · +11.5R",
    "image": "s1_c.png",
    "say": "March thirteenth. The open squeezed up, failed, and our system shorted it. A sixteen point stop, and it rode all the way down. Plus eleven point five R. Three trades, more than thirty R."
   },
@@ -67,13 +67,13 @@
   },
   {
    "kind": "image",
-   "title": "Rejection Zone \u00b7 short \u00b7 +5.7R",
+   "title": "Rejection Zone · short · +5.7R",
    "image": "s2_a.png",
    "say": "November fourth. Price ran back into the zone, rejected, and our system was in with a six point stop. Plus five point seven R in six minutes."
   },
   {
    "kind": "image",
-   "title": "Rejection Zone \u00b7 long \u00b7 +4.2R",
+   "title": "Rejection Zone · long · +4.2R",
    "image": "s2_b.png",
    "say": "September twenty second. Same zone, from below. A seven and a half point stop, target hit eight minutes later. Plus four point two R."
   },
@@ -85,13 +85,13 @@
   },
   {
    "kind": "image",
-   "title": "First entry: stopped out \u00b7 \u22121R",
+   "title": "First entry: stopped out · −1R",
    "image": "loss_1.png",
    "say": "November twenty fifth. The first entry got stopped out. Minus one R. Most people quit right here."
   },
   {
    "kind": "image",
-   "title": "Second chance \u00b7 +5.8R to target",
+   "title": "Second chance · +5.8R to target",
    "image": "s3_reentry.png",
    "say": "But look what happened. Price wicked through the stops and closed straight back above the entry. That's the second chance. Re-enter with a new stop past that wick, same target. Price ran all the way to the target. Held there, that's plus five point eight R."
   },
@@ -113,6 +113,43 @@
    "say": "These are the rules that keep it alive. Same risk on every trade. The stop goes where the idea is wrong, and it never moves further away. Two losses in a day and you're done. And no trade unless every condition is there."
   },
   {
+   "kind": "title",
+   "title": "Same system, on crypto",
+   "caption": "Bitcoin, Ethereum, and a meme coin.",
+   "say": "Now, this isn't just a Nasdaq thing. Here's the same system on crypto."
+  },
+  {
+   "kind": "big_number",
+   "title": "Bitcoin and Ethereum, 2-hour chart",
+   "number": "267",
+   "caption": "BTC & ETH trades since Jan 2024 (backtest) · 42% won · up +53R (+18R without the single biggest win)",
+   "say": "We ran our system on Bitcoin and Ethereum, on the two hour chart, from January twenty twenty four to now. Two hundred sixty seven trades. Forty two percent won, and it finished up fifty three R. And to be fair, one huge trade did a lot of that. Take that one out and it's still up eighteen R. Same story as the Nasdaq: small losses, bigger wins."
+  },
+  {
+   "kind": "image",
+   "title": "Ethereum · long · +5.1R",
+   "image": "c_eth_win.png",
+   "say": "April seventh, Ethereum. A first low, then a drop that ran the stops below it, then a higher low. That's the setup. Our system went long with the stop under that higher low. Six days later it hit the target. Plus five point one R."
+  },
+  {
+   "kind": "image",
+   "title": "Bitcoin · short · +5.0R",
+   "image": "c_btc_win.png",
+   "say": "August twenty sixth, Bitcoin. Same idea, the other direction. Short at sixty four thousand, stop above sixty six. Price bled all the way down to the target. Plus five R."
+  },
+  {
+   "kind": "image",
+   "title": "And a normal loss · −1R",
+   "image": "c_eth_loss.png",
+   "say": "And here's a loss, because they happen. October twenty seventh, Ethereum. Same shape, it looked good, and it didn't work. Stop hit, minus one R. On to the next one."
+  },
+  {
+   "kind": "image",
+   "title": "A meme coin: PEPE",
+   "image": "c_pepe.png",
+   "say": "And one more. This PEPE long was posted by a well known trader. Our system found the same setup on its own, entered, and took profit at one and a half R before it ran even further. It works on anything with real volume."
+  },
+  {
    "kind": "points",
    "title": "It's not just the Nasdaq",
    "points": [
@@ -124,7 +161,7 @@
   {
    "kind": "title",
    "title": "Want to learn our full system?",
-   "caption": "Book a call: link below \u00b7 or DM me PRINTER for the free playbook.  Results shown are past trades and tests, not a promise of future results.",
+   "caption": "Book a call: link below · or DM me PRINTER for the free playbook.  Results shown are past trades and tests, not a promise of future results.",
    "say": "I've shown you the three setups. The exact rules for each one, the timing, and how the bot finds them, that's what I teach inside. If you want to learn our full system, book a call with the link below. Or DM me the word printer on Instagram for the free playbook. I'll see you in the next one."
   }
  ]

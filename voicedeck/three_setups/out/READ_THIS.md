@@ -66,11 +66,35 @@ And this is what a normal loss looks like. November sixteenth. The setup was the
 
 These are the rules that keep it alive. Same risk on every trade. The stop goes where the idea is wrong, and it never moves further away. Two losses in a day and you're done. And no trade unless every condition is there.
 
-**[17] It's not just the Nasdaq**
+**[17] Same system, on crypto**
+
+Now, this isn't just a Nasdaq thing. Here's the same system on crypto.
+
+**[18] Bitcoin and Ethereum, 2-hour chart**
+
+We ran our system on Bitcoin and Ethereum, on the two hour chart, from January twenty twenty four to now. Two hundred sixty seven trades. Forty two percent won, and it finished up fifty three R. And to be fair, one huge trade did a lot of that. Take that one out and it's still up eighteen R. Same story as the Nasdaq: small losses, bigger wins.
+
+**[19] Ethereum · long · +5.1R**
+
+April seventh, Ethereum. A first low, then a drop that ran the stops below it, then a higher low. That's the setup. Our system went long with the stop under that higher low. Six days later it hit the target. Plus five point one R.
+
+**[20] Bitcoin · short · +5.0R**
+
+August twenty sixth, Bitcoin. Same idea, the other direction. Short at sixty four thousand, stop above sixty six. Price bled all the way down to the target. Plus five R.
+
+**[21] And a normal loss · −1R**
+
+And here's a loss, because they happen. October twenty seventh, Ethereum. Same shape, it looked good, and it didn't work. Stop hit, minus one R. On to the next one.
+
+**[22] A meme coin: PEPE**
+
+And one more. This PEPE long was posted by a well known trader. Our system found the same setup on its own, entered, and took profit at one and a half R before it ran even further. It works on anything with real volume.
+
+**[23] It's not just the Nasdaq**
 
 And this isn't just the Nasdaq. You can use the same idea on anything with a market cap and real volume. Futures, crypto, stocks, gold. Markets change, but where the stops are sitting doesn't.
 
-**[18] Want to learn our full system?**
+**[24] Want to learn our full system?**
 
 I've shown you the three setups. The exact rules for each one, the timing, and how the bot finds them, that's what I teach inside. If you want to learn our full system, book a call with the link below. Or DM me the word printer on Instagram for the free playbook. I'll see you in the next one.
 
