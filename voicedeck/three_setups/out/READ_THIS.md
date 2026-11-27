@@ -22,15 +22,15 @@ All three setups come from one idea. Find where everyone's stops are sitting. Le
 
 Setup one. The opening sweep. The first big move of the session is very often a trap.
 
-**[06] Opening Sweep · short · +6.7R**
+**[06] Jul 27, 2026 · Opening Sweep · short · +6.7R**
 
 July twenty seventh. Price pushed up into the open, took the stops above, and failed. Our system shorted with an eighteen point stop. Ten minutes later it hit the target. Plus six point seven R.
 
-**[07] Opening Sweep · long · +12.5R**
+**[07] Jun 1, 2026 · Opening Sweep · long · +12.5R**
 
 June first. Same idea, the other direction. The sell-off at the open ran the stops below, then reversed. A twelve point stop, held all day to the target. Plus twelve point five R.
 
-**[08] Opening Sweep · short · +11.5R**
+**[08] Mar 13, 2026 · Opening Sweep · short · +11.5R**
 
 March thirteenth. The open squeezed up, failed, and our system shorted it. A sixteen point stop, and it rode all the way down. Plus eleven point five R. Three trades, more than thirty R.
 
@@ -38,11 +38,11 @@ March thirteenth. The open squeezed up, failed, and our system shorted it. A six
 
 Setup two. The rejection zone. Price comes back to a level where it was rejected hard before, and gets rejected again.
 
-**[10] Rejection Zone · short · +5.7R**
+**[10] Nov 4, 2025 · Rejection Zone · short · +5.7R**
 
 November fourth. Price ran back into the zone, rejected, and our system was in with a six point stop. Plus five point seven R in six minutes.
 
-**[11] Rejection Zone · long · +4.2R**
+**[11] Sep 22, 2026 · Rejection Zone · long · +4.2R**
 
 September twenty second. Same zone, from below. A seven and a half point stop, target hit eight minutes later. Plus four point two R.
 
@@ -50,15 +50,15 @@ September twenty second. Same zone, from below. A seven and a half point stop, t
 
 Setup three. The second chance. Sometimes the market hunts your stop, and the trade still works. Here's what our system does about that.
 
-**[13] First entry: stopped out · −1R**
+**[13] Nov 25, 2026 · First entry: stopped out · −1R**
 
 November twenty fifth. The first entry got stopped out. Minus one R. Most people quit right here.
 
-**[14] Second chance · +5.8R to target**
+**[14] Nov 25, 2026 · Second chance · +5.8R to target**
 
 But look what happened. Price wicked through the stops and closed straight back above the entry. That's the second chance. Re-enter with a new stop past that wick, same target. Price ran all the way to the target. Held there, that's plus five point eight R.
 
-**[15] And this is a normal loss**
+**[15] Nov 16, 2026 · And this is a normal loss**
 
 And this is what a normal loss looks like. November sixteenth. The setup was there, it didn't work, the stop got hit. Minus one R, and on to the next one. This is part of it, and it's why the risk has to be the same every time.
 
@@ -74,19 +74,19 @@ Now, this isn't just a Nasdaq thing. Here's the same system on crypto.
 
 We ran our system on Bitcoin and Ethereum, on the two hour chart, from January twenty twenty four to now. Two hundred sixty seven trades. Forty two percent won, and it finished up fifty three R. And to be fair, one huge trade did a lot of that. Take that one out and it's still up eighteen R. Same story as the Nasdaq: small losses, bigger wins.
 
-**[19] Ethereum · long · +5.1R**
+**[19] Apr 7, 2026 · Ethereum · long · +5.1R**
 
-April seventh, Ethereum. A first low, then a drop that ran the stops below it, then a higher low. That's the setup. Our system went long with the stop under that higher low. Six days later it hit the target. Plus five point one R.
+April seventh, twenty twenty six, Ethereum. A first low, then a drop that ran the stops below it, then a higher low. That's the setup. Our system went long with the stop under that higher low. Six days later it hit the target. Plus five point one R.
 
-**[20] Bitcoin · short · +5.0R**
+**[20] Aug 25, 2024 · Bitcoin · short · +5.0R**
 
-August twenty sixth, Bitcoin. Same idea, the other direction. Short at sixty four thousand, stop above sixty six. Price bled all the way down to the target. Plus five R.
+August twenty fifth, twenty twenty four, Bitcoin. Same idea, the other direction. Short at sixty four thousand, stop above sixty six. Price bled all the way down to the target. Plus five R.
 
-**[21] And a normal loss · −1R**
+**[21] Oct 28, 2026 · And a normal loss · −1R**
 
-And here's a loss, because they happen. October twenty seventh, Ethereum. Same shape, it looked good, and it didn't work. Stop hit, minus one R. On to the next one.
+And here's a loss, because they happen. October twenty eighth, Ethereum. Same shape, it looked good, and it didn't work. Stop hit, minus one R. On to the next one.
 
-**[22] A meme coin: PEPE**
+**[22] Nov 18, 2026 · A meme coin: PEPE**
 
 And one more. This PEPE long was posted by a well known trader. Our system found the same setup on its own, entered, and took profit at one and a half R before it ran even further. It works on anything with real volume.
 
@@ -94,7 +94,11 @@ And one more. This PEPE long was posted by a well known trader. Our system found
 
 And this isn't just the Nasdaq. You can use the same idea on anything with a market cap and real volume. Futures, crypto, stocks, gold. Markets change, but where the stops are sitting doesn't.
 
-**[24] Want to learn our full system?**
+**[24] Every trade, listed**
+
+And don't just take my word for it. Every single trade is listed. All three hundred Nasdaq trades, and all two hundred sixty seven Bitcoin and Ethereum trades. Wins and losses, with the date, the entry, the stop, the target, and the exit. The link is in the description. Check them yourself.
+
+**[25] Want to learn our full system?**
 
 I've shown you the three setups. The exact rules for each one, the timing, and how the bot finds them, that's what I teach inside. If you want to learn our full system, book a call with the link below. Or DM me the word printer on Instagram for the free playbook. I'll see you in the next one.
 

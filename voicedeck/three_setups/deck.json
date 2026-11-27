@@ -43,19 +43,19 @@
   },
   {
    "kind": "image",
-   "title": "Opening Sweep · short · +6.7R",
+   "title": "Jul 27, 2026 · Opening Sweep · short · +6.7R",
    "image": "s1_a.png",
    "say": "July twenty seventh. Price pushed up into the open, took the stops above, and failed. Our system shorted with an eighteen point stop. Ten minutes later it hit the target. Plus six point seven R."
   },
   {
    "kind": "image",
-   "title": "Opening Sweep · long · +12.5R",
+   "title": "Jun 1, 2026 · Opening Sweep · long · +12.5R",
    "image": "s1_b.png",
    "say": "June first. Same idea, the other direction. The sell-off at the open ran the stops below, then reversed. A twelve point stop, held all day to the target. Plus twelve point five R."
   },
   {
    "kind": "image",
-   "title": "Opening Sweep · short · +11.5R",
+   "title": "Mar 13, 2026 · Opening Sweep · short · +11.5R",
    "image": "s1_c.png",
    "say": "March thirteenth. The open squeezed up, failed, and our system shorted it. A sixteen point stop, and it rode all the way down. Plus eleven point five R. Three trades, more than thirty R."
   },
@@ -67,13 +67,13 @@
   },
   {
    "kind": "image",
-   "title": "Rejection Zone · short · +5.7R",
+   "title": "Nov 4, 2025 · Rejection Zone · short · +5.7R",
    "image": "s2_a.png",
    "say": "November fourth. Price ran back into the zone, rejected, and our system was in with a six point stop. Plus five point seven R in six minutes."
   },
   {
    "kind": "image",
-   "title": "Rejection Zone · long · +4.2R",
+   "title": "Sep 22, 2026 · Rejection Zone · long · +4.2R",
    "image": "s2_b.png",
    "say": "September twenty second. Same zone, from below. A seven and a half point stop, target hit eight minutes later. Plus four point two R."
   },
@@ -85,19 +85,19 @@
   },
   {
    "kind": "image",
-   "title": "First entry: stopped out · −1R",
+   "title": "Nov 25, 2026 · First entry: stopped out · −1R",
    "image": "loss_1.png",
    "say": "November twenty fifth. The first entry got stopped out. Minus one R. Most people quit right here."
   },
   {
    "kind": "image",
-   "title": "Second chance · +5.8R to target",
+   "title": "Nov 25, 2026 · Second chance · +5.8R to target",
    "image": "s3_reentry.png",
    "say": "But look what happened. Price wicked through the stops and closed straight back above the entry. That's the second chance. Re-enter with a new stop past that wick, same target. Price ran all the way to the target. Held there, that's plus five point eight R."
   },
   {
    "kind": "image",
-   "title": "And this is a normal loss",
+   "title": "Nov 16, 2026 · And this is a normal loss",
    "image": "loss_0.png",
    "say": "And this is what a normal loss looks like. November sixteenth. The setup was there, it didn't work, the stop got hit. Minus one R, and on to the next one. This is part of it, and it's why the risk has to be the same every time."
   },
@@ -127,25 +127,25 @@
   },
   {
    "kind": "image",
-   "title": "Ethereum · long · +5.1R",
+   "title": "Apr 7, 2026 · Ethereum · long · +5.1R",
    "image": "c_eth_win.png",
-   "say": "April seventh, Ethereum. A first low, then a drop that ran the stops below it, then a higher low. That's the setup. Our system went long with the stop under that higher low. Six days later it hit the target. Plus five point one R."
+   "say": "April seventh, twenty twenty six, Ethereum. A first low, then a drop that ran the stops below it, then a higher low. That's the setup. Our system went long with the stop under that higher low. Six days later it hit the target. Plus five point one R."
   },
   {
    "kind": "image",
-   "title": "Bitcoin · short · +5.0R",
+   "title": "Aug 25, 2024 · Bitcoin · short · +5.0R",
    "image": "c_btc_win.png",
-   "say": "August twenty sixth, Bitcoin. Same idea, the other direction. Short at sixty four thousand, stop above sixty six. Price bled all the way down to the target. Plus five R."
+   "say": "August twenty fifth, twenty twenty four, Bitcoin. Same idea, the other direction. Short at sixty four thousand, stop above sixty six. Price bled all the way down to the target. Plus five R."
   },
   {
    "kind": "image",
-   "title": "And a normal loss · −1R",
+   "title": "Oct 28, 2026 · And a normal loss · −1R",
    "image": "c_eth_loss.png",
-   "say": "And here's a loss, because they happen. October twenty seventh, Ethereum. Same shape, it looked good, and it didn't work. Stop hit, minus one R. On to the next one."
+   "say": "And here's a loss, because they happen. October twenty eighth, Ethereum. Same shape, it looked good, and it didn't work. Stop hit, minus one R. On to the next one."
   },
   {
    "kind": "image",
-   "title": "A meme coin: PEPE",
+   "title": "Nov 18, 2026 · A meme coin: PEPE",
    "image": "c_pepe.png",
    "say": "And one more. This PEPE long was posted by a well known trader. Our system found the same setup on its own, entered, and took profit at one and a half R before it ran even further. It works on anything with real volume."
   },
@@ -157,6 +157,16 @@
     "The market changes. Where the stops sit doesn't."
    ],
    "say": "And this isn't just the Nasdaq. You can use the same idea on anything with a market cap and real volume. Futures, crypto, stocks, gold. Markets change, but where the stops are sitting doesn't."
+  },
+  {
+   "kind": "points",
+   "title": "Every trade, listed",
+   "points": [
+    "All 300 Nasdaq trades and all 267 Bitcoin & Ethereum trades",
+    "Wins AND losses, with the date, entry, stop, target and exit",
+    "Download the full list: link below"
+   ],
+   "say": "And don't just take my word for it. Every single trade is listed. All three hundred Nasdaq trades, and all two hundred sixty seven Bitcoin and Ethereum trades. Wins and losses, with the date, the entry, the stop, the target, and the exit. The link is in the description. Check them yourself."
   },
   {
    "kind": "title",
