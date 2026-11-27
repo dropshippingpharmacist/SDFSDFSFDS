@@ -139,7 +139,7 @@ def transcribe(audio):
     return words, info.duration
 
 
-def build(deck_path, audio=None, out="video.mp4", slides_only=False):
+def build(deck_path, audio=None, out="video.mp4", slides_only=False, face=None, face_pos="br", face_size=300):
     deck = json.load(open(deck_path)); dd = os.path.dirname(os.path.abspath(deck_path))
     sl = deck["slides"]; od = os.path.join(dd, "out"); os.makedirs(od, exist_ok=True)
     pngs = []
@@ -149,6 +149,7 @@ def build(deck_path, audio=None, out="video.mp4", slides_only=False):
         f.write(f"# {deck.get('title', 'Script')}\n\nRead it top to bottom in one take. Pause a beat between slides.\n\n")
         for i, s in enumerate(sl, 1):
             f.write(f"**[{i:02d}] {s.get('title') or s.get('kind')}**\n\n{s.get('say', '')}\n\n")
+    audio = audio or face                  # recorded on camera: the voice comes from the camera file
     if slides_only or not audio:
         return pngs
     words, dur = transcribe(audio)
@@ -160,15 +161,46 @@ def build(deck_path, audio=None, out="video.mp4", slides_only=False):
             f.write(f"file '{p}'\nduration {max(0.3, b - a):.3f}\n")
         f.write(f"file '{pngs[-1]}'\n")
         lst = f.name
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", lst, "-i", audio,
-                    "-vf", "fps=30,format=yuv420p", "-c:v", "libx264", "-preset", "medium", "-crf", "18",
-                    "-c:a", "aac", "-b:a", "192k", "-af", "loudnorm=I=-14:TP=-1.5:LRA=11", "-shortest", out], check=True)
+    subprocess.run(ffmpeg_cmd(lst, audio, out, face, face_pos, face_size), check=True)
     return out
+
+
+def ffmpeg_cmd(lst, audio, out, face=None, face_pos="br", face_size=300):
+    """Slides full screen; with `face`, the camera video sits in a small circle in a corner (picture in picture),
+    sharpened a little because laptop cameras are soft. The voice is always taken from `audio`."""
+    cmd = ["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", lst]
+    if face and os.path.abspath(face) != os.path.abspath(audio):
+        cmd += ["-i", face, "-i", audio]; ai = 2
+    elif face:
+        cmd += ["-i", face]; ai = 1
+    else:
+        cmd += ["-i", audio]; ai = 1
+    if face:
+        d, m, b = face_size, 40, 6                     # circle diameter, margin from the edges, teal ring width
+        x = {"br": f"W-{d}-{m}", "bl": f"{m}", "tr": f"W-{d}-{m}", "tl": f"{m}"}[face_pos]
+        y = {"br": f"H-{d}-{m}", "bl": f"H-{d}-{m}", "tr": f"{m}", "tl": f"{m}"}[face_pos]
+        r = d // 2; ri = r - b
+        fg = (f"[0:v]fps=30,scale=1920:1080,format=yuv420p[bg];"
+              f"[1:v]fps=30,crop='min(iw,ih)':'min(iw,ih)',scale={d}:{d},unsharp=5:5:0.8,format=yuva420p,"
+              f"geq=lum='p(X,Y)':cb='p(X,Y)':cr='p(X,Y)':"
+              f"a='if(lt(hypot(X-{r},Y-{r}),{ri}),255,0)'[cam];"
+              f"color=c=0x3FD1B4:s={d}x{d},format=yuva420p,"
+              f"geq=lum='lum(X,Y)':cb='cb(X,Y)':cr='cr(X,Y)':a='if(lt(hypot(X-{r},Y-{r}),{r}),255,0)'[ring];"
+              f"[bg][ring]overlay={x}:{y}:shortest=1[b2];[b2][cam]overlay={x}:{y}:shortest=1,format=yuv420p[v]")
+        cmd += ["-filter_complex", fg, "-map", "[v]", "-map", f"{ai}:a"]
+    else:
+        cmd += ["-vf", "fps=30,format=yuv420p"]
+    cmd += ["-c:v", "libx264", "-preset", "medium", "-crf", "18", "-c:a", "aac", "-b:a", "192k",
+            "-af", "loudnorm=I=-14:TP=-1.5:LRA=11", "-shortest", out]
+    return cmd
 
 
 if __name__ == "__main__":
     a = argparse.ArgumentParser()
     a.add_argument("deck"); a.add_argument("--audio"); a.add_argument("-o", "--out", default="video.mp4")
     a.add_argument("--slides-only", action="store_true")
+    a.add_argument("--face", help="your camera recording: shown small in a corner, its sound used as the voice")
+    a.add_argument("--face-pos", default="br", choices=["br", "bl", "tr", "tl"])
+    a.add_argument("--face-size", type=int, default=300)
     o = a.parse_args()
-    print(build(o.deck, o.audio, o.out, o.slides_only))
+    print(build(o.deck, o.audio, o.out, o.slides_only, o.face, o.face_pos, o.face_size))

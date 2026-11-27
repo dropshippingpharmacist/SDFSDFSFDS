@@ -1,0 +1,62 @@
+<title>PRNTR Video 1 Teleprompter</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&display=swap">
+<style>
+/* Layout: a single dark reading column with a fixed reading line; controls pinned to the bottom. Deliberately dark-only, like a real prompter. */
+:root{--bg:#05080a;--fg:#f2f6f5;--dim:#6f8286;--accent:#3fd1b4;--bar:#0d1418;--line:#1d2a2f;--font:"Inter",system-ui,sans-serif;color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);overflow:hidden}
+#view{position:absolute;inset:0 0 calc(64px + env(safe-area-inset-bottom,0px)) 0;overflow-y:auto;scrollbar-width:none;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#view::-webkit-scrollbar{display:none}
+#text{max-width:1000px;margin:0 auto;padding-block:38vh 70vh;font-size:var(--fs,48px);line-height:1.45;font-weight:600}
+#text.mirror{transform:scaleX(-1)}
+.slide{margin-bottom:1.4em}
+.tag{display:block;font-size:.36em;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:.4em}
+.tag small{color:var(--dim);font-weight:600;letter-spacing:.04em;text-transform:none}
+.slide p{margin:0}
+.slide.past p{color:var(--dim)}
+#guide{position:fixed;left:0;right:0;top:38vh;height:3px;background:var(--accent);opacity:.55;pointer-events:none}
+#guide::before{content:"\25B6";position:absolute;left:max(6px,env(safe-area-inset-left,0px));top:-14px;color:var(--accent);font-size:20px}
+#bar{position:fixed;left:0;right:0;bottom:0;background:var(--bar);border-top:1px solid var(--line);display:flex;gap:14px;align-items:center;flex-wrap:wrap;
+  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));font-size:14px}
+button{font:600 14px var(--font);padding:8px 16px;border-radius:8px;border:1px solid var(--line);background:#16222a;color:var(--fg);cursor:pointer}
+button#play{background:var(--accent);color:#03110d;border-color:var(--accent);min-width:96px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+label{display:flex;gap:8px;align-items:center;color:var(--dim)}
+input[type=range]{width:110px;accent-color:var(--accent)}
+#pos{margin-left:auto;color:var(--dim);font-variant-numeric:tabular-nums}
+@media (max-width:600px){#text{--fs:30px!important}#pos{display:none}}
+</style>
+<div id="view"><div id="text"></div></div>
+<div id="guide" aria-hidden="true"></div>
+<div id="bar">
+  <button id="play">Start</button>
+  <button id="top">Back to top</button>
+  <label for="speed">Speed <input id="speed" type="range" min="10" max="140" value="45"></label>
+  <label for="size">Text <input id="size" type="range" min="26" max="84" value="48"></label>
+  <button id="mir">Mirror</button>
+  <span id="pos"></span>
+</div>
+<script>
+const S=[["The 3 setups my trading bot takes", "These are the three setups my trading bot takes using our system. Every chart in this video is a real setup on the Nasdaq, taken by our system's rules. And I'm going to show you the losses too, because that's where most traders get it wrong."], ["Our system, tested trade by trade", "We ran our system through nineteen months of real Nasdaq data, trade by trade. About three hundred trades. Only one in five of them won. And it still finished up more than thirty R. Let me show you how that's possible."], ["Why 1 win in 5 is enough", "Here's the math. The losses were capped at one R, every single time. The winners averaged more than three R. So one good trade pays for three losers. You don't need to be right often. You need your winners to be bigger than your losers."], ["The idea behind all three setups", "All three setups come from one idea. Find where everyone's stops are sitting. Let the market run them. Enter when that move fails, with your stop just past the wick. And target the next pool of stops on the other side."], ["Setup 1: The Opening Sweep", "Setup one. The opening sweep. The first big move of the session is very often a trap."], ["Jul 27, 2026 · Opening Sweep · short · +6.7R", "July twenty seventh. Price pushed up into the open, took the stops above, and failed. Our system shorted with an eighteen point stop. Ten minutes later it hit the target. Plus six point seven R."], ["Jun 1, 2026 · Opening Sweep · long · +12.5R", "June first. Same idea, the other direction. The sell-off at the open ran the stops below, then reversed. A twelve point stop, held all day to the target. Plus twelve point five R."], ["Mar 13, 2026 · Opening Sweep · short · +11.5R", "March thirteenth. The open squeezed up, failed, and our system shorted it. A sixteen point stop, and it rode all the way down. Plus eleven point five R. Three trades, more than thirty R."], ["Setup 2: The Rejection Zone", "Setup two. The rejection zone. Price comes back to a level where it was rejected hard before, and gets rejected again."], ["Nov 4, 2025 · Rejection Zone · short · +5.7R", "November fourth. Price ran back into the zone, rejected, and our system was in with a six point stop. Plus five point seven R in six minutes."], ["Sep 22, 2026 · Rejection Zone · long · +4.2R", "September twenty second. Same zone, from below. A seven and a half point stop, target hit eight minutes later. Plus four point two R."], ["Setup 3: The Second Chance", "Setup three. The second chance. Sometimes the market hunts your stop, and the trade still works. Here's what our system does about that."], ["Nov 25, 2026 · First entry: stopped out · −1R", "November twenty fifth. The first entry got stopped out. Minus one R. Most people quit right here."], ["Nov 25, 2026 · Second chance · +5.8R to target", "But look what happened. Price wicked through the stops and closed straight back above the entry. That's the second chance. Re-enter with a new stop past that wick, same target. Price ran all the way to the target. Held there, that's plus five point eight R."], ["Nov 16, 2026 · And this is a normal loss", "And this is what a normal loss looks like. November sixteenth. The setup was there, it didn't work, the stop got hit. Minus one R, and on to the next one. This is part of it, and it's why the risk has to be the same every time."], ["The rules that keep it alive", "These are the rules that keep it alive. Same risk on every trade. The stop goes where the idea is wrong, and it never moves further away. Two losses in a day and you're done. And no trade unless every condition is there."], ["Same system, on crypto", "Now, this isn't just a Nasdaq thing. Here's the same system on crypto."], ["Bitcoin and Ethereum, 2-hour chart", "We ran our system on Bitcoin and Ethereum, on the two hour chart, from January twenty twenty four to now. Two hundred sixty seven trades. Forty two percent won, and it finished up fifty three R. And to be fair, one huge trade did a lot of that. Take that one out and it's still up eighteen R. Same story as the Nasdaq: small losses, bigger wins."], ["Apr 7, 2026 · Ethereum · long · +5.1R", "April seventh, twenty twenty six, Ethereum. A first low, then a drop that ran the stops below it, then a higher low. That's the setup. Our system went long with the stop under that higher low. Six days later it hit the target. Plus five point one R."], ["Aug 25, 2024 · Bitcoin · short · +5.0R", "August twenty fifth, twenty twenty four, Bitcoin. Same idea, the other direction. Short at sixty four thousand, stop above sixty six. Price bled all the way down to the target. Plus five R."], ["Oct 28, 2026 · And a normal loss · −1R", "And here's a loss, because they happen. October twenty eighth, Ethereum. Same shape, it looked good, and it didn't work. Stop hit, minus one R. On to the next one."], ["Nov 18, 2026 · A meme coin: PEPE", "And one more. This PEPE long was posted by a well known trader. Our system found the same setup on its own, entered, and took profit at one and a half R before it ran even further. It works on anything with real volume."], ["It's not just the Nasdaq", "And this isn't just the Nasdaq. You can use the same idea on anything with a market cap and real volume. Futures, crypto, stocks, gold. Markets change, but where the stops are sitting doesn't."], ["Every trade, listed", "And don't just take my word for it. Every single trade is listed. All three hundred Nasdaq trades, and all two hundred sixty seven Bitcoin and Ethereum trades. Wins and losses, with the date, the entry, the stop, the target, and the exit. The link is in the description. Check them yourself."], ["Want to learn our full system?", "I've shown you the three setups. The exact rules for each one, the timing, and how the bot finds them, that's what I teach inside. If you want to learn our full system, book a call with the link below. Or DM me the word printer on Instagram for the free playbook. I'll see you in the next one."]];
+const T=document.getElementById("text"),V=document.getElementById("view");
+T.innerHTML=S.map(([t,s],i)=>`<div class="slide" data-i="${i}"><span class="tag">Slide ${i+1} <small>${t}</small></span><p>${s}</p></div>`).join("");
+let on=false,last=0,acc=0;
+const sp=document.getElementById("speed"),sz=document.getElementById("size"),pl=document.getElementById("play");
+function setSize(){T.style.setProperty("--fs",sz.value+"px")}
+sz.oninput=setSize;setSize();
+function tick(ts){ if(on){ const dt=last?(ts-last)/1000:0; acc+=dt*sp.value; const px=Math.floor(acc); if(px){V.scrollTop+=px;acc-=px;} } last=ts; requestAnimationFrame(tick)}
+requestAnimationFrame(tick);
+function toggle(){on=!on;pl.textContent=on?"Pause":"Start"}
+pl.onclick=toggle;
+document.getElementById("top").onclick=()=>{V.scrollTop=0;on=false;pl.textContent="Start"};
+document.getElementById("mir").onclick=()=>T.classList.toggle("mirror");
+document.addEventListener("keydown",e=>{if(e.code==="Space"){e.preventDefault();toggle()}
+  if(e.key==="ArrowUp"){sp.value=+sp.value+5} if(e.key==="ArrowDown"){sp.value=+sp.value-5}});
+const els=[...T.querySelectorAll(".slide")],pos=document.getElementById("pos");
+V.addEventListener("scroll",()=>{const line=V.getBoundingClientRect().top+innerHeight*0.38;let cur=0;
+  els.forEach((el,i)=>{const r=el.getBoundingClientRect();if(r.top<=line)cur=i;el.classList.toggle("past",r.bottom<line)});
+  pos.textContent=`Slide ${cur+1} of ${els.length}`});
+pos.textContent=`Slide 1 of ${els.length}`;
+</script>
